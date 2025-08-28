@@ -5,6 +5,7 @@ import httpx
 from typing import Optional, Dict, Any
 import redis
 from redis.exceptions import RedisError
+import gzip
 
 # Redis connection (Render provides REDIS_URL env var)
 REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
@@ -37,22 +38,37 @@ async def update_cache():
     print("Fetching fresh player data from Sleeper API...")
     players_data = await fetch_players_from_api()
     
+    # Filter to only active and relevant players to reduce size
+    filtered_players = {}
+    for player_id, player in players_data.items():
+        if player and isinstance(player, dict):
+            # Keep active players and recently active players
+            if player.get('active', False) or player.get('search_rank', 999999) < 10000:
+                filtered_players[player_id] = player
+    
     r = get_redis_client()
     
-    # Store player data with TTL
-    players_json = json.dumps(players_data)
-    r.setex(CACHE_KEY, CACHE_TTL, players_json)
+    # Compress the data before storing
+    players_json = json.dumps(filtered_players)
+    compressed_data = gzip.compress(players_json.encode())
+    
+    print(f"Compression: {len(players_json) / (1024*1024):.2f}MB -> {len(compressed_data) / (1024*1024):.2f}MB")
+    
+    # Store compressed data with TTL
+    r.setex(CACHE_KEY, CACHE_TTL, compressed_data)
     
     # Store metadata
     meta = {
         'last_updated': datetime.now().isoformat(),
-        'player_count': len(players_data),
-        'size_mb': len(players_json) / (1024 * 1024)
+        'total_players': len(players_data),
+        'cached_players': len(filtered_players),
+        'compressed_size_mb': len(compressed_data) / (1024 * 1024),
+        'compression': 'gzip'
     }
     r.setex(META_KEY, CACHE_TTL, json.dumps(meta))
     
-    print(f"Cache updated: {meta['player_count']} players, {meta['size_mb']:.2f} MB")
-    return players_data
+    print(f"Cache updated: {meta['cached_players']} active players (of {meta['total_players']} total), {meta['compressed_size_mb']:.2f} MB compressed")
+    return filtered_players
 
 async def get_all_players() -> Dict[str, Any]:
     """Get all players, using cache if valid, otherwise fetch fresh"""
@@ -63,7 +79,14 @@ async def get_all_players() -> Dict[str, Any]:
         cached_data = r.get(CACHE_KEY)
         if cached_data:
             print("Using cached player data from Redis")
-            return json.loads(cached_data)
+            # Check if data is compressed
+            try:
+                # Try to decompress
+                decompressed = gzip.decompress(cached_data)
+                return json.loads(decompressed)
+            except gzip.BadGzipFile:
+                # Not compressed, parse directly
+                return json.loads(cached_data)
     except RedisError as e:
         print(f"Redis error, fetching fresh: {e}")
     
