@@ -28,25 +28,6 @@ BASE_URL = "https://api.sleeper.app/v1"
 # Hardcoded league ID
 LEAGUE_ID = "1266471057523490816"
 
-# Initialize Redis connection on startup
-@mcp.on_startup()
-async def startup():
-    """Initialize Redis cache on startup"""
-    logger.info("Initializing MCP server...")
-    try:
-        # Test Redis connection and warm cache
-        status = await get_cache_status()
-        if not status.get('valid'):
-            logger.warning("Cache not valid, attempting to populate...")
-            # Don't block startup on cache population
-            asyncio.create_task(force_refresh())
-        else:
-            logger.info(f"Cache is valid with {status.get('cached_players', 0)} players")
-    except Exception as e:
-        logger.error(f"Failed to initialize cache: {e}")
-        # Continue anyway - cache will populate on first request
-    logger.info("MCP server initialization complete")
-
 
 @mcp.tool()
 async def get_league_info() -> Dict[str, Any]:
