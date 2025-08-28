@@ -16,7 +16,14 @@ CACHE_TTL = 86400  # 24 hours in seconds
 
 def get_redis_client():
     """Get Redis client with connection pooling"""
-    return redis.from_url(REDIS_URL, decode_responses=False)
+    return redis.from_url(
+        REDIS_URL, 
+        decode_responses=False, 
+        socket_connect_timeout=5,
+        socket_timeout=5,
+        retry_on_timeout=True,
+        max_connections=10
+    )
 
 def is_cache_valid() -> bool:
     """Check if cache exists and is still valid"""
@@ -38,46 +45,68 @@ async def update_cache():
     print("Fetching fresh player data from Sleeper API...")
     players_data = await fetch_players_from_api()
     
-    # Filter to only active and relevant players to reduce size
+    # Much more aggressive filtering to reduce size for free Redis tier
     filtered_players = {}
     for player_id, player in players_data.items():
         if player and isinstance(player, dict):
-            # Keep active players and recently active players
+            # Only keep truly active and relevant players
             search_rank = player.get('search_rank')
             is_active = player.get('active', False)
-            is_relevant = search_rank is not None and search_rank < 10000
-            if is_active or is_relevant:
-                filtered_players[player_id] = player
+            status = player.get('status', '')
+            
+            # Much stricter criteria - only top 5000 players or active NFL players
+            is_relevant = search_rank is not None and search_rank < 5000
+            is_nfl_active = status in ['Active', 'Injured Reserve', 'PUP'] and player.get('team')
+            
+            if is_relevant or (is_active and is_nfl_active):
+                # Keep only essential fields to save space
+                filtered_players[player_id] = {
+                    'full_name': player.get('full_name'),
+                    'first_name': player.get('first_name'),
+                    'last_name': player.get('last_name'),
+                    'position': player.get('position'),
+                    'team': player.get('team'),
+                    'status': player.get('status'),
+                    'age': player.get('age'),
+                    'search_rank': player.get('search_rank'),
+                    'active': player.get('active'),
+                    'player_id': player_id
+                }
     
-    r = get_redis_client()
+    try:
+        r = get_redis_client()
+        
+        # Compress the data before storing
+        players_json = json.dumps(filtered_players)
+        compressed_data = gzip.compress(players_json.encode(), compresslevel=9)  # Max compression
+        
+        print(f"Compression: {len(players_json) / (1024*1024):.2f}MB -> {len(compressed_data) / (1024*1024):.2f}MB")
+        
+        # Store compressed data with TTL
+        r.setex(CACHE_KEY, CACHE_TTL, compressed_data)
+        
+        # Store metadata
+        meta = {
+            'last_updated': datetime.now().isoformat(),
+            'total_players': len(players_data),
+            'cached_players': len(filtered_players),
+            'compressed_size_mb': len(compressed_data) / (1024 * 1024),
+            'compression': 'gzip'
+        }
+        r.setex(META_KEY, CACHE_TTL, json.dumps(meta))
+        
+        print(f"Cache updated: {meta['cached_players']} active players (of {meta['total_players']} total), {meta['compressed_size_mb']:.2f} MB compressed")
+    except RedisError as e:
+        print(f"Failed to update Redis cache: {e}")
+        # Return the filtered data even if cache fails
     
-    # Compress the data before storing
-    players_json = json.dumps(filtered_players)
-    compressed_data = gzip.compress(players_json.encode())
-    
-    print(f"Compression: {len(players_json) / (1024*1024):.2f}MB -> {len(compressed_data) / (1024*1024):.2f}MB")
-    
-    # Store compressed data with TTL
-    r.setex(CACHE_KEY, CACHE_TTL, compressed_data)
-    
-    # Store metadata
-    meta = {
-        'last_updated': datetime.now().isoformat(),
-        'total_players': len(players_data),
-        'cached_players': len(filtered_players),
-        'compressed_size_mb': len(compressed_data) / (1024 * 1024),
-        'compression': 'gzip'
-    }
-    r.setex(META_KEY, CACHE_TTL, json.dumps(meta))
-    
-    print(f"Cache updated: {meta['cached_players']} active players (of {meta['total_players']} total), {meta['compressed_size_mb']:.2f} MB compressed")
     return filtered_players
 
 async def get_all_players() -> Dict[str, Any]:
     """Get all players, using cache if valid, otherwise fetch fresh"""
-    r = get_redis_client()
-    
     try:
+        r = get_redis_client()
+        
         # Try to get from cache first
         cached_data = r.get(CACHE_KEY)
         if cached_data:
@@ -90,8 +119,8 @@ async def get_all_players() -> Dict[str, Any]:
             except gzip.BadGzipFile:
                 # Not compressed, parse directly
                 return json.loads(cached_data)
-    except RedisError as e:
-        print(f"Redis error, fetching fresh: {e}")
+    except (RedisError, ConnectionError) as e:
+        print(f"Redis error, will fetch fresh: {e}")
     
     # Cache miss or error - fetch fresh
     print("Cache invalid or missing, fetching fresh data")
@@ -113,10 +142,13 @@ def search_player(players: Dict[str, Any], name: str) -> list:
                     'team': player_data.get('team'),
                     'status': player_data.get('status'),
                     'age': player_data.get('age'),
+                    'search_rank': player_data.get('search_rank'),
                     'data': player_data
                 })
     
-    return results
+    # Sort by search rank (most relevant first)
+    results.sort(key=lambda x: x.get('search_rank', 99999))
+    return results[:10]  # Return top 10 matches
 
 async def get_player_by_name(name: str) -> list:
     """Get player data by name (uses cache)"""
@@ -135,18 +167,27 @@ async def force_refresh():
 # Health check endpoint helper
 async def get_cache_status() -> Dict[str, Any]:
     """Get cache status for monitoring"""
-    r = get_redis_client()
-    
     try:
+        r = get_redis_client()
+        
         meta = r.get(META_KEY)
         if meta:
             meta_data = json.loads(meta)
             ttl = r.ttl(CACHE_KEY)
             meta_data['ttl_seconds'] = ttl
             meta_data['valid'] = True
+            
+            # Add Redis memory info
+            try:
+                info = r.info('memory')
+                meta_data['redis_memory_used_mb'] = info.get('used_memory', 0) / (1024 * 1024)
+                meta_data['redis_memory_peak_mb'] = info.get('used_memory_peak', 0) / (1024 * 1024)
+            except:
+                pass
+                
             return meta_data
-    except RedisError:
-        pass
+    except (RedisError, ConnectionError) as e:
+        return {'valid': False, 'error': f'Redis connection error: {str(e)}'}
     
     return {'valid': False, 'error': 'Cache not available'}
 

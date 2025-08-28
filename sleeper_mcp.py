@@ -2,6 +2,9 @@
 """Sleeper API MCP Server - Hardcoded for league 1266471057523490816"""
 
 import httpx
+import asyncio
+import os
+import logging
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
 from players_cache_redis import (
@@ -12,6 +15,10 @@ from players_cache_redis import (
     force_refresh
 )
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Initialize FastMCP server
 mcp = FastMCP("sleeper-mcp")
 
@@ -20,6 +27,25 @@ BASE_URL = "https://api.sleeper.app/v1"
 
 # Hardcoded league ID
 LEAGUE_ID = "1266471057523490816"
+
+# Initialize Redis connection on startup
+@mcp.on_startup()
+async def startup():
+    """Initialize Redis cache on startup"""
+    logger.info("Initializing MCP server...")
+    try:
+        # Test Redis connection and warm cache
+        status = await get_cache_status()
+        if not status.get('valid'):
+            logger.warning("Cache not valid, attempting to populate...")
+            # Don't block startup on cache population
+            asyncio.create_task(force_refresh())
+        else:
+            logger.info(f"Cache is valid with {status.get('cached_players', 0)} players")
+    except Exception as e:
+        logger.error(f"Failed to initialize cache: {e}")
+        # Continue anyway - cache will populate on first request
+    logger.info("MCP server initialization complete")
 
 
 @mcp.tool()
@@ -132,31 +158,59 @@ async def get_user_drafts(
 @mcp.tool()
 async def get_nfl_players() -> Dict[str, Any]:
     """Get all NFL players from cache (updated daily). Returns a large dataset."""
-    return await get_all_players()
+    try:
+        return await get_all_players()
+    except Exception as e:
+        logger.error(f"Error getting players: {e}")
+        return {"error": f"Failed to get players: {str(e)}"}
 
 
 @mcp.tool()
 async def search_player_by_name(name: str) -> List[Dict[str, Any]]:
     """Search for NFL players by name (uses cached data)"""
-    return await get_player_by_name(name)
+    try:
+        if not name or len(name) < 2:
+            return {"error": "Name must be at least 2 characters"}
+        return await get_player_by_name(name)
+    except Exception as e:
+        logger.error(f"Error searching for player {name}: {e}")
+        return {"error": f"Failed to search players: {str(e)}"}
 
 
 @mcp.tool()
 async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
     """Get a specific NFL player by their Sleeper ID (uses cached data)"""
-    return await get_player_by_id(player_id)
+    try:
+        if not player_id:
+            return {"error": "Player ID is required"}
+        result = await get_player_by_id(player_id)
+        if result:
+            return result
+        return {"error": f"Player with ID {player_id} not found"}
+    except Exception as e:
+        logger.error(f"Error getting player {player_id}: {e}")
+        return {"error": f"Failed to get player: {str(e)}"}
 
 
 @mcp.tool()
 async def get_players_cache_status() -> Dict[str, Any]:
     """Get the status of the NFL players cache (last updated, TTL, etc.)"""
-    return await get_cache_status()
+    try:
+        return await get_cache_status()
+    except Exception as e:
+        logger.error(f"Error getting cache status: {e}")
+        return {"error": f"Failed to get cache status: {str(e)}"}
 
 
 @mcp.tool()
 async def refresh_players_cache() -> Dict[str, Any]:
     """Force refresh the NFL players cache from the Sleeper API"""
-    return await force_refresh()
+    try:
+        result = await force_refresh()
+        return {"success": True, "players_cached": len(result)}
+    except Exception as e:
+        logger.error(f"Error refreshing cache: {e}")
+        return {"error": f"Failed to refresh cache: {str(e)}"}
 
 
 @mcp.tool()
