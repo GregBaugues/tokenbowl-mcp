@@ -200,7 +200,7 @@ if __name__ == "__main__":
             port = int(sys.argv[2])
         
         # Bind to 0.0.0.0 for external access (required for cloud deployment)
-        mcp.run(transport="sse", port=port, bind_host="0.0.0.0")
+        mcp.run(transport="sse", port=port, host="0.0.0.0")
     else:
         # Default to stdio for backward compatibility (Claude Desktop)
         mcp.run()
