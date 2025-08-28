@@ -4,6 +4,13 @@
 import httpx
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
+from players_cache_redis import (
+    get_all_players, 
+    get_player_by_name, 
+    get_player_by_id,
+    get_cache_status,
+    force_refresh
+)
 
 # Initialize FastMCP server
 mcp = FastMCP("sleeper-mcp")
@@ -124,11 +131,32 @@ async def get_user_drafts(
 
 @mcp.tool()
 async def get_nfl_players() -> Dict[str, Any]:
-    """Get all NFL players. Note: This returns a large dataset and should be cached."""
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.get(f"{BASE_URL}/players/nfl")
-        response.raise_for_status()
-        return response.json()
+    """Get all NFL players from cache (updated daily). Returns a large dataset."""
+    return await get_all_players()
+
+
+@mcp.tool()
+async def search_player_by_name(name: str) -> List[Dict[str, Any]]:
+    """Search for NFL players by name (uses cached data)"""
+    return await get_player_by_name(name)
+
+
+@mcp.tool()
+async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
+    """Get a specific NFL player by their Sleeper ID (uses cached data)"""
+    return await get_player_by_id(player_id)
+
+
+@mcp.tool()
+async def get_players_cache_status() -> Dict[str, Any]:
+    """Get the status of the NFL players cache (last updated, TTL, etc.)"""
+    return await get_cache_status()
+
+
+@mcp.tool()
+async def refresh_players_cache() -> Dict[str, Any]:
+    """Force refresh the NFL players cache from the Sleeper API"""
+    return await force_refresh()
 
 
 @mcp.tool()
