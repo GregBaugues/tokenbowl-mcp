@@ -1,0 +1,192 @@
+#!/usr/bin/env python3
+"""Sleeper API MCP Server - Hardcoded for league 1266471057523490816"""
+
+import httpx
+from fastmcp import FastMCP
+from typing import Optional, List, Dict, Any
+
+# Initialize FastMCP server
+mcp = FastMCP("sleeper-mcp")
+
+# Base URL for Sleeper API
+BASE_URL = "https://api.sleeper.app/v1"
+
+# Hardcoded league ID
+LEAGUE_ID = "1266471057523490816"
+
+
+@mcp.tool()
+async def get_league_info() -> Dict[str, Any]:
+    """Get information about the league"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_league_rosters() -> List[Dict[str, Any]]:
+    """Get all rosters in the league"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/rosters")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_league_users() -> List[Dict[str, Any]]:
+    """Get all users in the league"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/users")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
+    """Get matchups for a specific week in the league"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/matchups/{week}")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
+    """Get transactions for the league in a specific round"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/transactions/{round}")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_league_traded_picks() -> List[Dict[str, Any]]:
+    """Get all traded draft picks in the league"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/traded_picks")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_league_drafts() -> List[Dict[str, Any]]:
+    """Get all drafts for the league"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/drafts")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_league_winners_bracket() -> List[Dict[str, Any]]:
+    """Get playoff winners bracket for the league"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/winners_bracket")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_user(username_or_id: str) -> Dict[str, Any]:
+    """Get user information by username or user ID"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/user/{username_or_id}")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_user_leagues(
+    user_id: str, 
+    sport: str = "nfl", 
+    season: str = "2024"
+) -> List[Dict[str, Any]]:
+    """Get all leagues for a user in a specific sport and season"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/user/{user_id}/leagues/{sport}/{season}")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_user_drafts(
+    user_id: str,
+    sport: str = "nfl",
+    season: str = "2024"
+) -> List[Dict[str, Any]]:
+    """Get all drafts for a user in a specific sport and season"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/user/{user_id}/drafts/{sport}/{season}")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_nfl_players() -> Dict[str, Any]:
+    """Get all NFL players. Note: This returns a large dataset and should be cached."""
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.get(f"{BASE_URL}/players/nfl")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_trending_players(
+    type: str = "add", 
+    lookback_hours: Optional[int] = 24, 
+    limit: Optional[int] = 25
+) -> List[Dict[str, Any]]:
+    """
+    Get trending players being added or dropped.
+    
+    Args:
+        type: Either 'add' or 'drop' to see trending adds or drops
+        lookback_hours: Number of hours to look back (6, 12, or 24)
+        limit: Number of results to return (max 200)
+    """
+    params = {}
+    if lookback_hours:
+        params["lookback_hours"] = lookback_hours
+    if limit:
+        params["limit"] = limit
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"{BASE_URL}/players/nfl/trending/{type}",
+            params=params
+        )
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_draft(draft_id: str) -> Dict[str, Any]:
+    """Get specific draft information"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/draft/{draft_id}")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_draft_picks(draft_id: str) -> List[Dict[str, Any]]:
+    """Get all picks from a specific draft"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/draft/{draft_id}/picks")
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def get_draft_traded_picks(draft_id: str) -> List[Dict[str, Any]]:
+    """Get all traded picks in a draft"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{BASE_URL}/draft/{draft_id}/traded_picks")
+        response.raise_for_status()
+        return response.json()
+
+
+if __name__ == "__main__":
+    # Run the MCP server
+    mcp.run()
