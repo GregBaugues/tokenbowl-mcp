@@ -16,14 +16,36 @@ This MCP server provides tools to interact with the Sleeper API, hardcoded for a
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/sleeper-mcp.git
+git clone https://github.com/GregBaugues/sleeper-mcp.git
 cd sleeper-mcp
 
 # Install dependencies using uv
 uv sync
 ```
 
-## Configuration for Claude Desktop
+## Usage
+
+### Running as HTTP Server (Streamable)
+
+Start the server on default port 8000:
+```bash
+uv run python sleeper_mcp.py http
+```
+
+Or specify a custom port:
+```bash
+uv run python sleeper_mcp.py http 3000
+```
+
+### Running with STDIO (for Claude Desktop)
+
+```bash
+uv run python sleeper_mcp.py
+```
+
+## Configuration
+
+### For Claude Desktop (STDIO)
 
 Add to your Claude Desktop config file (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 
@@ -41,7 +63,14 @@ Add to your Claude Desktop config file (`~/Library/Application Support/Claude/cl
 }
 ```
 
-Then restart Claude Desktop to load the server.
+### For HTTP/SSE Transport
+
+Configure your MCP client to connect to:
+```
+http://localhost:8000/sse
+```
+
+The server uses Server-Sent Events (SSE) for streaming responses, making it compatible with web-based MCP clients and other HTTP-based integrations.
 
 ## Available Tools
 

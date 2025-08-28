@@ -188,5 +188,13 @@ async def get_draft_traded_picks(draft_id: str) -> List[Dict[str, Any]]:
 
 
 if __name__ == "__main__":
-    # Run the MCP server
-    mcp.run()
+    # Run the MCP server with HTTP transport
+    import sys
+    
+    # Check if port is provided as argument
+    if len(sys.argv) > 1 and sys.argv[1] == "http":
+        port = int(sys.argv[2]) if len(sys.argv) > 2 else 8000
+        mcp.run(transport="sse", port=port)
+    else:
+        # Default to stdio for backward compatibility
+        mcp.run()
