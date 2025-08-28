@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: sleeper-mcp
+    runtime: python
+    buildCommand: "pip install uv && uv sync"
+    startCommand: "uv run python sleeper_mcp.py http"
+    envVars:
+      - key: RENDER
+        value: "true"
+      - key: PYTHON_VERSION
+        value: "3.12"
+    autoDeploy: true
+    healthCheckPath: /health

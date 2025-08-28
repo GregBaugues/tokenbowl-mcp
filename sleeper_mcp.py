@@ -190,11 +190,17 @@ async def get_draft_traded_picks(draft_id: str) -> List[Dict[str, Any]]:
 if __name__ == "__main__":
     # Run the MCP server with HTTP transport
     import sys
+    import os
     
-    # Check if port is provided as argument
-    if len(sys.argv) > 1 and sys.argv[1] == "http":
-        port = int(sys.argv[2]) if len(sys.argv) > 2 else 8000
-        mcp.run(transport="sse", port=port)
+    # Check for environment variable or command line argument
+    if os.getenv("RENDER") or (len(sys.argv) > 1 and sys.argv[1] == "http"):
+        # Use PORT env variable (required by Render) or command line arg
+        port = int(os.getenv("PORT", 8000))
+        if len(sys.argv) > 2:
+            port = int(sys.argv[2])
+        
+        # Bind to 0.0.0.0 for external access (required for cloud deployment)
+        mcp.run(transport="sse", port=port, bind_host="0.0.0.0")
     else:
-        # Default to stdio for backward compatibility
+        # Default to stdio for backward compatibility (Claude Desktop)
         mcp.run()

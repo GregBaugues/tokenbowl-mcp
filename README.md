@@ -72,6 +72,20 @@ http://localhost:8000/sse
 
 The server uses Server-Sent Events (SSE) for streaming responses, making it compatible with web-based MCP clients and other HTTP-based integrations.
 
+### Deploying to Render
+
+1. Fork or clone this repository to your GitHub account
+2. Connect your GitHub account to Render
+3. Create a new Web Service on Render
+4. Connect your repository
+5. Render will automatically detect the `render.yaml` configuration
+6. Deploy!
+
+Your MCP server will be available at:
+```
+https://your-service-name.onrender.com/sse
+```
+
 ## Available Tools
 
 ### League Tools
