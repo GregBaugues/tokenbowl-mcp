@@ -43,7 +43,10 @@ async def update_cache():
     for player_id, player in players_data.items():
         if player and isinstance(player, dict):
             # Keep active players and recently active players
-            if player.get('active', False) or player.get('search_rank', 999999) < 10000:
+            search_rank = player.get('search_rank')
+            is_active = player.get('active', False)
+            is_relevant = search_rank is not None and search_rank < 10000
+            if is_active or is_relevant:
                 filtered_players[player_id] = player
     
     r = get_redis_client()
