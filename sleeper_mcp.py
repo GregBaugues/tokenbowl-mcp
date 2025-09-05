@@ -687,6 +687,12 @@ if __name__ == "__main__":
 
     # Check for environment variable or command line argument
     if os.getenv("RENDER") or (len(sys.argv) > 1 and sys.argv[1] == "http"):
+        # Start background cache refresh if enabled (for Render deployment)
+        if os.getenv("ENABLE_BACKGROUND_REFRESH", "false").lower() == "true":
+            from background_refresh import start_background_refresh
+            start_background_refresh()
+            logger.info("Background cache refresh enabled")
+        
         # Use PORT env variable (required by Render) or command line arg
         port = int(os.getenv("PORT", 8000))
         if len(sys.argv) > 2:

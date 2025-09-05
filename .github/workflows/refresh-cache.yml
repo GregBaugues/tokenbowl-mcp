@@ -1,0 +1,29 @@
+name: Refresh Player Cache
+
+on:
+  schedule:
+    # Run daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+jobs:
+  refresh-cache:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Trigger cache refresh
+      run: |
+        curl -X POST \
+          -H "Authorization: Bearer ${{ secrets.CACHE_REFRESH_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          https://sleeper-mcp.onrender.com/cache/refresh \
+          --fail \
+          --show-error
+      
+    - name: Check result
+      if: success()
+      run: echo "✅ Cache refresh completed successfully"
+      
+    - name: Handle failure
+      if: failure()
+      run: echo "❌ Cache refresh failed - check logs"
