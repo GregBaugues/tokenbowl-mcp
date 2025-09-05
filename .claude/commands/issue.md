@@ -9,6 +9,8 @@ Follow these steps to analyze and fix the GitHub issue: $ARGUMENTS.
 - Solve the issue in small, manageable steps, according to your plan. 
 - Commit your changes after each step. 
 - When finished, write tests to cover the work you did. Follow the testing guideines in CLAUDE.md
+- Run linting and formatting: `uv run ruff check .` and `uv run ruff format .`
+- Fix any linting or formatting issues before proceeding
 
 
 # STAGE
