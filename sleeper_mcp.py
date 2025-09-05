@@ -25,6 +25,15 @@ logger = logging.getLogger(__name__)
 # Initialize FastMCP server
 mcp = FastMCP("tokenbowl-mcp")
 
+# Add Logfire middleware if token is configured
+if os.environ.get("LOGFIRE_TOKEN"):
+    from logfire_middleware import LogfireMiddleware
+
+    logger.info("Enabling Logfire logging middleware")
+    mcp.add_middleware(LogfireMiddleware())
+else:
+    logger.info("LOGFIRE_TOKEN not set, Logfire logging disabled")
+
 # Base URL for Sleeper API
 BASE_URL = "https://api.sleeper.app/v1"
 
