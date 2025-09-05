@@ -44,11 +44,11 @@ class TestMCPServer:
             "get_league_rosters",
             "get_league_users",
             "get_league_matchups",
-            "get_nfl_players",
-            "search_player_by_name",
+            "get_players",
+            "search_players_by_name",
             "get_player_by_sleeper_id",
-            "get_players_cache_status",
-            "refresh_players_cache",
+            "get_trending_players",
+            "get_waiver_wire_players",
         ]
 
         for tool_name in tool_names:
@@ -57,19 +57,17 @@ class TestMCPServer:
     @pytest.mark.asyncio
     async def test_cache_functions(self):
         """Test that cache functions can be imported and have correct signatures."""
-        from players_cache_redis import (
-            get_all_players,
-            get_player_by_name,
-            get_player_by_id,
-            get_cache_status,
-            force_refresh,
+        from unified_players_cache import (
+            get_unified_players as get_all_players,
+            search_unified_players,
+            get_unified_player_by_id,
+            get_unified_cache_status,
         )
 
         # These should all be async functions
         import inspect
 
         assert inspect.iscoroutinefunction(get_all_players)
-        assert inspect.iscoroutinefunction(get_player_by_name)
-        assert inspect.iscoroutinefunction(get_player_by_id)
-        assert inspect.iscoroutinefunction(get_cache_status)
-        assert inspect.iscoroutinefunction(force_refresh)
+        assert inspect.iscoroutinefunction(search_unified_players)
+        assert inspect.iscoroutinefunction(get_unified_player_by_id)
+        assert inspect.iscoroutinefunction(get_unified_cache_status)

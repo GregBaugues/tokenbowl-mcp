@@ -7,12 +7,10 @@ import logging
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
-from players_cache_redis import (
-    get_all_players,
-    get_player_by_name,
-    get_player_by_id,
-    get_cache_status,
-    force_refresh,
+from unified_players_cache import (
+    get_unified_players as get_all_players,
+    search_unified_players as search_players_unified,
+    get_unified_player_by_id as get_player_by_id,
 )
 import logfire
 
@@ -26,7 +24,7 @@ logfire.configure()
 logging.basicConfig(
     level=logging.INFO,
     handlers=[logfire.LogfireLoggingHandler()],
-    format='%(name)s - %(levelname)s - %(message)s'
+    format="%(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -251,36 +249,37 @@ async def get_user(username_or_id: str) -> Dict[str, Any]:
         return response.json()
 
 
-@mcp.tool()
-async def get_user_leagues(
-    user_id: str, sport: str = "nfl", season: str = "2025"
-) -> List[Dict[str, Any]]:
-    """Get all fantasy leagues a user is participating in for a specific sport and season.
-
-    Args:
-        user_id: The numeric user ID of the Sleeper user (not username).
-        sport: The sport type (default: "nfl"). Options: "nfl", "nba", "lcs".
-        season: The year as a string (default: "2025"). Must be a valid 4-digit year.
-
-    Returns league information for each league including:
-    - League ID and name
-    - Total number of teams
-    - Scoring settings type
-    - League avatar
-    - Draft status and ID
-    - Season type and status
-
-    Useful for finding all leagues a user is in or checking league activity.
-
-    Returns:
-        List of league dictionaries the user is participating in
-    """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{BASE_URL}/user/{user_id}/leagues/{sport}/{season}"
-        )
-        response.raise_for_status()
-        return response.json()
+# Commented out - this MCP server is for a specific league (Token Bowl)
+# @mcp.tool()
+# async def get_user_leagues(
+#     user_id: str, sport: str = "nfl", season: str = "2025"
+# ) -> List[Dict[str, Any]]:
+#     """Get all fantasy leagues a user is participating in for a specific sport and season.
+#
+#     Args:
+#         user_id: The numeric user ID of the Sleeper user (not username).
+#         sport: The sport type (default: "nfl"). Options: "nfl", "nba", "lcs".
+#         season: The year as a string (default: "2025"). Must be a valid 4-digit year.
+#
+#     Returns league information for each league including:
+#     - League ID and name
+#     - Total number of teams
+#     - Scoring settings type
+#     - League avatar
+#     - Draft status and ID
+#     - Season type and status
+#
+#     Useful for finding all leagues a user is in or checking league activity.
+#
+#     Returns:
+#         List of league dictionaries the user is participating in
+#     """
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(
+#             f"{BASE_URL}/user/{user_id}/leagues/{sport}/{season}"
+#         )
+#         response.raise_for_status()
+#         return response.json()
 
 
 # @mcp.tool()
@@ -316,27 +315,24 @@ async def get_user_leagues(
 
 
 @mcp.tool()
-async def get_nfl_players() -> Dict[str, Any]:
-    """Get comprehensive data for ALL NFL players from Redis cache.
+async def get_players() -> Dict[str, Any]:
+    """Get comprehensive NFL player data with Fantasy Nerds enrichment.
 
-    WARNING: Returns a LARGE dataset (5MB+) with 5000+ players.
-    Consider using search_player_by_name() for specific players.
+    Returns unified player data including:
+    - Sleeper base data (name, team, position, status, age, etc.)
+    - Fantasy Nerds enrichment (ADP, injuries, projections)
+    - Player IDs for both systems
 
-    Data is cached in Redis and refreshed daily to avoid API rate limits.
+    Data is cached in Redis (24-hour TTL) with ~1,200+ players enriched.
 
-    Returns player data including:
-    - Player ID (Sleeper's unique identifier)
-    - Full name, position, team
-    - Age, height, weight, college
-    - Injury status and fantasy relevance
-    - Years of experience
-    - Active/inactive status
+    WARNING: Returns large dataset (3,800+ players).
+    Consider using search_players() for specific players.
 
     Returns:
-        Dict with player_id as keys and player data as values
+        Dict with player_id as keys and unified player data as values
     """
     try:
-        logger.debug("Fetching all NFL players from cache")
+        logger.debug("Fetching all players from unified cache")
         result = await get_all_players()
         logger.info(f"Successfully retrieved {len(result)} players from cache")
         return result
@@ -346,30 +342,37 @@ async def get_nfl_players() -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def search_player_by_name(name: str) -> List[Dict[str, Any]]:
-    """Search for NFL players by name using cached player database.
+async def search_players_by_name(name: str) -> List[Dict[str, Any]]:
+    """Search for players by name with unified Sleeper + Fantasy Nerds data.
 
     Args:
         name: Player name to search for (minimum 2 characters).
-              Supports partial matching and case-insensitive search.
-              Examples: "mahomes", "patrick", "davante adams"
+
+              Format examples:
+              - Last name only: "mahomes", "jefferson", "hill"
+              - First name only: "patrick", "justin", "tyreek"
+              - Full name: "patrick mahomes", "justin jefferson"
+              - Partial name: "dav" (matches Davante, David, etc.)
+
+              Notes:
+              - Case-insensitive matching
+              - Spaces are optional: "patrickMahomes" works
+              - Partial matches supported: "jeff" finds Jefferson
+              - Returns top 10 matches sorted by relevance
 
     Returns matching players with:
-    - Player ID for roster operations
-    - Full name and common name variations
-    - Current team and position
-    - Fantasy-relevant information
-    - Injury status if applicable
-
-    Search is performed on locally cached data for instant results.
+    - Basic info (name, team, position, age, status)
+    - Sleeper ID for roster operations
+    - Fantasy Nerds enrichment (ADP, injuries, projections when available)
+    - Search results sorted by Sleeper search rank
 
     Returns:
-        List of player dictionaries matching the search term
+        List of player dictionaries with unified data (max 10 results)
     """
     try:
         if not name or len(name) < 2:
             return {"error": "Name must be at least 2 characters"}
-        return await get_player_by_name(name)
+        return await search_players_unified(name)
     except Exception as e:
         logger.error(f"Error searching for player {name}: {e}")
         return {"error": f"Failed to search players: {str(e)}"}
@@ -377,25 +380,19 @@ async def search_player_by_name(name: str) -> List[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
-    """Get detailed information for a specific NFL player by their Sleeper ID.
+    """Get unified player data by Sleeper ID.
 
     Args:
-        player_id: The unique Sleeper player ID (numeric string).
-                  This ID is consistent across all Sleeper leagues.
+        player_id: The Sleeper player ID (numeric string).
                   Example: "4046" for Patrick Mahomes
 
-    Returns complete player information:
-    - Personal details (name, age, height, weight)
-    - Team and position
-    - Fantasy eligibility and status
-    - Injury information
-    - Years of experience
-    - College and draft info
-
-    Data retrieved from Redis cache for optimal performance.
+    Returns complete unified player information:
+    - All Sleeper data fields (name, age, position, team, etc.)
+    - Fantasy Nerds enrichment (ADP, injuries, projections)
+    - Both Sleeper ID and Fantasy Nerds ID when mapped
 
     Returns:
-        Dict with player information or error if not found
+        Dict with unified player data or error if not found
     """
     try:
         if not player_id:
@@ -409,53 +406,11 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
         return {"error": f"Failed to get player: {str(e)}"}
 
 
-@mcp.tool()
-async def get_players_cache_status() -> Dict[str, Any]:
-    """Get the current status and health of the NFL players Redis cache.
-
-    Returns cache information including:
-    - Last update timestamp
-    - Time until next refresh (TTL)
-    - Number of players cached
-    - Cache size in memory
-    - Redis connection status
-    - Any error states
-
-    Cache automatically refreshes every 24 hours.
-    Use refresh_players_cache() to force immediate update.
-
-    Returns:
-        Dict with cache status metrics and health information
-    """
-    try:
-        return await get_cache_status()
-    except Exception as e:
-        logger.error(f"Error getting cache status: {e}")
-        return {"error": f"Failed to get cache status: {str(e)}"}
+# Cache status removed - cache management should be handled elsewhere, not in MCP server
 
 
-@mcp.tool()
-async def refresh_players_cache() -> Dict[str, Any]:
-    """Force an immediate refresh of the NFL players cache from Sleeper API.
-
-    This operation:
-    - Fetches latest player data from Sleeper API
-    - Updates Redis cache with new data
-    - Resets 24-hour TTL timer
-    - May take 3-5 seconds to complete
-
-    Use sparingly to avoid API rate limits.
-    Cache normally auto-refreshes daily.
-
-    Returns:
-        Dict with success status and number of players cached
-    """
-    try:
-        result = await force_refresh()
-        return {"success": True, "players_cached": len(result)}
-    except Exception as e:
-        logger.error(f"Error refreshing cache: {e}")
-        return {"error": f"Failed to refresh cache: {str(e)}"}
+# Note: refresh_players_cache removed - cache refresh should be handled by cron job
+# The cache auto-refreshes on miss after 24-hour TTL expiration
 
 
 @mcp.tool()
@@ -619,9 +574,6 @@ async def get_waiver_wire_players(
         # Apply limit
         filtered_players = available_players[: min(limit, 200)]
 
-        # Get cache status
-        cache_status = await get_cache_status()
-
         return {
             "total_available": len(available_players),
             "filtered_count": len(filtered_players),
@@ -631,10 +583,6 @@ async def get_waiver_wire_players(
                 "search_term": search_term,
                 "include_trending": include_trending,
                 "limit": limit,
-            },
-            "cache_info": {
-                "last_updated": cache_status.get("last_refresh_time"),
-                "stale_warning": cache_status.get("is_stale", False),
             },
         }
 
@@ -729,6 +677,8 @@ async def get_waiver_wire_players(
 #         response.raise_for_status()
 #         return response.json()
 
+
+# Unified player tools removed - consolidated into main player tools above
 
 if __name__ == "__main__":
     # Run the MCP server with HTTP transport
