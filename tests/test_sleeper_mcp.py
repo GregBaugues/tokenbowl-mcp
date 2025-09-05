@@ -236,9 +236,9 @@ class TestPlayerTools:
 
 class TestDraftTools:
     """Test draft-related MCP tools."""
-    
+
     pass  # All draft tool tests commented out while tools are disabled
-    
+
     # Commented out because get_draft tool is currently disabled
     # @pytest.mark.asyncio
     # async def test_get_draft_mock(self):
