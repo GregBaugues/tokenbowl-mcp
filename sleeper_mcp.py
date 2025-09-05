@@ -24,40 +24,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize Logfire (reads LOGFIRE_TOKEN from env)
-token = os.getenv("LOGFIRE_TOKEN")
-if token:
-    logger.info(f"Initializing Logfire with token starting with: {token[:10]}...")
-    logfire.configure(
-        token=token,
-        service_name="tokenbowl-mcp",
-        environment="development" if not os.getenv("RENDER") else "production"
-    )
-    logger.info("Logfire initialized")
-else:
-    logger.warning("LOGFIRE_TOKEN not found in environment variables - Logfire disabled")
+logfire.configure()
+# Auto-instrument httpx for HTTP request tracing
+logfire.instrument_httpx()
 
 # Initialize FastMCP server
 mcp = FastMCP("tokenbowl-mcp")
-
-# Add Logfire middleware to log all MCP requests/responses
-async def logfire_middleware(request: dict, call_next):
-    """Log MCP requests and responses to Logfire"""
-    method = request.get("method", "unknown")
-    params = request.get("params", {})
-    
-    with logfire.span(f"mcp.{method}", **params):
-        logfire.info(f"MCP Request: {method}", **params)
-        response = await call_next(request)
-        
-        if "error" in response:
-            logfire.error(f"MCP Error: {method}", error=response["error"])
-        else:
-            logfire.info(f"MCP Response: {method}")
-        
-        return response
-
-if token:
-    mcp.add_middleware(logfire_middleware)
 
 # Base URL for Sleeper API
 BASE_URL = "https://api.sleeper.app/v1"
