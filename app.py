@@ -605,7 +605,9 @@ async def dashboard():
 
 @app.get("/api/logs")
 async def get_logs(
-    limit: Optional[int] = 100, tool: Optional[str] = None, status: Optional[str] = None
+    limit: Optional[int] = 100,
+    tool: Optional[str] = None,
+    status: Optional[str] = None
 ):
     """Get request/response logs with optional filtering"""
     return logger.get_logs(limit=limit, tool=tool, status=status)
@@ -633,24 +635,23 @@ async def health_check():
 @app.get("/sse")
 async def handle_sse(request: Request):
     """Handle Server-Sent Events for MCP communication"""
-
     async def event_generator():
         # Send initial connection event
         yield f"data: {json.dumps({'type': 'connection', 'status': 'connected'})}\n\n"
-
+        
         # Keep connection alive
         while True:
             await asyncio.sleep(30)
             yield f"data: {json.dumps({'type': 'ping'})}\n\n"
-
+    
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
-            "Access-Control-Allow-Origin": "*",
-        },
+            "Access-Control-Allow-Origin": "*"
+        }
     )
 
 
@@ -658,22 +659,22 @@ async def handle_sse(request: Request):
 async def handle_mcp_request(request: Request):
     """Handle MCP JSON-RPC requests and log them"""
     start_time = time.time()
-
+    
     try:
         # Get request body
         body = await request.body()
         request_data = json.loads(body) if body else {}
-
+        
         # Extract method and parameters
         method = request_data.get("method", "unknown")
         params = request_data.get("params", {})
         request_id = request_data.get("id")
-
+        
         # Extract tool name for logging
         tool_name = method
         if method == "tools/call" and "name" in params:
             tool_name = params["name"]
-
+            
         # Handle different MCP methods
         if method == "initialize":
             response_data = {
@@ -681,119 +682,62 @@ async def handle_mcp_request(request: Request):
                 "id": request_id,
                 "result": {
                     "protocolVersion": "0.1.0",
-                    "capabilities": {"tools": {}, "prompts": {}},
-                    "serverInfo": {"name": "tokenbowl-mcp", "version": "1.0.0"},
-                },
+                    "capabilities": {
+                        "tools": {},
+                        "prompts": {}
+                    },
+                    "serverInfo": {
+                        "name": "tokenbowl-mcp",
+                        "version": "1.0.0"
+                    }
+                }
             }
         elif method == "tools/list":
             # List of available tools (hardcoded for now)
             tools = [
-                {
-                    "name": "get_league_info",
-                    "description": "Get comprehensive information about the Token Bowl fantasy football league",
-                },
-                {
-                    "name": "get_league_rosters",
-                    "description": "Get all team rosters in the Token Bowl league with player assignments",
-                },
-                {
-                    "name": "get_league_users",
-                    "description": "Get all users (team owners) participating in the Token Bowl league",
-                },
-                {
-                    "name": "get_league_matchups",
-                    "description": "Get head-to-head matchups for a specific week in the Token Bowl league",
-                },
-                {
-                    "name": "get_league_transactions",
-                    "description": "Get recent transactions in the Token Bowl league",
-                },
-                {
-                    "name": "get_league_traded_picks",
-                    "description": "Get information about traded draft picks in the Token Bowl league",
-                },
-                {
-                    "name": "get_league_drafts",
-                    "description": "Get all drafts associated with the Token Bowl league",
-                },
-                {
-                    "name": "get_playoffs_bracket",
-                    "description": "Get the current playoff bracket for the Token Bowl league",
-                },
-                {
-                    "name": "get_user",
-                    "description": "Get detailed information about a specific Sleeper user",
-                },
-                {
-                    "name": "get_user_leagues",
-                    "description": "Get all leagues a user is participating in for a specific season",
-                },
-                {
-                    "name": "get_user_drafts",
-                    "description": "Get all drafts a user is participating in for a specific season",
-                },
-                {
-                    "name": "get_all_nfl_players",
-                    "description": "Get comprehensive data for all NFL players (cached in Redis)",
-                },
-                {
-                    "name": "get_trending_players_add",
-                    "description": "Get NFL players trending up (being added to rosters)",
-                },
-                {
-                    "name": "get_trending_players_drop",
-                    "description": "Get NFL players trending down (being dropped from rosters)",
-                },
-                {
-                    "name": "search_player_by_name",
-                    "description": "Search for NFL players by name (uses cached data)",
-                },
-                {
-                    "name": "search_player_by_id",
-                    "description": "Get NFL player details by player ID (uses cached data)",
-                },
-                {
-                    "name": "get_players_cache_status",
-                    "description": "Get status information about the NFL players cache",
-                },
-                {
-                    "name": "refresh_players_cache",
-                    "description": "Force refresh of the NFL players cache from Sleeper API",
-                },
-                {
-                    "name": "get_draft",
-                    "description": "Get comprehensive information about a specific fantasy draft",
-                },
-                {
-                    "name": "get_draft_picks",
-                    "description": "Get all player selections from a completed or in-progress draft",
-                },
-                {
-                    "name": "get_draft_traded_picks",
-                    "description": "Get information about draft picks that were traded before or during a draft",
-                },
+                {"name": "get_league_info", "description": "Get comprehensive information about the Token Bowl fantasy football league"},
+                {"name": "get_league_rosters", "description": "Get all team rosters in the Token Bowl league with player assignments"},
+                {"name": "get_league_users", "description": "Get all users (team owners) participating in the Token Bowl league"},
+                {"name": "get_league_matchups", "description": "Get head-to-head matchups for a specific week in the Token Bowl league"},
+                {"name": "get_league_transactions", "description": "Get recent transactions in the Token Bowl league"},
+                {"name": "get_league_traded_picks", "description": "Get information about traded draft picks in the Token Bowl league"},
+                {"name": "get_league_drafts", "description": "Get all drafts associated with the Token Bowl league"},
+                {"name": "get_playoffs_bracket", "description": "Get the current playoff bracket for the Token Bowl league"},
+                {"name": "get_user", "description": "Get detailed information about a specific Sleeper user"},
+                {"name": "get_user_leagues", "description": "Get all leagues a user is participating in for a specific season"},
+                {"name": "get_user_drafts", "description": "Get all drafts a user is participating in for a specific season"},
+                {"name": "get_all_nfl_players", "description": "Get comprehensive data for all NFL players (cached in Redis)"},
+                {"name": "get_trending_players_add", "description": "Get NFL players trending up (being added to rosters)"},
+                {"name": "get_trending_players_drop", "description": "Get NFL players trending down (being dropped from rosters)"},
+                {"name": "search_player_by_name", "description": "Search for NFL players by name (uses cached data)"},
+                {"name": "search_player_by_id", "description": "Get NFL player details by player ID (uses cached data)"},
+                {"name": "get_players_cache_status", "description": "Get status information about the NFL players cache"},
+                {"name": "refresh_players_cache", "description": "Force refresh of the NFL players cache from Sleeper API"},
+                {"name": "get_draft", "description": "Get comprehensive information about a specific fantasy draft"},
+                {"name": "get_draft_picks", "description": "Get all player selections from a completed or in-progress draft"},
+                {"name": "get_draft_traded_picks", "description": "Get information about draft picks that were traded before or during a draft"},
             ]
             response_data = {
                 "jsonrpc": "2.0",
                 "id": request_id,
-                "result": {"tools": tools},
+                "result": {"tools": tools}
             }
         elif method == "tools/call":
             # Call the actual tool
             tool_name = params.get("name")
             tool_args = params.get("arguments", {})
-
+            
             # Try to get the tool function from sleeper_mcp module
             if hasattr(sleeper_mcp, tool_name):
                 # Execute the tool
                 try:
                     tool_obj = getattr(sleeper_mcp, tool_name)
                     # If it's a FunctionTool object, get the underlying function
-                    if hasattr(tool_obj, "fn"):
+                    if hasattr(tool_obj, 'fn'):
                         result = await tool_obj.fn(**tool_args)
                     else:
                         result = await tool_obj(**tool_args)
-
+                    
                     response_data = {
                         "jsonrpc": "2.0",
                         "id": request_id,
@@ -801,10 +745,10 @@ async def handle_mcp_request(request: Request):
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": json.dumps(result, default=str),
+                                    "text": json.dumps(result, default=str)
                                 }
                             ]
-                        },
+                        }
                     }
                 except Exception as tool_error:
                     response_data = {
@@ -812,8 +756,8 @@ async def handle_mcp_request(request: Request):
                         "id": request_id,
                         "error": {
                             "code": -32603,
-                            "message": f"Tool execution error: {str(tool_error)}",
-                        },
+                            "message": f"Tool execution error: {str(tool_error)}"
+                        }
                     }
             else:
                 response_data = {
@@ -821,32 +765,35 @@ async def handle_mcp_request(request: Request):
                     "id": request_id,
                     "error": {
                         "code": -32601,
-                        "message": f"Tool not found: {tool_name}",
-                    },
+                        "message": f"Tool not found: {tool_name}"
+                    }
                 }
         else:
             # Unknown method
             response_data = {
                 "jsonrpc": "2.0",
                 "id": request_id,
-                "error": {"code": -32601, "message": f"Method not found: {method}"},
+                "error": {
+                    "code": -32601,
+                    "message": f"Method not found: {method}"
+                }
             }
-
+        
         # Log the request
         duration = time.time() - start_time
         is_error = "error" in response_data
-
+        
         logger.log_request(
             tool_name=tool_name,
             params=params,
             response=response_data.get("result", response_data.get("error")),
             duration=duration,
             status="error" if is_error else "success",
-            error=response_data.get("error", {}).get("message") if is_error else None,
+            error=response_data.get("error", {}).get("message") if is_error else None
         )
-
+        
         return JSONResponse(content=response_data)
-
+        
     except Exception as e:
         # Log error
         duration = time.time() - start_time
@@ -856,15 +803,18 @@ async def handle_mcp_request(request: Request):
             response=str(e),
             duration=duration,
             status="error",
-            error=str(e),
+            error=str(e)
         )
-
+        
         error_response = {
             "jsonrpc": "2.0",
             "id": request_data.get("id") if "request_data" in locals() else None,
-            "error": {"code": -32603, "message": f"Internal error: {str(e)}"},
+            "error": {
+                "code": -32603,
+                "message": f"Internal error: {str(e)}"
+            }
         }
-
+        
         return JSONResponse(content=error_response, status_code=500)
 
 
@@ -876,7 +826,7 @@ def main():
         port = int(os.getenv("PORT", 8000))
         if len(sys.argv) > 2:
             port = int(sys.argv[2])
-
+        
         # Bind to 0.0.0.0 for external access (required for cloud deployment)
         uvicorn.run(app, host="0.0.0.0", port=port)
     else:
