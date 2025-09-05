@@ -26,7 +26,9 @@ class TestMCPServer:
         """Test that constants are properly defined."""
         import sleeper_mcp
 
-        assert sleeper_mcp.LEAGUE_ID == "1266471057523490816"
+        # LEAGUE_ID should be either from env var or default
+        expected_league_id = os.environ.get("SLEEPER_LEAGUE_ID", "1266471057523490816")
+        assert sleeper_mcp.LEAGUE_ID == expected_league_id
         assert sleeper_mcp.BASE_URL == "https://api.sleeper.app/v1"
 
     def test_mcp_tools_defined(self):

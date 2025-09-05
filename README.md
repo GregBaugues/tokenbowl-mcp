@@ -23,7 +23,7 @@ A high-performance Model Context Protocol (MCP) server for the Token Bowl fantas
 - Python 3.11 or higher
 - [uv](https://github.com/astral-sh/uv) package manager
 - Redis (for caching - optional for local development)
-- Token Bowl league access (League ID: `1266471057523490816`)
+- Sleeper Fantasy Football league access
 
 ## 🚀 Quick Start
 
@@ -113,6 +113,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 
 | Variable | Description | Default |
 |----------|-------------|---------|
+| `SLEEPER_LEAGUE_ID` | Sleeper league ID to use | `1266471057523490816` (Token Bowl) |
 | `REDIS_URL` | Redis connection URL | `redis://localhost:6379` |
 | `PORT` | HTTP server port (Render) | `8000` |
 | `RENDER` | Deployment flag | `false` |
@@ -292,6 +293,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Note**: This server is currently hardcoded for league ID `1266471057523490816` (Token Bowl). To use with your own league, modify the `LEAGUE_ID` constant in `sleeper_mcp.py`.
+**Note**: By default, this server uses the Token Bowl league (ID: `1266471057523490816`). To use with your own league, set the `SLEEPER_LEAGUE_ID` environment variable to your league's ID.
 
 Built with ❤️ for the fantasy football community

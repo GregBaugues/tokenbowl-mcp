@@ -9,5 +9,7 @@ services:
         value: "true"
       - key: PYTHON_VERSION
         value: "3.13"
+      - key: SLEEPER_LEAGUE_ID
+        value: "1266471057523490816"
     autoDeploy: true
     healthCheckPath: /health

@@ -11,7 +11,7 @@ import sleeper_mcp
 
 # Test data
 MOCK_LEAGUE_DATA = {
-    "league_id": "1266471057523490816",
+    "league_id": os.environ.get("SLEEPER_LEAGUE_ID", "1266471057523490816"),
     "name": "Token Bowl",
     "season": "2024",
     "sport": "nfl",
@@ -82,7 +82,8 @@ class TestLeagueTools:
         result = await sleeper_mcp.get_league_info.fn()
 
         assert "league_id" in result
-        assert result["league_id"] == "1266471057523490816"
+        expected_league_id = os.environ.get("SLEEPER_LEAGUE_ID", "1266471057523490816")
+        assert result["league_id"] == expected_league_id
         assert "name" in result
         assert "season" in result
         assert "sport" in result
@@ -241,7 +242,7 @@ class TestDraftTools:
         """Test getting draft information with mocked response."""
         mock_draft = {
             "draft_id": "987654321",
-            "league_id": "1266471057523490816",
+            "league_id": os.environ.get("SLEEPER_LEAGUE_ID", "1266471057523490816"),
             "status": "complete",
             "type": "snake",
             "settings": {"rounds": 15, "teams": 12},
@@ -259,7 +260,10 @@ class TestDraftTools:
             result = await sleeper_mcp.get_draft.fn(draft_id="987654321")
 
             assert result["draft_id"] == "987654321"
-            assert result["league_id"] == "1266471057523490816"
+            expected_league_id = os.environ.get(
+                "SLEEPER_LEAGUE_ID", "1266471057523490816"
+            )
+            assert result["league_id"] == expected_league_id
             assert result["type"] == "snake"
 
 
