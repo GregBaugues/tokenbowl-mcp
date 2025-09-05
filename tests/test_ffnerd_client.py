@@ -51,22 +51,21 @@ class TestFantasyNerdsClient:
     @pytest.mark.asyncio
     async def test_get_players(self, client, mock_response):
         """Test fetching players from API."""
-        mock_response.json.return_value = {
-            "players": [
-                {
-                    "playerId": 1,
-                    "name": "Patrick Mahomes",
-                    "position": "QB",
-                    "team": "KC",
-                },
-                {
-                    "playerId": 2,
-                    "name": "Justin Jefferson",
-                    "position": "WR",
-                    "team": "MIN",
-                },
-            ]
-        }
+        # API returns a list directly, not a dict with "players" key
+        mock_response.json.return_value = [
+            {
+                "playerId": 1,
+                "name": "Patrick Mahomes",
+                "position": "QB",
+                "team": "KC",
+            },
+            {
+                "playerId": 2,
+                "name": "Justin Jefferson",
+                "position": "WR",
+                "team": "MIN",
+            },
+        ]
 
         with patch("httpx.AsyncClient.get", return_value=mock_response) as mock_get:
             players = await client.get_players()
@@ -83,7 +82,7 @@ class TestFantasyNerdsClient:
     @pytest.mark.asyncio
     async def test_get_players_include_inactive(self, client, mock_response):
         """Test fetching all players including inactive."""
-        mock_response.json.return_value = {"players": []}
+        mock_response.json.return_value = []  # API returns list directly
 
         with patch("httpx.AsyncClient.get", return_value=mock_response) as mock_get:
             await client.get_players(include_inactive=True)
@@ -118,10 +117,18 @@ class TestFantasyNerdsClient:
     @pytest.mark.asyncio
     async def test_get_injuries(self, client, mock_response):
         """Test fetching injury reports."""
+        # API returns injuries nested in teams structure
         mock_response.json.return_value = {
-            "injuries": [
-                {"playerId": 1, "injury": "Ankle", "status": "Questionable"},
-                {"playerId": 2, "injury": "Hamstring", "status": "Out"},
+            "season": "2025",
+            "week": "1",
+            "teams": [
+                {
+                    "team": "KC",
+                    "players": [
+                        {"playerId": 1, "injury": "Ankle", "status": "Questionable"},
+                        {"playerId": 2, "injury": "Hamstring", "status": "Out"},
+                    ]
+                }
             ]
         }
 
@@ -139,12 +146,11 @@ class TestFantasyNerdsClient:
     @pytest.mark.asyncio
     async def test_get_news(self, client, mock_response):
         """Test fetching player news."""
-        mock_response.json.return_value = {
-            "news": [
-                {"playerId": 1, "title": "Player Update", "body": "News content"},
-                {"playerId": 1, "title": "Injury Report", "body": "More news"},
-            ]
-        }
+        # API returns news as a list directly
+        mock_response.json.return_value = [
+            {"playerId": 1, "title": "Player Update", "body": "News content"},
+            {"playerId": 1, "title": "Injury Report", "body": "More news"},
+        ]
 
         with patch("httpx.AsyncClient.get", return_value=mock_response) as mock_get:
             news = await client.get_news(player_id=1, days=3)
@@ -161,12 +167,11 @@ class TestFantasyNerdsClient:
     @pytest.mark.asyncio
     async def test_get_rankings(self, client, mock_response):
         """Test fetching expert rankings."""
-        mock_response.json.return_value = {
-            "rankings": [
-                {"playerId": 1, "rank": 1, "name": "Player One"},
-                {"playerId": 2, "rank": 2, "name": "Player Two"},
-            ]
-        }
+        # API may return rankings as list or dict
+        mock_response.json.return_value = [
+            {"playerId": 1, "rank": 1, "name": "Player One"},
+            {"playerId": 2, "rank": 2, "name": "Player Two"},
+        ]
 
         with patch("httpx.AsyncClient.get", return_value=mock_response) as mock_get:
             rankings = await client.get_rankings(
@@ -186,12 +191,11 @@ class TestFantasyNerdsClient:
     @pytest.mark.asyncio
     async def test_get_adp(self, client, mock_response):
         """Test fetching ADP data."""
-        mock_response.json.return_value = {
-            "adp": [
-                {"playerId": 1, "adp": 1.5, "name": "Top Player"},
-                {"playerId": 2, "adp": 5.3, "name": "Good Player"},
-            ]
-        }
+        # API may return ADP as list or dict
+        mock_response.json.return_value = [
+            {"playerId": 1, "adp": 1.5, "name": "Top Player"},
+            {"playerId": 2, "adp": 5.3, "name": "Good Player"},
+        ]
 
         with patch("httpx.AsyncClient.get", return_value=mock_response) as mock_get:
             adp_data = await client.get_adp(scoring_type="HALF", mock_type="real")
@@ -208,12 +212,11 @@ class TestFantasyNerdsClient:
     @pytest.mark.asyncio
     async def test_get_schedule(self, client, mock_response):
         """Test fetching NFL schedule."""
-        mock_response.json.return_value = {
-            "schedule": [
-                {"week": 1, "home": "KC", "away": "DET"},
-                {"week": 1, "home": "GB", "away": "CHI"},
-            ]
-        }
+        # API may return schedule as list or dict
+        mock_response.json.return_value = [
+            {"week": 1, "home": "KC", "away": "DET"},
+            {"week": 1, "home": "GB", "away": "CHI"},
+        ]
 
         with patch("httpx.AsyncClient.get", return_value=mock_response) as mock_get:
             schedule = await client.get_schedule(week=1)
@@ -229,9 +232,8 @@ class TestFantasyNerdsClient:
     @pytest.mark.asyncio
     async def test_test_connection_success(self, client, mock_response):
         """Test successful API connection test."""
-        mock_response.json.return_value = {
-            "players": [{"playerId": 1, "name": "Test Player"}]
-        }
+        # API returns list of players directly
+        mock_response.json.return_value = [{"playerId": 1, "name": "Test Player"}]
 
         with patch("httpx.AsyncClient.get", return_value=mock_response):
             result = await client.test_connection()
@@ -259,7 +261,7 @@ class TestFantasyNerdsClient:
     @pytest.mark.asyncio
     async def test_timeout_configuration(self, client, mock_response):
         """Test that timeout is properly configured."""
-        mock_response.json.return_value = {"players": []}
+        mock_response.json.return_value = []  # API returns list directly
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client_instance = AsyncMock()

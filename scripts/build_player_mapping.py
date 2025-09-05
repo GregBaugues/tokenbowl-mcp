@@ -10,15 +10,15 @@ from datetime import datetime
 from typing import Dict, Any
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
-
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ffnerd.client import FantasyNerdsClient
-from ffnerd.mapper import PlayerMapper
-from players_cache_redis import get_all_players
+from ffnerd.client import FantasyNerdsClient  # noqa: E402
+from ffnerd.mapper import PlayerMapper  # noqa: E402
+from players_cache_redis import get_all_players  # noqa: E402
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
