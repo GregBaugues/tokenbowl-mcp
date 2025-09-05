@@ -26,7 +26,7 @@ logfire.configure()
 logging.basicConfig(
     level=logging.INFO,
     handlers=[logfire.LogfireLoggingHandler()],
-    format='%(name)s - %(levelname)s - %(message)s'
+    format="%(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -728,6 +728,130 @@ async def get_waiver_wire_players(
 #         response = await client.get(f"{BASE_URL}/draft/{draft_id}/traded_picks")
 #         response.raise_for_status()
 #         return response.json()
+
+
+@mcp.tool()
+async def get_unified_players() -> Dict[str, Any]:
+    """Get unified player data combining Sleeper and Fantasy Nerds information.
+
+    Returns enriched player data including:
+    - Sleeper base data (name, team, position, status)
+    - Fantasy Nerds enrichment (ADP, injuries, projections)
+    - Cached for performance with 24-hour refresh
+
+    This provides a comprehensive view of each player combining
+    data from multiple sources for better fantasy decisions.
+
+    Returns:
+        Dict mapping player IDs to unified player data
+    """
+    from unified_players_cache import get_unified_players as get_unified
+
+    return await get_unified()
+
+
+@mcp.tool()
+async def search_unified_players(
+    name: str, include_ffnerd: bool = True
+) -> List[Dict[str, Any]]:
+    """Search for players in the unified dataset by name.
+
+    Args:
+        name: Player name to search for (min 2 characters).
+              Supports partial matching.
+
+        include_ffnerd: Include Fantasy Nerds enrichment data
+                       (ADP, injuries, projections) in results.
+
+    Returns player information including:
+    - Basic info (name, team, position, age)
+    - Sleeper ID for roster operations
+    - Fantasy Nerds data if available and requested
+    - Search results sorted by relevance
+
+    Returns:
+        List of matching players with unified data
+    """
+    from unified_players_cache import search_unified_players as search_unified
+
+    if len(name) < 2:
+        return {"error": "Search term must be at least 2 characters"}
+
+    return await search_unified(name, include_ffnerd)
+
+
+@mcp.tool()
+async def get_unified_player_by_id(sleeper_id: str) -> Optional[Dict[str, Any]]:
+    """Get unified player data by Sleeper ID.
+
+    Args:
+        sleeper_id: The Sleeper player ID
+
+    Returns complete unified player information:
+    - All Sleeper data fields
+    - Fantasy Nerds enrichment if available
+    - Injury status and ADP
+    - Weekly projections
+
+    Returns:
+        Dict with unified player data or None if not found
+    """
+    from unified_players_cache import get_unified_player_by_id as get_unified_by_id
+
+    return await get_unified_by_id(sleeper_id)
+
+
+@mcp.tool()
+async def get_unified_cache_status() -> Dict[str, Any]:
+    """Get status of the unified player cache.
+
+    Returns cache information including:
+    - Last update timestamp
+    - Time until next refresh (TTL)
+    - Number of players cached
+    - Number of players enriched with FFNerd data
+    - Cache size and memory usage
+    - Redis connection status
+
+    Useful for monitoring data freshness and debugging.
+
+    Returns:
+        Dict with cache status and health metrics
+    """
+    from unified_players_cache import get_unified_cache_status as get_status
+
+    return await get_status()
+
+
+@mcp.tool()
+async def refresh_unified_cache() -> Dict[str, Any]:
+    """Force refresh the unified player cache from both APIs.
+
+    This operation:
+    - Fetches latest from Sleeper API
+    - Fetches latest from Fantasy Nerds API
+    - Maps and merges the datasets
+    - Updates Redis cache with unified data
+    - Resets 24-hour TTL timer
+
+    May take 5-10 seconds to complete.
+    Use sparingly to avoid API rate limits.
+
+    Returns:
+        Dict with unified player data and statistics
+    """
+    from unified_players_cache import update_unified_cache
+
+    data = await update_unified_cache()
+
+    enriched_count = sum(1 for p in data.values() if "ffnerd_data" in p)
+
+    return {
+        "success": True,
+        "total_players": len(data),
+        "enriched_players": enriched_count,
+        "message": f"Successfully refreshed unified cache with {len(data)} players ({enriched_count} enriched)",
+    }
 
 
 if __name__ == "__main__":
