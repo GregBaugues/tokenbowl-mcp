@@ -79,6 +79,23 @@ uv run ruff check .
 uv run ruff format . --check
 ```
 
+### Pre-commit Hooks (Recommended)
+
+To automatically check linting before committing:
+
+```bash
+# Install dev dependencies including pre-commit
+uv sync --extra dev
+
+# Install the pre-commit hooks
+uv run pre-commit install
+
+# Run hooks manually on all files
+uv run pre-commit run --all-files
+```
+
+This will automatically run `ruff` linting and formatting checks before each commit, preventing linting issues from reaching PRs.
+
 ### CI/CD
 
 GitHub Actions CI runs on every push and PR:
