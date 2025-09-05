@@ -63,7 +63,21 @@ uv run pytest --vcr-record=once
 
 # Run tests without hitting external APIs (replay mode)
 uv run pytest --vcr-record=none
+
+# Run linting
+uv run ruff check .
+uv run ruff format . --check
 ```
+
+### CI/CD
+
+GitHub Actions CI runs on every push and PR:
+- Tests on Python 3.11, 3.12, and 3.13
+- Runs linting with ruff
+- Provides test reports and artifacts
+- Uses Redis service container for integration tests
+
+CI workflow is defined in `.github/workflows/ci.yml`
 
 ### Deployment
 
