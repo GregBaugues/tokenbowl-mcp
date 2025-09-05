@@ -316,3 +316,154 @@ async def test_mcp_server_initialization():
 
     # Check that we can list tools (though they won't be registered in test)
     assert hasattr(mcp, "tool")
+
+
+@pytest.mark.asyncio
+async def test_get_waiver_wire_players_mock():
+    """Test getting waiver wire players with mocked data."""
+    # Mock player data
+    mock_players = {
+        "1234": {
+            "player_id": "1234",
+            "full_name": "John Rostered",
+            "position": "RB",
+            "team": "SF",
+            "status": "Active"
+        },
+        "5678": {
+            "player_id": "5678",
+            "full_name": "Jane Rostered",
+            "position": "WR",
+            "team": "NYG",
+            "status": "Active"
+        },
+        "9999": {
+            "player_id": "9999",
+            "full_name": "Mike Available",
+            "position": "QB",
+            "team": "DAL",
+            "status": "Active"
+        },
+        "8888": {
+            "player_id": "8888",
+            "full_name": "Sarah Free",
+            "position": "WR",
+            "team": "LAR",
+            "status": "Active",
+            "age": 25
+        },
+        "7777": {
+            "player_id": "7777",
+            "full_name": "Tom Waiver",
+            "position": "TE",
+            "team": "KC",
+            "status": "Active"
+        }
+    }
+    
+    with (
+        patch("sleeper_mcp.httpx.AsyncClient") as mock_client,
+        patch("sleeper_mcp.get_all_players") as mock_get_players,
+        patch("sleeper_mcp.get_cache_status") as mock_cache_status,
+    ):
+        # Setup mocks
+        mock_response = AsyncMock()
+        mock_response.json.return_value = MOCK_ROSTER_DATA
+        mock_response.raise_for_status = MagicMock()
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
+        
+        mock_get_players.return_value = mock_players
+        mock_cache_status.return_value = {
+            "last_refresh_time": "2024-01-01T00:00:00Z",
+            "is_stale": False
+        }
+        
+        # Test without filters
+        result = await sleeper_mcp.get_waiver_wire_players()
+        
+        assert result["total_available"] == 3  # Players 9999, 8888, 7777
+        assert result["filtered_count"] == 3
+        assert len(result["players"]) == 3
+        
+        # Verify non-rostered players are included
+        player_ids = [p["player_id"] for p in result["players"]]
+        assert "9999" in player_ids  # Mike Available
+        assert "8888" in player_ids  # Sarah Free
+        assert "7777" in player_ids  # Tom Waiver
+        
+        # Verify rostered players are excluded
+        assert "1234" not in player_ids  # John Rostered
+        assert "5678" not in player_ids  # Jane Rostered
+
+
+@pytest.mark.asyncio
+async def test_get_waiver_wire_players_with_position_filter():
+    """Test waiver wire with position filtering."""
+    mock_players = {
+        "1234": {"player_id": "1234", "full_name": "Player A", "position": "QB", "status": "Active"},
+        "5678": {"player_id": "5678", "full_name": "Player B", "position": "WR", "status": "Active"},
+        "9999": {"player_id": "9999", "full_name": "Player C", "position": "WR", "status": "Active"},
+    }
+    
+    with (
+        patch("sleeper_mcp.httpx.AsyncClient") as mock_client,
+        patch("sleeper_mcp.get_all_players") as mock_get_players,
+        patch("sleeper_mcp.get_cache_status") as mock_cache_status,
+    ):
+        # Setup mocks - empty rosters so all players are available
+        mock_response = AsyncMock()
+        mock_response.json.return_value = []
+        mock_response.raise_for_status = MagicMock()
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
+        
+        mock_get_players.return_value = mock_players
+        mock_cache_status.return_value = {"last_refresh_time": "2024-01-01", "is_stale": False}
+        
+        # Test WR position filter
+        result = await sleeper_mcp.get_waiver_wire_players(position="WR")
+        
+        assert result["filtered_count"] == 2
+        positions = [p["position"] for p in result["players"]]
+        assert all(pos == "WR" for pos in positions)
+
+
+@pytest.mark.asyncio
+async def test_get_waiver_wire_players_with_search_term():
+    """Test waiver wire with name search."""
+    mock_players = {
+        "1234": {"player_id": "1234", "full_name": "Justin Jefferson", "position": "WR", "status": "Active"},
+        "5678": {"player_id": "5678", "full_name": "Justin Herbert", "position": "QB", "status": "Active"},
+        "9999": {"player_id": "9999", "full_name": "Mike Evans", "position": "WR", "status": "Active"},
+    }
+    
+    with (
+        patch("sleeper_mcp.httpx.AsyncClient") as mock_client,
+        patch("sleeper_mcp.get_all_players") as mock_get_players,
+        patch("sleeper_mcp.get_cache_status") as mock_cache_status,
+    ):
+        # Setup mocks
+        mock_response = AsyncMock()
+        mock_response.json.return_value = []
+        mock_response.raise_for_status = MagicMock()
+        
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value = mock_client_instance
+        
+        mock_get_players.return_value = mock_players
+        mock_cache_status.return_value = {"last_refresh_time": "2024-01-01", "is_stale": False}
+        
+        # Test search for "justin"
+        result = await sleeper_mcp.get_waiver_wire_players(search_term="justin")
+        
+        assert result["filtered_count"] == 2
+        names = [p["name"] for p in result["players"]]
+        assert "Justin Jefferson" in names
+        assert "Justin Herbert" in names
+        assert "Mike Evans" not in names
