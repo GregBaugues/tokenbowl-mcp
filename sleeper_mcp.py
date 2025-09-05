@@ -14,6 +14,7 @@ from players_cache_redis import (
     get_cache_status,
     force_refresh,
 )
+import logfire
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,6 +22,11 @@ load_dotenv()
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Initialize Logfire (reads LOGFIRE_TOKEN from env)
+logfire.configure()
+# Auto-instrument httpx for HTTP request tracing
+logfire.instrument_httpx()
 
 # Initialize FastMCP server
 mcp = FastMCP("tokenbowl-mcp")
