@@ -16,7 +16,17 @@ This is the Token Bowl MCP server - a Model Context Protocol server for fantasy 
 uv sync
 
 # The project uses Python 3.12+ (see .python-version)
+
+# Create .env file for local development
+cp .env.example .env
+# Edit .env with your actual API keys and configuration
 ```
+
+### Environment Variables
+Required for local development:
+- `FFNERD_API_KEY`: Fantasy Nerds API key for extended analytics
+- `SLEEPER_LEAGUE_ID`: Sleeper league ID (defaults to Token Bowl: 1266471057523490816)
+- `REDIS_URL`: Redis connection URL (defaults to redis://localhost:6379)
 
 ### GitHub
 use `gh` for all interaction with github
@@ -121,6 +131,7 @@ The project is configured for Render deployment via `render.yaml`. When pushing 
 
 ## Key Implementation Details
 
+- Environment variables are loaded from `.env` file using python-dotenv for local development
 - The server detects deployment environment via `RENDER` env variable or command line arguments
 - Port is configurable via `PORT` environment variable (required by Render) or command line
 - When deployed, binds to `0.0.0.0` for external access, localhost for local development
@@ -143,6 +154,7 @@ The server exposes 20 Sleeper API endpoints as MCP tools:
 - **fastmcp>=2.11.3**: MCP server framework
 - **httpx>=0.28.1**: Async HTTP client for API calls
 - **redis>=5.0.0**: Redis client for caching layer
+- **python-dotenv**: Environment variable loading from .env files
 - **uv**: Modern Python package manager (must be installed separately for local development)
 
 ## Production Management

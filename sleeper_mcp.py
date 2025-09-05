@@ -4,8 +4,12 @@
 import httpx
 import os
 import logging
+from dotenv import load_dotenv
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
+
+# Load environment variables from .env file
+load_dotenv()
 from players_cache_redis import (
     get_all_players,
     get_player_by_name,
