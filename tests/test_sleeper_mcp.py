@@ -1,7 +1,7 @@
 """Tests for Sleeper MCP tools."""
 
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import patch
 import sys
 import os
 
