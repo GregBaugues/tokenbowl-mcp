@@ -30,7 +30,19 @@ LEAGUE_ID = "1266471057523490816"
 
 @mcp.tool()
 async def get_league_info() -> Dict[str, Any]:
-    """Get information about the league"""
+    """Get comprehensive information about the Token Bowl fantasy football league.
+
+    Returns detailed league settings including:
+    - League name, season, and current status
+    - Roster positions and requirements
+    - Scoring settings and rules
+    - Playoff configuration and schedule
+    - Draft settings and keeper rules
+    - League ID: 1266471057523490816 (hardcoded)
+
+    Returns:
+        Dict containing all league configuration and settings
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}")
         response.raise_for_status()
@@ -39,7 +51,18 @@ async def get_league_info() -> Dict[str, Any]:
 
 @mcp.tool()
 async def get_league_rosters() -> List[Dict[str, Any]]:
-    """Get all rosters in the league"""
+    """Get all team rosters in the Token Bowl league with player assignments.
+
+    Returns roster information for each team including:
+    - Roster ID and owner user ID
+    - List of player IDs on the roster (starters and bench)
+    - Roster settings (wins, losses, ties, points for/against)
+    - Taxi squad and injured reserve assignments
+    - Keeper information if applicable
+
+    Returns:
+        List of roster dictionaries, one for each team in the league
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/rosters")
         response.raise_for_status()
@@ -48,7 +71,19 @@ async def get_league_rosters() -> List[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_league_users() -> List[Dict[str, Any]]:
-    """Get all users in the league"""
+    """Get all users (team owners) participating in the Token Bowl league.
+
+    Returns user information including:
+    - User ID and username
+    - Display name and avatar
+    - Team name for this league
+    - Is_owner flag for league commissioners
+
+    Note: Match user_id with roster owner_id to link users to their teams.
+
+    Returns:
+        List of user dictionaries for all league participants
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/users")
         response.raise_for_status()
@@ -57,7 +92,22 @@ async def get_league_users() -> List[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
-    """Get matchups for a specific week in the league"""
+    """Get head-to-head matchups for a specific week in the Token Bowl league.
+
+    Args:
+        week: The NFL week number (1-18 for regular season + playoffs).
+              Week 1-14 are typically regular season,
+              Week 15-17/18 are typically playoffs.
+
+    Returns matchup information including:
+    - Roster IDs for competing teams
+    - Points scored by each team
+    - Player points breakdown (starters and bench)
+    - Matchup ID for tracking
+
+    Returns:
+        List of matchup dictionaries for the specified week
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/matchups/{week}")
         response.raise_for_status()
@@ -66,7 +116,23 @@ async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
-    """Get transactions for the league in a specific round"""
+    """Get waiver wire and trade transactions for the Token Bowl league.
+
+    Args:
+        round: The transaction round/week number (default: 1).
+               Transactions are grouped by processing rounds.
+               Higher rounds represent more recent transactions.
+
+    Returns transaction details including:
+    - Transaction type (waiver, free_agent, trade)
+    - Players added and dropped with roster IDs
+    - FAAB bid amounts (if applicable)
+    - Transaction status and timestamps
+    - Trade details if applicable
+
+    Returns:
+        List of transaction dictionaries for the specified round
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"{BASE_URL}/league/{LEAGUE_ID}/transactions/{round}"
@@ -77,7 +143,19 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_league_traded_picks() -> List[Dict[str, Any]]:
-    """Get all traded draft picks in the league"""
+    """Get all future draft picks that have been traded in the Token Bowl league.
+
+    Returns information about traded picks including:
+    - Season and round of the pick
+    - Original owner roster ID
+    - New owner roster ID after trade
+    - Previous owner roster ID (if traded multiple times)
+
+    Useful for tracking draft capital and evaluating keeper/dynasty trades.
+
+    Returns:
+        List of traded draft pick dictionaries
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/traded_picks")
         response.raise_for_status()
@@ -86,7 +164,20 @@ async def get_league_traded_picks() -> List[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_league_drafts() -> List[Dict[str, Any]]:
-    """Get all drafts for the league"""
+    """Get all draft information for the Token Bowl league.
+
+    Returns draft details including:
+    - Draft ID and type (snake, auction, linear)
+    - Draft status (pre_draft, drafting, complete)
+    - Draft order and slot assignments
+    - Start time and settings
+    - Season year
+
+    Use draft_id with get_draft_picks() for detailed pick information.
+
+    Returns:
+        List of draft dictionaries for all league drafts
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/drafts")
         response.raise_for_status()
@@ -95,7 +186,20 @@ async def get_league_drafts() -> List[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_league_winners_bracket() -> List[Dict[str, Any]]:
-    """Get playoff winners bracket for the league"""
+    """Get the playoff winners bracket for the Token Bowl league championship.
+
+    Returns playoff bracket information including:
+    - Round number (1 = first round, increases each week)
+    - Matchup ID and competing roster IDs
+    - Winner and loser roster IDs (when determined)
+    - Points scored by each team (when games complete)
+    - Playoff seed assignments
+
+    Typically covers weeks 15-17 of the NFL season.
+
+    Returns:
+        List of playoff matchup dictionaries for the winners bracket
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/winners_bracket")
         response.raise_for_status()
@@ -104,7 +208,24 @@ async def get_league_winners_bracket() -> List[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_user(username_or_id: str) -> Dict[str, Any]:
-    """Get user information by username or user ID"""
+    """Get detailed information about a Sleeper user by username or user ID.
+
+    Args:
+        username_or_id: Either the unique username (string) or user_id (numeric string)
+                       of the Sleeper user to look up.
+
+    Returns user profile including:
+    - User ID (unique numeric identifier)
+    - Username (unique handle)
+    - Display name (shown in leagues)
+    - Avatar ID for profile picture
+    - Account creation date
+
+    Example: get_user("JohnDoe123") or get_user("123456789")
+
+    Returns:
+        Dict containing user profile information
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/user/{username_or_id}")
         response.raise_for_status()
@@ -113,9 +234,28 @@ async def get_user(username_or_id: str) -> Dict[str, Any]:
 
 @mcp.tool()
 async def get_user_leagues(
-    user_id: str, sport: str = "nfl", season: str = "2024"
+    user_id: str, sport: str = "nfl", season: str = "2025"
 ) -> List[Dict[str, Any]]:
-    """Get all leagues for a user in a specific sport and season"""
+    """Get all fantasy leagues a user is participating in for a specific sport and season.
+
+    Args:
+        user_id: The numeric user ID of the Sleeper user (not username).
+        sport: The sport type (default: "nfl"). Options: "nfl", "nba", "lcs".
+        season: The year as a string (default: "2025"). Must be a valid 4-digit year.
+
+    Returns league information for each league including:
+    - League ID and name
+    - Total number of teams
+    - Scoring settings type
+    - League avatar
+    - Draft status and ID
+    - Season type and status
+
+    Useful for finding all leagues a user is in or checking league activity.
+
+    Returns:
+        List of league dictionaries the user is participating in
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"{BASE_URL}/user/{user_id}/leagues/{sport}/{season}"
@@ -126,9 +266,28 @@ async def get_user_leagues(
 
 @mcp.tool()
 async def get_user_drafts(
-    user_id: str, sport: str = "nfl", season: str = "2024"
+    user_id: str, sport: str = "nfl", season: str = "2025"
 ) -> List[Dict[str, Any]]:
-    """Get all drafts for a user in a specific sport and season"""
+    """Get all fantasy drafts a user has participated in for a specific sport and season.
+
+    Args:
+        user_id: The numeric user ID of the Sleeper user (not username).
+        sport: The sport type (default: "nfl"). Options: "nfl", "nba", "lcs".
+        season: The year as a string (default: "2025"). Must be a valid 4-digit year.
+
+    Returns draft information including:
+    - Draft ID and status (pre_draft, drafting, complete)
+    - Draft type (snake, auction, linear)
+    - Start time and created date
+    - Number of teams and rounds
+    - League ID associated with draft
+    - User's draft position/slot
+
+    Use draft_id with get_draft_picks() for detailed pick information.
+
+    Returns:
+        List of draft dictionaries the user has participated in
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"{BASE_URL}/user/{user_id}/drafts/{sport}/{season}"
@@ -139,7 +298,24 @@ async def get_user_drafts(
 
 @mcp.tool()
 async def get_nfl_players() -> Dict[str, Any]:
-    """Get all NFL players from cache (updated daily). Returns a large dataset."""
+    """Get comprehensive data for ALL NFL players from Redis cache.
+
+    WARNING: Returns a LARGE dataset (5MB+) with 5000+ players.
+    Consider using search_player_by_name() for specific players.
+
+    Data is cached in Redis and refreshed daily to avoid API rate limits.
+
+    Returns player data including:
+    - Player ID (Sleeper's unique identifier)
+    - Full name, position, team
+    - Age, height, weight, college
+    - Injury status and fantasy relevance
+    - Years of experience
+    - Active/inactive status
+
+    Returns:
+        Dict with player_id as keys and player data as values
+    """
     try:
         return await get_all_players()
     except Exception as e:
@@ -149,7 +325,25 @@ async def get_nfl_players() -> Dict[str, Any]:
 
 @mcp.tool()
 async def search_player_by_name(name: str) -> List[Dict[str, Any]]:
-    """Search for NFL players by name (uses cached data)"""
+    """Search for NFL players by name using cached player database.
+
+    Args:
+        name: Player name to search for (minimum 2 characters).
+              Supports partial matching and case-insensitive search.
+              Examples: "mahomes", "patrick", "davante adams"
+
+    Returns matching players with:
+    - Player ID for roster operations
+    - Full name and common name variations
+    - Current team and position
+    - Fantasy-relevant information
+    - Injury status if applicable
+
+    Search is performed on locally cached data for instant results.
+
+    Returns:
+        List of player dictionaries matching the search term
+    """
     try:
         if not name or len(name) < 2:
             return {"error": "Name must be at least 2 characters"}
@@ -161,7 +355,26 @@ async def search_player_by_name(name: str) -> List[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
-    """Get a specific NFL player by their Sleeper ID (uses cached data)"""
+    """Get detailed information for a specific NFL player by their Sleeper ID.
+
+    Args:
+        player_id: The unique Sleeper player ID (numeric string).
+                  This ID is consistent across all Sleeper leagues.
+                  Example: "4046" for Patrick Mahomes
+
+    Returns complete player information:
+    - Personal details (name, age, height, weight)
+    - Team and position
+    - Fantasy eligibility and status
+    - Injury information
+    - Years of experience
+    - College and draft info
+
+    Data retrieved from Redis cache for optimal performance.
+
+    Returns:
+        Dict with player information or error if not found
+    """
     try:
         if not player_id:
             return {"error": "Player ID is required"}
@@ -176,7 +389,22 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_players_cache_status() -> Dict[str, Any]:
-    """Get the status of the NFL players cache (last updated, TTL, etc.)"""
+    """Get the current status and health of the NFL players Redis cache.
+
+    Returns cache information including:
+    - Last update timestamp
+    - Time until next refresh (TTL)
+    - Number of players cached
+    - Cache size in memory
+    - Redis connection status
+    - Any error states
+
+    Cache automatically refreshes every 24 hours.
+    Use refresh_players_cache() to force immediate update.
+
+    Returns:
+        Dict with cache status metrics and health information
+    """
     try:
         return await get_cache_status()
     except Exception as e:
@@ -186,7 +414,20 @@ async def get_players_cache_status() -> Dict[str, Any]:
 
 @mcp.tool()
 async def refresh_players_cache() -> Dict[str, Any]:
-    """Force refresh the NFL players cache from the Sleeper API"""
+    """Force an immediate refresh of the NFL players cache from Sleeper API.
+
+    This operation:
+    - Fetches latest player data from Sleeper API
+    - Updates Redis cache with new data
+    - Resets 24-hour TTL timer
+    - May take 3-5 seconds to complete
+
+    Use sparingly to avoid API rate limits.
+    Cache normally auto-refreshes daily.
+
+    Returns:
+        Dict with success status and number of players cached
+    """
     try:
         result = await force_refresh()
         return {"success": True, "players_cached": len(result)}
@@ -199,13 +440,27 @@ async def refresh_players_cache() -> Dict[str, Any]:
 async def get_trending_players(
     type: str = "add", lookback_hours: Optional[int] = 24, limit: Optional[int] = 25
 ) -> List[Dict[str, Any]]:
-    """
-    Get trending players being added or dropped.
+    """Get trending NFL players based on recent add/drop activity across all Sleeper leagues.
 
     Args:
-        type: Either 'add' or 'drop' to see trending adds or drops
-        lookback_hours: Number of hours to look back (6, 12, or 24)
-        limit: Number of results to return (max 200)
+        type: Transaction type to track (default: "add")
+              - "add": Players being picked up from waivers/free agency
+              - "drop": Players being dropped to waivers
+
+        lookback_hours: Time window for trending data (default: 24)
+                       Options: 6, 12, or 24 hours
+                       Shorter windows show immediate trends.
+
+        limit: Number of players to return (default: 25, max: 200)
+               Returns most trending players first.
+
+    Returns player trending data with:
+    - Player ID and count of adds/drops
+    - Useful for identifying breakout players or injury news
+    - Great for waiver wire decisions
+
+    Returns:
+        List of dictionaries with player_id and add/drop counts
     """
     params = {}
     if lookback_hours:
@@ -223,7 +478,26 @@ async def get_trending_players(
 
 @mcp.tool()
 async def get_draft(draft_id: str) -> Dict[str, Any]:
-    """Get specific draft information"""
+    """Get comprehensive information about a specific fantasy draft.
+
+    Args:
+        draft_id: The unique draft identifier from Sleeper.
+                 Obtain from get_league_drafts() or get_user_drafts().
+
+    Returns draft details including:
+    - Draft type (snake, auction, linear)
+    - Current status (pre_draft, drafting, complete)
+    - Start time and settings
+    - Number of rounds and timer settings
+    - Draft order and slot assignments
+    - Team count and sport
+    - Scoring type and season
+
+    Use with get_draft_picks() to see actual player selections.
+
+    Returns:
+        Dict containing all draft configuration and metadata
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/draft/{draft_id}")
         response.raise_for_status()
@@ -232,7 +506,26 @@ async def get_draft(draft_id: str) -> Dict[str, Any]:
 
 @mcp.tool()
 async def get_draft_picks(draft_id: str) -> List[Dict[str, Any]]:
-    """Get all picks from a specific draft"""
+    """Get all player selections from a completed or in-progress draft.
+
+    Args:
+        draft_id: The unique draft identifier from Sleeper.
+                 Obtain from get_league_drafts() or get_user_drafts().
+
+    Returns pick information including:
+    - Pick number and round
+    - Player ID of selected player
+    - Roster ID that made the pick
+    - Draft slot position
+    - Keeper status if applicable
+    - Pick metadata (is_keeper, pick_no)
+
+    Picks are returned in draft order.
+    Use with player data to get player names and details.
+
+    Returns:
+        List of pick dictionaries in chronological draft order
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/draft/{draft_id}/picks")
         response.raise_for_status()
@@ -241,7 +534,24 @@ async def get_draft_picks(draft_id: str) -> List[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_draft_traded_picks(draft_id: str) -> List[Dict[str, Any]]:
-    """Get all traded picks in a draft"""
+    """Get information about draft picks that were traded before or during a draft.
+
+    Args:
+        draft_id: The unique draft identifier from Sleeper.
+                 Obtain from get_league_drafts() or get_user_drafts().
+
+    Returns traded pick details including:
+    - Season and round of the traded pick
+    - Original owner roster ID
+    - New owner roster ID after trade
+    - Previous owner if traded multiple times
+
+    Useful for tracking draft pick trades in keeper/dynasty leagues.
+    Empty list if no picks were traded.
+
+    Returns:
+        List of traded draft pick dictionaries
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/draft/{draft_id}/traded_picks")
         response.raise_for_status()
