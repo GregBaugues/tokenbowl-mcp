@@ -1,7 +1,6 @@
 """Tests for Sleeper MCP tools."""
 
 import pytest
-import httpx
 from unittest.mock import patch, AsyncMock, MagicMock
 import sys
 import os

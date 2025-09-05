@@ -18,3 +18,7 @@ test = [
     "vcrpy>=6.0.0",
     "fakeredis>=2.20.0",
 ]
+
+dev = [
+    "ruff>=0.12.0",
+]

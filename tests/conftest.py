@@ -1,7 +1,6 @@
 import pytest
 import vcr
 from pathlib import Path
-from unittest.mock import MagicMock, AsyncMock
 import fakeredis.aioredis as fakeredis
 import sys
 import os
@@ -26,7 +25,7 @@ def vcr_cassette():
 @pytest.fixture
 async def mock_redis():
     """Mock Redis client using fakeredis."""
-    redis_client = await fakeredis.from_url("redis://localhost:6379", decode_responses=True)
+    redis_client = fakeredis.FakeRedis(decode_responses=True)
     yield redis_client
     await redis_client.close()
 

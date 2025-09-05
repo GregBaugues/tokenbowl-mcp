@@ -47,7 +47,7 @@ MOCK_PLAYERS = {
 @pytest.fixture
 async def redis_client():
     """Create a fake Redis client for testing."""
-    client = await fakeredis.from_url("redis://localhost:6379", decode_responses=False)
+    client = fakeredis.FakeRedis(decode_responses=False)
     yield client
     await client.flushall()
     await client.close()
