@@ -19,14 +19,23 @@ import logfire
 # Load environment variables from .env file
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 # Initialize Logfire (reads LOGFIRE_TOKEN from env)
 logfire.configure()
+
+# Configure logging to use Logfire as the handler
+logging.basicConfig(
+    level=logging.INFO,
+    handlers=[logfire.LogfireLoggingHandler()],
+    format='%(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # Auto-instrument httpx for HTTP request tracing
 logfire.instrument_httpx()
+
+# Log that the server is starting
+league_id = os.environ.get("SLEEPER_LEAGUE_ID", "1266471057523490816")
+logger.info(f"Initializing Token Bowl MCP Server with league_id={league_id}")
 
 # Initialize FastMCP server
 mcp = FastMCP("tokenbowl-mcp")
@@ -327,9 +336,12 @@ async def get_nfl_players() -> Dict[str, Any]:
         Dict with player_id as keys and player data as values
     """
     try:
-        return await get_all_players()
+        logger.debug("Fetching all NFL players from cache")
+        result = await get_all_players()
+        logger.info(f"Successfully retrieved {len(result)} players from cache")
+        return result
     except Exception as e:
-        logger.error(f"Error getting players: {e}")
+        logger.error(f"Error getting players: {e}", exc_info=True)
         return {"error": f"Failed to get players: {str(e)}"}
 
 
@@ -731,7 +743,9 @@ if __name__ == "__main__":
             port = int(sys.argv[2])
 
         # Bind to 0.0.0.0 for external access (required for cloud deployment)
+        logger.info(f"Starting MCP server in HTTP/SSE mode on port {port}")
         mcp.run(transport="sse", port=port, host="0.0.0.0")
     else:
         # Default to stdio for backward compatibility (Claude Desktop)
+        logger.info("Starting MCP server in STDIO mode for Claude Desktop")
         mcp.run()
