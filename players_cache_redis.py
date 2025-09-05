@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 import httpx
 from typing import Optional, Dict, Any
 import redis
@@ -208,7 +208,7 @@ async def get_cache_status() -> Dict[str, Any]:
                 meta_data["redis_memory_peak_mb"] = info.get("used_memory_peak", 0) / (
                     1024 * 1024
                 )
-            except:
+            except Exception:
                 pass
 
             return meta_data

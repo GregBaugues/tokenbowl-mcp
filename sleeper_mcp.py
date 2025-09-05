@@ -2,7 +2,6 @@
 """Sleeper API MCP Server - Hardcoded for league 1266471057523490816"""
 
 import httpx
-import asyncio
 import os
 import logging
 from fastmcp import FastMCP

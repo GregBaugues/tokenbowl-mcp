@@ -6,7 +6,6 @@ import json
 import httpx
 import asyncio
 import os
-import sys
 
 # Redis URL - using internal URL since we're testing from Render
 # For local testing, you'd need the external URL with credentials
@@ -23,7 +22,7 @@ async def test_redis_connection():
 
         # Check memory usage
         info = r.info("memory")
-        print(f"\n📊 Memory Stats:")
+        print("\n📊 Memory Stats:")
         print(f"  Used memory: {info.get('used_memory_human', 'Unknown')}")
         print(f"  Used memory RSS: {info.get('used_memory_rss_human', 'Unknown')}")
         print(
@@ -94,7 +93,7 @@ async def test_redis_storage(r, data, json_str):
 
         # Check memory after storage
         info = r.info("memory")
-        print(f"\n📊 Memory after storage:")
+        print("\n📊 Memory after storage:")
         print(f"  Used memory: {info.get('used_memory_human', 'Unknown')}")
 
         return True
