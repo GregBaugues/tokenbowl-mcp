@@ -17,6 +17,7 @@ A high-performance Model Context Protocol (MCP) server for the Token Bowl fantas
 - **⚡ High Performance**: Redis-cached player data with 24-hour TTL and automatic refresh
 - **🔄 Dual Transport**: Supports both STDIO (Claude Desktop) and HTTP/SSE (web deployment)
 - **☁️ Production Ready**: Auto-deploys to Render with built-in health checks
+- **🎮 Fantasy Nerds Integration**: Enhanced player data with projections, injuries, and news (Phase 1 complete)
 
 ## 📋 Prerequisites
 
@@ -195,6 +196,49 @@ The server uses Redis to cache NFL player data (5MB+ dataset) with intelligent f
 | `get_draft(draft_id)` | Get draft details | `draft_id: str` |
 | `get_draft_picks(draft_id)` | Get all draft picks | `draft_id: str` |
 | `get_draft_traded_picks(draft_id)` | Get traded draft picks | `draft_id: str` |
+
+### Fantasy Nerds Integration (Phase 1)
+
+The server now includes foundational support for Fantasy Nerds API integration, providing enhanced player data and analytics:
+
+#### Components
+
+- **`ffnerd.client`**: Async API client for Fantasy Nerds endpoints
+- **`ffnerd.mapper`**: Intelligent player ID mapping between Sleeper and Fantasy Nerds
+- **Player Mapping Script**: Automated mapping generation with >90% accuracy
+
+#### Building Player Mappings
+
+Generate the player ID mapping file (required for Fantasy Nerds integration):
+
+```bash
+# Ensure FFNERD_API_KEY is set in .env
+uv run python scripts/build_player_mapping.py
+```
+
+This will:
+- Fetch all players from both APIs
+- Use fuzzy matching to map player IDs
+- Generate `data/player_mapping.json`
+- Create a detailed mapping report
+- Export unmapped players for manual review
+
+#### Fantasy Nerds Client API
+
+```python
+from ffnerd.client import FantasyNerdsClient
+
+client = FantasyNerdsClient()
+
+# Available methods
+await client.get_players(include_inactive=False)
+await client.get_weekly_projections(week=1, position="QB")
+await client.get_injuries(week=5)
+await client.get_news(player_id=123, days=7)
+await client.get_rankings(scoring_type="PPR", position="RB", week=10)
+await client.get_adp(scoring_type="PPR", mock_type="all")
+await client.get_schedule(week=1)
+```
 
 ## 🧪 Testing
 
