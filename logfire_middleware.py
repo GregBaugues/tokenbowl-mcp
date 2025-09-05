@@ -1,4 +1,4 @@
-"""Lightweight Logfire middleware for logging MCP requests and responses."""
+"""Comprehensive Logfire middleware for logging ALL MCP requests and responses."""
 
 import json
 import time
@@ -7,7 +7,7 @@ import logfire
 
 
 class LogfireMiddleware:
-    """Middleware to log MCP requests and responses to Logfire."""
+    """Middleware to log ALL MCP messages and responses to Logfire."""
 
     def __init__(self):
         """Initialize Logfire (uses LOGFIRE_TOKEN from environment)."""
@@ -16,68 +16,112 @@ class LogfireMiddleware:
             logfire.configure()
             logfire._configured = True
 
-    async def __call__(self, method: str, params: Any, next_handler) -> Any:
-        """Log MCP request and response.
+    def on_message(self, context: Any, call_next: Any) -> Any:
+        """Log ALL MCP messages at the protocol level.
+
+        This intercepts every MCP message, including tool calls, initialization,
+        and any other MCP protocol messages.
 
         Args:
-            method: The MCP method/tool name being called
-            params: The parameters passed to the tool
-            next_handler: The next handler in the middleware chain
+            context: MCP context containing message details
+            call_next: Function to continue message processing
 
         Returns:
-            The response from the tool
+            The response from message processing
         """
-        # Log the request and response with timing
-        with logfire.span(f"mcp.{method}") as span:
-            # Log request details
-            span.set_attribute("mcp.tool", method)
+        # Extract message details safely
+        message = getattr(context, "message", {})
+        method = message.get("method", "unknown")
+        params = message.get("params", {})
+        message_id = message.get("id", "no-id")
 
-            # Safely serialize params
+        # Create span for this MCP message
+        with logfire.span(f"mcp.message.{method}") as span:
+            # Log basic message details
+            span.set_attribute("mcp.message.method", method)
+            span.set_attribute("mcp.message.id", str(message_id))
+
+            # Log the full message structure (truncated for safety)
             try:
-                params_str = json.dumps(params) if params else "{}"
-                # Truncate large params to keep logs lightweight
-                if len(params_str) > 1000:
-                    params_str = params_str[:1000] + "..."
-                span.set_attribute("mcp.request.params", params_str)
+                message_str = json.dumps(message)
+                if len(message_str) > 2000:
+                    message_str = message_str[:2000] + "..."
+                span.set_attribute("mcp.message.full", message_str)
             except (TypeError, ValueError):
-                span.set_attribute("mcp.request.params", str(params)[:1000])
+                span.set_attribute("mcp.message.full", str(message)[:2000])
+
+            # For tool calls, extract more details
+            if method == "tools/call":
+                tool_name = params.get("name", "unknown-tool")
+                tool_args = params.get("arguments", {})
+
+                span.set_attribute("mcp.tool.name", tool_name)
+
+                # Log tool arguments
+                try:
+                    args_str = json.dumps(tool_args)
+                    if len(args_str) > 1000:
+                        args_str = args_str[:1000] + "..."
+                    span.set_attribute("mcp.tool.arguments", args_str)
+                except (TypeError, ValueError):
+                    span.set_attribute("mcp.tool.arguments", str(tool_args)[:1000])
+
+            # Log client info if available
+            if hasattr(context, "client_info"):
+                client_info = context.client_info
+                if hasattr(client_info, "name"):
+                    span.set_attribute("mcp.client.name", client_info.name)
+                if hasattr(client_info, "version"):
+                    span.set_attribute("mcp.client.version", client_info.version)
 
             start_time = time.time()
 
             try:
-                # Call the actual tool
-                response = await next_handler(method, params)
+                # Process the message
+                response = call_next(context)
 
                 # Log successful response
                 duration_ms = (time.time() - start_time) * 1000
                 span.set_attribute("mcp.duration_ms", duration_ms)
                 span.set_attribute("mcp.success", True)
 
-                # Log response size (not full content to keep it lightweight)
+                # Log response details
                 try:
                     response_str = json.dumps(response)
                     span.set_attribute("mcp.response.size_bytes", len(response_str))
 
-                    # Log a sample of the response for debugging (first 500 chars)
-                    if len(response_str) <= 500:
+                    # Log response sample (truncated)
+                    if len(response_str) <= 1000:
                         span.set_attribute("mcp.response.sample", response_str)
                     else:
                         span.set_attribute(
-                            "mcp.response.sample", response_str[:500] + "..."
+                            "mcp.response.sample", response_str[:1000] + "..."
                         )
+
                 except (TypeError, ValueError):
                     span.set_attribute("mcp.response.size_bytes", 0)
-                    span.set_attribute("mcp.response.sample", str(response)[:500])
+                    span.set_attribute("mcp.response.sample", str(response)[:1000])
 
-                logfire.info(
-                    f"MCP {method} completed",
-                    duration_ms=duration_ms,
-                )
+                # Log success message
+                if method == "tools/call":
+                    tool_name = params.get("name", "unknown-tool")
+                    logfire.info(
+                        f"Tool call '{tool_name}' completed successfully",
+                        method=method,
+                        tool=tool_name,
+                        duration_ms=duration_ms,
+                    )
+                else:
+                    logfire.info(
+                        f"MCP message '{method}' completed successfully",
+                        method=method,
+                        duration_ms=duration_ms,
+                    )
 
                 return response
 
             except Exception as e:
-                # Log error details
+                # Log ALL errors - this is crucial for debugging failures
                 duration_ms = (time.time() - start_time) * 1000
                 span.set_attribute("mcp.duration_ms", duration_ms)
                 span.set_attribute("mcp.success", False)
@@ -85,10 +129,27 @@ class LogfireMiddleware:
                 span.set_attribute("mcp.error.message", str(e))
                 span.record_exception(e)
 
-                logfire.error(
-                    f"MCP {method} failed",
-                    duration_ms=duration_ms,
-                    error=str(e),
-                )
+                # Detailed error logging
+                if method == "tools/call":
+                    tool_name = params.get("name", "unknown-tool")
+                    logfire.error(
+                        f"Tool call '{tool_name}' FAILED",
+                        method=method,
+                        tool=tool_name,
+                        duration_ms=duration_ms,
+                        error_type=type(e).__name__,
+                        error_message=str(e),
+                        full_message=message,
+                    )
+                else:
+                    logfire.error(
+                        f"MCP message '{method}' FAILED",
+                        method=method,
+                        duration_ms=duration_ms,
+                        error_type=type(e).__name__,
+                        error_message=str(e),
+                        full_message=message,
+                    )
 
+                # Re-raise the exception so it propagates normally
                 raise
