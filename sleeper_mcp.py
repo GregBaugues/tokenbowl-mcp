@@ -264,36 +264,36 @@ async def get_user_leagues(
         return response.json()
 
 
-@mcp.tool()
-async def get_user_drafts(
-    user_id: str, sport: str = "nfl", season: str = "2025"
-) -> List[Dict[str, Any]]:
-    """Get all fantasy drafts a user has participated in for a specific sport and season.
+# @mcp.tool()
+# async def get_user_drafts(
+#     user_id: str, sport: str = "nfl", season: str = "2025"
+# ) -> List[Dict[str, Any]]:
+#     """Get all fantasy drafts a user has participated in for a specific sport and season.
 
-    Args:
-        user_id: The numeric user ID of the Sleeper user (not username).
-        sport: The sport type (default: "nfl"). Options: "nfl", "nba", "lcs".
-        season: The year as a string (default: "2025"). Must be a valid 4-digit year.
+#     Args:
+#         user_id: The numeric user ID of the Sleeper user (not username).
+#         sport: The sport type (default: "nfl"). Options: "nfl", "nba", "lcs".
+#         season: The year as a string (default: "2025"). Must be a valid 4-digit year.
 
-    Returns draft information including:
-    - Draft ID and status (pre_draft, drafting, complete)
-    - Draft type (snake, auction, linear)
-    - Start time and created date
-    - Number of teams and rounds
-    - League ID associated with draft
-    - User's draft position/slot
+#     Returns draft information including:
+#     - Draft ID and status (pre_draft, drafting, complete)
+#     - Draft type (snake, auction, linear)
+#     - Start time and created date
+#     - Number of teams and rounds
+#     - League ID associated with draft
+#     - User's draft position/slot
 
-    Use draft_id with get_draft_picks() for detailed pick information.
+#     Use draft_id with get_draft_picks() for detailed pick information.
 
-    Returns:
-        List of draft dictionaries the user has participated in
-    """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{BASE_URL}/user/{user_id}/drafts/{sport}/{season}"
-        )
-        response.raise_for_status()
-        return response.json()
+#     Returns:
+#         List of draft dictionaries the user has participated in
+#     """
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(
+#             f"{BASE_URL}/user/{user_id}/drafts/{sport}/{season}"
+#         )
+#         response.raise_for_status()
+#         return response.json()
 
 
 @mcp.tool()
@@ -626,86 +626,86 @@ async def get_waiver_wire_players(
         }
 
 
-@mcp.tool()
-async def get_draft(draft_id: str) -> Dict[str, Any]:
-    """Get comprehensive information about a specific fantasy draft.
+# @mcp.tool()
+# async def get_draft(draft_id: str) -> Dict[str, Any]:
+#     """Get comprehensive information about a specific fantasy draft.
 
-    Args:
-        draft_id: The unique draft identifier from Sleeper.
-                 Obtain from get_league_drafts() or get_user_drafts().
+#     Args:
+#         draft_id: The unique draft identifier from Sleeper.
+#                  Obtain from get_league_drafts() or get_user_drafts().
 
-    Returns draft details including:
-    - Draft type (snake, auction, linear)
-    - Current status (pre_draft, drafting, complete)
-    - Start time and settings
-    - Number of rounds and timer settings
-    - Draft order and slot assignments
-    - Team count and sport
-    - Scoring type and season
+#     Returns draft details including:
+#     - Draft type (snake, auction, linear)
+#     - Current status (pre_draft, drafting, complete)
+#     - Start time and settings
+#     - Number of rounds and timer settings
+#     - Draft order and slot assignments
+#     - Team count and sport
+#     - Scoring type and season
 
-    Use with get_draft_picks() to see actual player selections.
+#     Use with get_draft_picks() to see actual player selections.
 
-    Returns:
-        Dict containing all draft configuration and metadata
-    """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/draft/{draft_id}")
-        response.raise_for_status()
-        return response.json()
-
-
-@mcp.tool()
-async def get_draft_picks(draft_id: str) -> List[Dict[str, Any]]:
-    """Get all player selections from a completed or in-progress draft.
-
-    Args:
-        draft_id: The unique draft identifier from Sleeper.
-                 Obtain from get_league_drafts() or get_user_drafts().
-
-    Returns pick information including:
-    - Pick number and round
-    - Player ID of selected player
-    - Roster ID that made the pick
-    - Draft slot position
-    - Keeper status if applicable
-    - Pick metadata (is_keeper, pick_no)
-
-    Picks are returned in draft order.
-    Use with player data to get player names and details.
-
-    Returns:
-        List of pick dictionaries in chronological draft order
-    """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/draft/{draft_id}/picks")
-        response.raise_for_status()
-        return response.json()
+#     Returns:
+#         Dict containing all draft configuration and metadata
+#     """
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(f"{BASE_URL}/draft/{draft_id}")
+#         response.raise_for_status()
+#         return response.json()
 
 
-@mcp.tool()
-async def get_draft_traded_picks(draft_id: str) -> List[Dict[str, Any]]:
-    """Get information about draft picks that were traded before or during a draft.
+# @mcp.tool()
+# async def get_draft_picks(draft_id: str) -> List[Dict[str, Any]]:
+#     """Get all player selections from a completed or in-progress draft.
 
-    Args:
-        draft_id: The unique draft identifier from Sleeper.
-                 Obtain from get_league_drafts() or get_user_drafts().
+#     Args:
+#         draft_id: The unique draft identifier from Sleeper.
+#                  Obtain from get_league_drafts() or get_user_drafts().
 
-    Returns traded pick details including:
-    - Season and round of the traded pick
-    - Original owner roster ID
-    - New owner roster ID after trade
-    - Previous owner if traded multiple times
+#     Returns pick information including:
+#     - Pick number and round
+#     - Player ID of selected player
+#     - Roster ID that made the pick
+#     - Draft slot position
+#     - Keeper status if applicable
+#     - Pick metadata (is_keeper, pick_no)
 
-    Useful for tracking draft pick trades in keeper/dynasty leagues.
-    Empty list if no picks were traded.
+#     Picks are returned in draft order.
+#     Use with player data to get player names and details.
 
-    Returns:
-        List of traded draft pick dictionaries
-    """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/draft/{draft_id}/traded_picks")
-        response.raise_for_status()
-        return response.json()
+#     Returns:
+#         List of pick dictionaries in chronological draft order
+#     """
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(f"{BASE_URL}/draft/{draft_id}/picks")
+#         response.raise_for_status()
+#         return response.json()
+
+
+# @mcp.tool()
+# async def get_draft_traded_picks(draft_id: str) -> List[Dict[str, Any]]:
+#     """Get information about draft picks that were traded before or during a draft.
+
+#     Args:
+#         draft_id: The unique draft identifier from Sleeper.
+#                  Obtain from get_league_drafts() or get_user_drafts().
+
+#     Returns traded pick details including:
+#     - Season and round of the traded pick
+#     - Original owner roster ID
+#     - New owner roster ID after trade
+#     - Previous owner if traded multiple times
+
+#     Useful for tracking draft pick trades in keeper/dynasty leagues.
+#     Empty list if no picks were traded.
+
+#     Returns:
+#         List of traded draft pick dictionaries
+#     """
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(f"{BASE_URL}/draft/{draft_id}/traded_picks")
+#         response.raise_for_status()
+#         return response.json()
 
 
 if __name__ == "__main__":
