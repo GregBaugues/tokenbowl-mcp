@@ -152,27 +152,11 @@ class TestUserTools:
             assert "user_id" in result
             assert "username" in result
 
+    @pytest.mark.skip(reason="get_user_leagues tool has been removed")
     @pytest.mark.asyncio
     async def test_get_user_leagues_mock(self):
         """Test getting user leagues with mocked response."""
-        mock_response = [{"league_id": "123", "name": "Test League", "season": "2024"}]
-
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_async_client = AsyncMock()
-            mock_client.return_value.__aenter__.return_value = mock_async_client
-
-            mock_response_obj = MagicMock()
-            mock_response_obj.json.return_value = mock_response
-            mock_response_obj.raise_for_status = MagicMock()
-            mock_async_client.get.return_value = mock_response_obj
-
-            result = await sleeper_mcp.get_user_leagues.fn(
-                user_id="test_user", sport="nfl", season="2024"
-            )
-
-            assert result == mock_response
-            assert len(result) == 1
-            assert result[0]["league_id"] == "123"
+        pass  # Tool has been removed from MCP server
 
 
 class TestPlayerTools:
@@ -182,22 +166,23 @@ class TestPlayerTools:
     async def test_search_player_by_name_mock(self):
         """Test searching for a player by name with mocked cache."""
         # Mock the imported function directly
-        with patch("sleeper_mcp.get_player_by_name") as mock_get_player:
-            mock_get_player.return_value = [
+        with patch("sleeper_mcp.search_players_unified") as mock_search:
+            mock_search.return_value = [
                 {
-                    "player_id": "1234",
-                    "first_name": "Patrick",
-                    "last_name": "Mahomes",
+                    "id": "1234",
+                    "name": "Patrick Mahomes",
                     "team": "KC",
                     "position": "QB",
+                    "age": 28,
+                    "status": "Active",
                 }
             ]
 
-            result = await sleeper_mcp.search_player_by_name.fn(name="Mahomes")
+            result = await sleeper_mcp.search_players_by_name.fn(name="Mahomes")
 
             assert isinstance(result, list)
             assert len(result) == 1
-            assert result[0]["last_name"] == "Mahomes"
+            assert result[0]["name"] == "Patrick Mahomes"
             assert result[0]["position"] == "QB"
 
     @pytest.mark.asyncio
@@ -273,44 +258,17 @@ class TestDraftTools:
 class TestCacheOperations:
     """Test cache-related operations."""
 
+    @pytest.mark.skip(reason="get_cache_status tool has been removed")
     @pytest.mark.asyncio
     async def test_get_players_cache_status_mock(self):
         """Test getting cache status with mocked cache."""
-        with patch("sleeper_mcp.get_cache_status") as mock_get_status:
-            mock_get_status.return_value = {
-                "cached": True,
-                "player_count": 1000,
-                "last_updated": "2024-01-01T00:00:00Z",
-                "ttl_seconds": 86400,
-            }
+        pass  # Tool has been removed from MCP server
 
-            result = await sleeper_mcp.get_players_cache_status.fn()
-
-            assert result["cached"] is True
-            assert result["player_count"] == 1000
-            assert "last_updated" in result
-
+    @pytest.mark.skip(reason="refresh_players_cache tool has been removed")
     @pytest.mark.asyncio
     async def test_refresh_players_cache_mock(self):
         """Test refreshing the players cache with mocked cache."""
-        with (
-            patch("sleeper_mcp.force_refresh") as mock_refresh,
-            patch("sleeper_mcp.get_cache_status") as mock_status,
-        ):
-            mock_refresh.return_value = None
-            mock_status.return_value = {
-                "cached": True,
-                "player_count": 1500,
-                "last_updated": "2024-01-01T00:00:00Z",
-                "ttl_seconds": 86400,
-            }
-
-            result = await sleeper_mcp.refresh_players_cache.fn()
-
-            # The function returns either success with status or error
-            assert ("status" in result) or ("error" in result)
-            if "status" in result:
-                assert result["status"] == "Cache refreshed successfully"
+        pass  # Tool has been removed from MCP server
 
 
 @pytest.mark.asyncio
