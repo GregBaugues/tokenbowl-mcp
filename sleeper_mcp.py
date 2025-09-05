@@ -4,6 +4,7 @@
 import httpx
 import os
 import logging
+from dotenv import load_dotenv
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
 from players_cache_redis import (
@@ -13,6 +14,9 @@ from players_cache_redis import (
     get_cache_status,
     force_refresh,
 )
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

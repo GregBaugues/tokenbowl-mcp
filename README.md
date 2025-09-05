@@ -91,6 +91,32 @@ uv run python sleeper_mcp.py http 3000
 
 ## 🔧 Configuration
 
+### Environment Setup
+
+For local development, create a `.env` file in the project root to configure environment variables:
+
+```bash
+# Copy the example template
+cp .env.example .env
+
+# Edit with your values
+nano .env
+```
+
+Example `.env` file:
+```bash
+# Fantasy Nerds API Key (required for extended analytics)
+FFNERD_API_KEY=your_api_key_here
+
+# Sleeper League ID (optional, defaults to Token Bowl)
+SLEEPER_LEAGUE_ID=1266471057523490816
+
+# Redis URL (for production/caching)
+REDIS_URL=redis://localhost:6379
+```
+
+**Note**: The `.env` file is automatically ignored by git and should never be committed to version control.
+
 ### Claude Desktop Integration
 
 Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
@@ -113,6 +139,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 
 | Variable | Description | Default |
 |----------|-------------|---------|
+| `FFNERD_API_KEY` | Fantasy Nerds API key for extended analytics | None (required for fantasy data) |
 | `SLEEPER_LEAGUE_ID` | Sleeper league ID to use | `1266471057523490816` (Token Bowl) |
 | `REDIS_URL` | Redis connection URL | `redis://localhost:6379` |
 | `PORT` | HTTP server port (Render) | `8000` |

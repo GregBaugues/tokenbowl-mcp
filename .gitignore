@@ -24,3 +24,6 @@ env/
 htmlcov/
 .pytest_cache/
 tests/cassettes/
+
+# Environment variables
+.env
