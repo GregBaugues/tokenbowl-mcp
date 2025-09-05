@@ -534,7 +534,7 @@ async def get_waiver_wire_players(
         trending_data = {}
         if include_trending:
             try:
-                trending_response = await get_trending_players(type="add", lookback_hours=24, limit=200)
+                trending_response = await get_trending_players.fn(type="add", lookback_hours=24, limit=200)
                 trending_data = {item["player_id"]: item["count"] for item in trending_response}
             except Exception as e:
                 logger.warning(f"Could not fetch trending data: {e}")
