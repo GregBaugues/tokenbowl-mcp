@@ -237,34 +237,37 @@ class TestPlayerTools:
 class TestDraftTools:
     """Test draft-related MCP tools."""
 
-    @pytest.mark.asyncio
-    async def test_get_draft_mock(self):
-        """Test getting draft information with mocked response."""
-        mock_draft = {
-            "draft_id": "987654321",
-            "league_id": os.environ.get("SLEEPER_LEAGUE_ID", "1266471057523490816"),
-            "status": "complete",
-            "type": "snake",
-            "settings": {"rounds": 15, "teams": 12},
-        }
+    pass  # All draft tool tests commented out while tools are disabled
 
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_async_client = AsyncMock()
-            mock_client.return_value.__aenter__.return_value = mock_async_client
+    # Commented out because get_draft tool is currently disabled
+    # @pytest.mark.asyncio
+    # async def test_get_draft_mock(self):
+    #     """Test getting draft information with mocked response."""
+    #     mock_draft = {
+    #         "draft_id": "987654321",
+    #         "league_id": os.environ.get("SLEEPER_LEAGUE_ID", "1266471057523490816"),
+    #         "status": "complete",
+    #         "type": "snake",
+    #         "settings": {"rounds": 15, "teams": 12},
+    #     }
 
-            mock_response_obj = MagicMock()
-            mock_response_obj.json.return_value = mock_draft
-            mock_response_obj.raise_for_status = MagicMock()
-            mock_async_client.get.return_value = mock_response_obj
+    #     with patch("httpx.AsyncClient") as mock_client:
+    #         mock_async_client = AsyncMock()
+    #         mock_client.return_value.__aenter__.return_value = mock_async_client
 
-            result = await sleeper_mcp.get_draft.fn(draft_id="987654321")
+    #         mock_response_obj = MagicMock()
+    #         mock_response_obj.json.return_value = mock_draft
+    #         mock_response_obj.raise_for_status = MagicMock()
+    #         mock_async_client.get.return_value = mock_response_obj
 
-            assert result["draft_id"] == "987654321"
-            expected_league_id = os.environ.get(
-                "SLEEPER_LEAGUE_ID", "1266471057523490816"
-            )
-            assert result["league_id"] == expected_league_id
-            assert result["type"] == "snake"
+    #         result = await sleeper_mcp.get_draft.fn(draft_id="987654321")
+
+    #         assert result["draft_id"] == "987654321"
+    #         expected_league_id = os.environ.get(
+    #             "SLEEPER_LEAGUE_ID", "1266471057523490816"
+    #         )
+    #         assert result["league_id"] == expected_league_id
+    #         assert result["type"] == "snake"
 
 
 class TestCacheOperations:

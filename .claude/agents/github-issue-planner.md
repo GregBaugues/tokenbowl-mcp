@@ -24,7 +24,7 @@ When given an issue to plan, you will:
    - Priority and timeline expectations
 
 4. **Research Prior Art**: Investigate existing context by:
-   - Searching scratchpads for related planning documents or thoughts
+   - Searching the scratchpads/ directory for related planning documents or thoughts
    - Using `gh pr list --search` to find related pull requests
    - Searching the codebase for relevant files and existing implementations
    - Identifying patterns from similar past issues
@@ -37,7 +37,7 @@ When given an issue to plan, you will:
    - Consider the project's coding standards from CLAUDE.md
 
 6. **Document the Plan**: Create a new scratchpad with:
-   - Filename format: `issue-<number>-<brief-description>-plan.md`
+   - Filename format: `scratchpads/issue-<number>-<brief-description>-plan.md`
    - A link to the original issue at the top
    - Executive summary of the problem
    - List of clarifying questions (if any)

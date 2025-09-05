@@ -161,6 +161,7 @@ The server uses Redis to cache NFL player data (5MB+ dataset) with intelligent f
 | `refresh_players_cache()` | Force cache refresh | None |
 
 ### Draft Operations (3 tools)
+#### (Now commented out, to reduce tool pollution)
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
@@ -202,21 +203,7 @@ The service will be available at:
 https://your-service-name.onrender.com/sse
 ```
 
-### Production Architecture
 
-```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   Claude    │────▶│  MCP Server  │────▶│ Sleeper API │
-│   Desktop   │     │   (FastMCP)  │     └─────────────┘
-└─────────────┘     └──────┬───────┘
-                           │
-                    ┌──────▼───────┐
-                    │    Redis     │
-                    │   (Cache)    │
-                    └──────────────┘
-```
-
-## 🛠️ Development
 
 ### Project Structure
 
@@ -245,15 +232,6 @@ uv run python clear_cache.py
 uv run python debug_redis.py
 ```
 
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ### Development Guidelines
 
@@ -263,35 +241,21 @@ Contributions are welcome! Please follow these steps:
 - Update documentation for API changes
 - Ensure CI passes before submitting PR
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
+## 🙏 References
 
 - [Sleeper](https://sleeper.app/) for their comprehensive fantasy sports API
 - [FastMCP](https://github.com/jlowin/fastmcp) for the excellent MCP framework
-- [Anthropic](https://anthropic.com) for the Model Context Protocol specification
-- The fantasy football community for inspiration and feedback
+
+
 
 ## 📞 Support
 
 - **Issues**: [GitHub Issues](https://github.com/GregBaugues/tokenbowl-mcp/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/GregBaugues/tokenbowl-mcp/discussions)
+
 - **API Docs**: [Sleeper API Documentation](https://docs.sleeper.app/)
 
-## 🔮 Roadmap
 
-- [ ] Add support for multiple leagues
-- [ ] Implement OAuth for user authentication
-- [ ] Add GraphQL endpoint support
-- [ ] Create web UI for configuration
-- [ ] Add more sports (NBA, MLB, NHL)
-- [ ] Implement real-time WebSocket updates
-- [ ] Add advanced analytics tools
-- [ ] Create Docker container for easier deployment
-
----
 
 **Note**: By default, this server uses the Token Bowl league (ID: `1266471057523490816`). To use with your own league, set the `SLEEPER_LEAGUE_ID` environment variable to your league's ID.
 
