@@ -117,8 +117,15 @@ async def update_cache():
     return filtered_players
 
 
-async def get_all_players() -> Dict[str, Any]:
-    """Get all players, using cache if valid, otherwise fetch fresh"""
+async def get_all_players(enrich: bool = False) -> Dict[str, Any]:
+    """Get all players, using cache if valid, otherwise fetch fresh
+
+    Args:
+        enrich: Whether to enrich players with Fantasy Nerds data (default: False)
+
+    Returns:
+        Dictionary of player_id -> player data, optionally enriched
+    """
     try:
         r = get_redis_client()
 
@@ -130,16 +137,42 @@ async def get_all_players() -> Dict[str, Any]:
             try:
                 # Try to decompress
                 decompressed = gzip.decompress(cached_data)
-                return json.loads(decompressed)
+                players = json.loads(decompressed)
             except gzip.BadGzipFile:
                 # Not compressed, parse directly
-                return json.loads(cached_data)
+                players = json.loads(cached_data)
+        else:
+            # Cache miss - fetch fresh
+            print("Cache invalid or missing, fetching fresh data")
+            players = await update_cache()
     except (RedisError, ConnectionError) as e:
         print(f"Redis error, will fetch fresh: {e}")
+        # Cache miss or error - fetch fresh
+        players = await update_cache()
 
-    # Cache miss or error - fetch fresh
-    print("Cache invalid or missing, fetching fresh data")
-    return await update_cache()
+    # Apply enrichment if requested
+    if enrich:
+        try:
+            from ffnerd.enricher import PlayerEnricher
+            from ffnerd.mapper import PlayerMapper
+            from ffnerd.cache import FantasyNerdsCache
+
+            print("Enriching players with Fantasy Nerds data...")
+            mapper = PlayerMapper()
+            cache = FantasyNerdsCache()
+            enricher = PlayerEnricher(mapper=mapper, cache=cache)
+
+            # Enrich all players
+            players = await enricher.enrich_players(players)
+
+            # Log enrichment metrics
+            metrics = enricher.get_metrics()
+            print(f"Enrichment complete: {metrics['success_rate']}% success rate")
+        except Exception as e:
+            print(f"Warning: Could not enrich players: {e}")
+            # Return unenriched players on error
+
+    return players
 
 
 def search_player(players: Dict[str, Any], name: str) -> list:
@@ -169,15 +202,33 @@ def search_player(players: Dict[str, Any], name: str) -> list:
     return results[:10]  # Return top 10 matches
 
 
-async def get_player_by_name(name: str) -> list:
-    """Get player data by name (uses cache)"""
-    players = await get_all_players()
+async def get_player_by_name(name: str, enrich: bool = False) -> list:
+    """Get player data by name (uses cache)
+
+    Args:
+        name: Player name to search for
+        enrich: Whether to enrich players with Fantasy Nerds data (default: False)
+
+    Returns:
+        List of matching players, optionally enriched
+    """
+    players = await get_all_players(enrich=enrich)
     return search_player(players, name)
 
 
-async def get_player_by_id(player_id: str) -> Optional[Dict[str, Any]]:
-    """Get player data by ID (uses cache)"""
-    players = await get_all_players()
+async def get_player_by_id(
+    player_id: str, enrich: bool = False
+) -> Optional[Dict[str, Any]]:
+    """Get player data by ID (uses cache)
+
+    Args:
+        player_id: Sleeper player ID
+        enrich: Whether to enrich player with Fantasy Nerds data (default: False)
+
+    Returns:
+        Player data dictionary, optionally enriched
+    """
+    players = await get_all_players(enrich=enrich)
     return players.get(player_id)
 
 

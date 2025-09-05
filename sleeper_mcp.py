@@ -309,6 +309,12 @@ async def get_nfl_players() -> Dict[str, Any]:
 
     Data is cached in Redis and refreshed daily to avoid API rate limits.
 
+    Now includes Fantasy Nerds enrichment data:
+    - Weekly/seasonal projections
+    - Injury reports and status
+    - Expert rankings
+    - Recent news
+
     Returns player data including:
     - Player ID (Sleeper's unique identifier)
     - Full name, position, team
@@ -316,12 +322,14 @@ async def get_nfl_players() -> Dict[str, Any]:
     - Injury status and fantasy relevance
     - Years of experience
     - Active/inactive status
+    - Fantasy Nerds enrichment (when available)
 
     Returns:
         Dict with player_id as keys and player data as values
     """
     try:
-        return await get_all_players()
+        # Enable enrichment by default
+        return await get_all_players(enrich=True)
     except Exception as e:
         logger.error(f"Error getting players: {e}")
         return {"error": f"Failed to get players: {str(e)}"}
@@ -342,6 +350,7 @@ async def search_player_by_name(name: str) -> List[Dict[str, Any]]:
     - Current team and position
     - Fantasy-relevant information
     - Injury status if applicable
+    - Fantasy Nerds enrichment data (projections, rankings, news)
 
     Search is performed on locally cached data for instant results.
 
@@ -351,7 +360,8 @@ async def search_player_by_name(name: str) -> List[Dict[str, Any]]:
     try:
         if not name or len(name) < 2:
             return {"error": "Name must be at least 2 characters"}
-        return await get_player_by_name(name)
+        # Enable enrichment by default
+        return await get_player_by_name(name, enrich=True)
     except Exception as e:
         logger.error(f"Error searching for player {name}: {e}")
         return {"error": f"Failed to search players: {str(e)}"}
@@ -373,6 +383,11 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
     - Injury information
     - Years of experience
     - College and draft info
+    - Fantasy Nerds enrichment data:
+      - Weekly/seasonal projections
+      - Expert rankings
+      - Recent news and updates
+      - Detailed injury reports
 
     Data retrieved from Redis cache for optimal performance.
 
@@ -382,7 +397,8 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
     try:
         if not player_id:
             return {"error": "Player ID is required"}
-        result = await get_player_by_id(player_id)
+        # Enable enrichment by default
+        result = await get_player_by_id(player_id, enrich=True)
         if result:
             return result
         return {"error": f"Player with ID {player_id} not found"}
@@ -531,8 +547,8 @@ async def get_waiver_wire_players(
             if roster.get("players"):
                 rostered_players.update(roster["players"])
 
-        # Get all NFL players from cache
-        all_players = await get_all_players()
+        # Get all NFL players from cache with enrichment
+        all_players = await get_all_players(enrich=True)
 
         # Get trending data if requested
         trending_data = {}
