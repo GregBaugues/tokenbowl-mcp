@@ -24,8 +24,8 @@ mcp = FastMCP("tokenbowl-mcp")
 # Base URL for Sleeper API
 BASE_URL = "https://api.sleeper.app/v1"
 
-# Hardcoded league ID
-LEAGUE_ID = "1266471057523490816"
+# Get league ID from environment variable with fallback to Token Bowl
+LEAGUE_ID = os.environ.get("SLEEPER_LEAGUE_ID", "1266471057523490816")
 
 
 @mcp.tool()
@@ -38,7 +38,7 @@ async def get_league_info() -> Dict[str, Any]:
     - Scoring settings and rules
     - Playoff configuration and schedule
     - Draft settings and keeper rules
-    - League ID: 1266471057523490816 (hardcoded)
+    - League ID: Configured via SLEEPER_LEAGUE_ID env var (default: 1266471057523490816)
 
     Returns:
         Dict containing all league configuration and settings

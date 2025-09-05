@@ -44,8 +44,8 @@ def mock_mcp_server():
 
 @pytest.fixture
 def league_id():
-    """Test league ID."""
-    return "1266471057523490816"
+    """Test league ID - uses SLEEPER_LEAGUE_ID env var if set, otherwise default."""
+    return os.environ.get("SLEEPER_LEAGUE_ID", "1266471057523490816")
 
 
 @pytest.fixture
