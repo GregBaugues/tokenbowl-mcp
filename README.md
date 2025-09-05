@@ -2,20 +2,32 @@
 
 [![CI](https://github.com/GregBaugues/sleeper-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/GregBaugues/sleeper-mcp/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Model Context Protocol (MCP) server for the Sleeper Fantasy Sports API built with FastMCP.
+A high-performance Model Context Protocol (MCP) server for the [Sleeper Fantasy Sports API](https://docs.sleeper.app/), built with [FastMCP](https://github.com/jlowin/fastmcp). This server provides seamless access to fantasy football league data, player statistics, and real-time updates through a standardized MCP interface.
 
-## Features
+## 🎯 Key Features
 
-This MCP server provides tools to interact with the Sleeper API, hardcoded for a specific league. Available tools include:
+- **🏈 Comprehensive League Management**: Access league info, rosters, matchups, transactions, and playoff brackets
+- **👤 User Analytics**: Track user profiles, leagues, and draft history across seasons
+- **📊 Player Intelligence**: Real-time NFL player data with Redis caching for instant searches
+- **📈 Trending Analysis**: Monitor trending adds/drops with customizable lookback periods
+- **🎲 Draft Tools**: Complete draft history, picks, and traded picks tracking
+- **⚡ High Performance**: Redis-cached player data with 24-hour TTL and automatic refresh
+- **🔄 Dual Transport**: Supports both STDIO (Claude Desktop) and HTTP/SSE (web deployment)
+- **☁️ Production Ready**: Auto-deploys to Render with built-in health checks
 
-- League information and rosters
-- User data and matchups  
-- Transactions and traded picks
-- NFL player data and trending players
-- Draft information
+## 📋 Prerequisites
 
-## Installation
+- Python 3.11 or higher
+- [uv](https://github.com/astral-sh/uv) package manager
+- Redis (for caching - optional for local development)
+- Sleeper Fantasy Sports league (currently hardcoded to league ID: `1266471057523490816`)
+
+## 🚀 Quick Start
+
+### Installation
 
 ```bash
 # Clone the repository
@@ -24,33 +36,35 @@ cd sleeper-mcp
 
 # Install dependencies using uv
 uv sync
+
+# For development with tests
+uv sync --extra test
+
+# For development with linting
+uv sync --extra dev
 ```
 
-## Usage
+### Running the Server
 
-### Running as HTTP Server (Streamable)
-
-Start the server on default port 8000:
-```bash
-uv run python sleeper_mcp.py http
-```
-
-Or specify a custom port:
-```bash
-uv run python sleeper_mcp.py http 3000
-```
-
-### Running with STDIO (for Claude Desktop)
-
+#### For Claude Desktop (STDIO mode)
 ```bash
 uv run python sleeper_mcp.py
 ```
 
-## Configuration
+#### For Web Deployment (HTTP/SSE mode)
+```bash
+# Default port 8000
+uv run python sleeper_mcp.py http
 
-### For Claude Desktop (STDIO)
+# Custom port
+uv run python sleeper_mcp.py http 3000
+```
 
-Add to your Claude Desktop config file (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+## 🔧 Configuration
+
+### Claude Desktop Integration
+
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 
 ```json
 {
@@ -66,55 +80,189 @@ Add to your Claude Desktop config file (`~/Library/Application Support/Claude/cl
 }
 ```
 
-### For HTTP/SSE Transport
+### Environment Variables
 
-Configure your MCP client to connect to:
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REDIS_URL` | Redis connection URL | `redis://localhost:6379` |
+| `PORT` | HTTP server port (Render) | `8000` |
+| `RENDER` | Deployment flag | `false` |
+
+### Redis Cache Configuration
+
+The server uses Redis to cache NFL player data (5MB+ dataset) with intelligent filtering:
+- **Cache TTL**: 24 hours with automatic refresh
+- **Compression**: Gzip compression (level 9) for memory efficiency
+- **Smart Filtering**: Only caches active players with search rank < 5000
+- **Memory Optimized**: Designed for free-tier Redis instances
+
+## 📚 API Documentation
+
+### League Operations (8 tools)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `get_league_info()` | Get league settings and configuration | None |
+| `get_league_rosters()` | Get all team rosters with players | None |
+| `get_league_users()` | Get all league members | None |
+| `get_league_matchups(week)` | Get matchups for specific week | `week: int` |
+| `get_league_transactions(round)` | Get waiver/trade transactions | `round: int` (default: 1) |
+| `get_league_traded_picks()` | Get all traded draft picks | None |
+| `get_league_drafts()` | Get league draft history | None |
+| `get_league_winners_bracket()` | Get playoff bracket | None |
+
+### User Operations (3 tools)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `get_user(username_or_id)` | Get user profile | `username_or_id: str` |
+| `get_user_leagues(user_id, sport, season)` | Get user's leagues | `user_id: str`, `sport: str`, `season: str` |
+| `get_user_drafts(user_id, sport, season)` | Get user's draft history | `user_id: str`, `sport: str`, `season: str` |
+
+### Player Operations (5 tools)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `get_nfl_players()` | Get all NFL players (cached) | None |
+| `search_player_by_name(name)` | Search players by name | `name: str` |
+| `get_player_by_sleeper_id(player_id)` | Get specific player | `player_id: str` |
+| `get_trending_players(type, lookback_hours, limit)` | Get trending adds/drops | `type: str`, `lookback_hours: int`, `limit: int` |
+| `get_players_cache_status()` | Check cache health | None |
+| `refresh_players_cache()` | Force cache refresh | None |
+
+### Draft Operations (3 tools)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `get_draft(draft_id)` | Get draft details | `draft_id: str` |
+| `get_draft_picks(draft_id)` | Get all draft picks | `draft_id: str` |
+| `get_draft_traded_picks(draft_id)` | Get traded draft picks | `draft_id: str` |
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov=. --cov-report=term-missing
+
+# Run specific test file
+uv run pytest tests/test_sleeper_mcp.py
+
+# Run linting
+uv run ruff check .
+uv run ruff format .
 ```
-http://localhost:8000/sse
-```
 
-The server uses Server-Sent Events (SSE) for streaming responses, making it compatible with web-based MCP clients and other HTTP-based integrations.
+## 🚢 Deployment
 
-### Deploying to Render
+### Deploy to Render
 
-1. Fork or clone this repository to your GitHub account
-2. Connect your GitHub account to Render
-3. Create a new Web Service on Render
-4. Connect your repository
-5. Render will automatically detect the `render.yaml` configuration
-6. Deploy!
+1. Fork this repository
+2. Connect GitHub to Render
+3. Create a new Web Service
+4. Select your forked repository
+5. Render auto-detects `render.yaml` configuration
+6. Add Redis instance (optional but recommended)
+7. Deploy!
 
-Your MCP server will be available at:
+The service will be available at:
 ```
 https://your-service-name.onrender.com/sse
 ```
 
-## Available Tools
+### Production Architecture
 
-### League Tools
-- `get_league_info()` - Get league information
-- `get_league_rosters()` - Get all rosters
-- `get_league_users()` - Get all users
-- `get_league_matchups(week)` - Get matchups for a week
-- `get_league_transactions(round)` - Get transactions
-- `get_league_traded_picks()` - Get traded picks
-- `get_league_drafts()` - Get league drafts
-- `get_league_winners_bracket()` - Get playoff bracket
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│   Claude    │────▶│  MCP Server  │────▶│ Sleeper API │
+│   Desktop   │     │   (FastMCP)  │     └─────────────┘
+└─────────────┘     └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+                    │    Redis     │
+                    │   (Cache)    │
+                    └──────────────┘
+```
 
-### User Tools
-- `get_user(username_or_id)` - Get user info
-- `get_user_leagues(user_id, sport, season)` - Get user's leagues
-- `get_user_drafts(user_id, sport, season)` - Get user's drafts
+## 🛠️ Development
 
-### Player Tools
-- `get_nfl_players()` - Get all NFL players
-- `get_trending_players(type, lookback_hours, limit)` - Get trending players
+### Project Structure
 
-### Draft Tools
-- `get_draft(draft_id)` - Get draft details
-- `get_draft_picks(draft_id)` - Get draft picks
-- `get_draft_traded_picks(draft_id)` - Get traded picks
+```
+sleeper-mcp/
+├── sleeper_mcp.py           # Main MCP server
+├── players_cache_redis.py   # Redis caching layer
+├── tests/
+│   ├── test_sleeper_mcp.py  # Server tests
+│   ├── test_players_cache.py # Cache tests
+│   └── test_integration.py  # Integration tests
+├── render.yaml              # Render deployment config
+├── pyproject.toml           # Python dependencies
+└── .github/
+    └── workflows/
+        └── ci.yml           # GitHub Actions CI/CD
+```
 
-## License
+### Utility Scripts
 
-MIT
+```bash
+# Clear Redis cache
+uv run python clear_cache.py
+
+# Debug Redis connection
+uv run python debug_redis.py
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+
+- Write tests for new features
+- Follow Python best practices and PEP 8
+- Use type hints where appropriate
+- Update documentation for API changes
+- Ensure CI passes before submitting PR
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Sleeper](https://sleeper.app/) for their comprehensive fantasy sports API
+- [FastMCP](https://github.com/jlowin/fastmcp) for the excellent MCP framework
+- [Anthropic](https://anthropic.com) for the Model Context Protocol specification
+- The fantasy football community for inspiration and feedback
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/GregBaugues/sleeper-mcp/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/GregBaugues/sleeper-mcp/discussions)
+- **API Docs**: [Sleeper API Documentation](https://docs.sleeper.app/)
+
+## 🔮 Roadmap
+
+- [ ] Add support for multiple leagues
+- [ ] Implement OAuth for user authentication
+- [ ] Add GraphQL endpoint support
+- [ ] Create web UI for configuration
+- [ ] Add more sports (NBA, MLB, NHL)
+- [ ] Implement real-time WebSocket updates
+- [ ] Add advanced analytics tools
+- [ ] Create Docker container for easier deployment
+
+---
+
+**Note**: This server is currently hardcoded for league ID `1266471057523490816` (Token Bowl). To use with your own league, modify the `LEAGUE_ID` constant in `sleeper_mcp.py`.
+
+Built with ❤️ for the fantasy football community
