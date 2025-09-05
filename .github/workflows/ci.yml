@@ -1,4 +1,4 @@
-name: CI
+name: Token Bowl MCP CI
 
 on:
   push:

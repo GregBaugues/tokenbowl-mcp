@@ -1,7 +1,7 @@
 [project]
-name = "sleeper-mcp"
+name = "tokenbowl-mcp"
 version = "0.1.0"
-description = "Add your description here"
+description = "MCP server for Token Bowl fantasy football league via Sleeper API"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

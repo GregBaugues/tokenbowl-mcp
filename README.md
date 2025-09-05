@@ -1,11 +1,11 @@
-# Sleeper MCP Server
+# Token Bowl MCP Server
 
-[![CI](https://github.com/GregBaugues/sleeper-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/GregBaugues/sleeper-mcp/actions/workflows/ci.yml)
+[![CI](https://github.com/GregBaugues/tokenbowl-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/GregBaugues/tokenbowl-mcp/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A high-performance Model Context Protocol (MCP) server for the [Sleeper Fantasy Sports API](https://docs.sleeper.app/), built with [FastMCP](https://github.com/jlowin/fastmcp). This server provides seamless access to fantasy football league data, player statistics, and real-time updates through a standardized MCP interface.
+A high-performance Model Context Protocol (MCP) server for the Token Bowl fantasy football league. Built with [FastMCP](https://github.com/jlowin/fastmcp) and the [Sleeper Fantasy Sports API](https://docs.sleeper.app/), this server provides seamless access to league data, player statistics, and real-time updates through a standardized MCP interface.
 
 ## 🎯 Key Features
 
@@ -23,16 +23,45 @@ A high-performance Model Context Protocol (MCP) server for the [Sleeper Fantasy 
 - Python 3.11 or higher
 - [uv](https://github.com/astral-sh/uv) package manager
 - Redis (for caching - optional for local development)
-- Sleeper Fantasy Sports league (currently hardcoded to league ID: `1266471057523490816`)
+- Token Bowl league access (League ID: `1266471057523490816`)
 
 ## 🚀 Quick Start
 
-### Installation
+### Option 1: Use the Hosted Server (Recommended)
+
+The easiest way to use Token Bowl MCP is through the hosted server. No installation required!
+
+#### For Claude Desktop
+
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "tokenbowl": {
+      "url": "https://tokenbowl-mcp.haihai.ai/sse"
+    }
+  }
+}
+```
+
+That's it! The server is already running and ready to use.
+
+#### For Other MCP Clients
+
+Connect your MCP client to:
+```
+https://tokenbowl-mcp.haihai.ai/sse
+```
+
+### Option 2: Run Your Own Instance
+
+#### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/GregBaugues/sleeper-mcp.git
-cd sleeper-mcp
+git clone https://github.com/GregBaugues/tokenbowl-mcp.git
+cd tokenbowl-mcp
 
 # Install dependencies using uv
 uv sync
@@ -44,14 +73,14 @@ uv sync --extra test
 uv sync --extra dev
 ```
 
-### Running the Server
+#### Running the Server
 
-#### For Claude Desktop (STDIO mode)
+##### For Claude Desktop (STDIO mode)
 ```bash
 uv run python sleeper_mcp.py
 ```
 
-#### For Web Deployment (HTTP/SSE mode)
+##### For Web Deployment (HTTP/SSE mode)
 ```bash
 # Default port 8000
 uv run python sleeper_mcp.py http
@@ -69,11 +98,11 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 ```json
 {
   "mcpServers": {
-    "sleeper": {
+    "tokenbowl-local": {
       "command": "sh",
       "args": [
         "-c",
-        "cd /path/to/sleeper-mcp && uv run python sleeper_mcp.py"
+        "cd /path/to/tokenbowl-mcp && uv run python sleeper_mcp.py"
       ]
     }
   }
@@ -191,7 +220,7 @@ https://your-service-name.onrender.com/sse
 ### Project Structure
 
 ```
-sleeper-mcp/
+tokenbowl-mcp/
 ├── sleeper_mcp.py           # Main MCP server
 ├── players_cache_redis.py   # Redis caching layer
 ├── tests/
@@ -246,8 +275,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/GregBaugues/sleeper-mcp/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/GregBaugues/sleeper-mcp/discussions)
+- **Issues**: [GitHub Issues](https://github.com/GregBaugues/tokenbowl-mcp/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/GregBaugues/tokenbowl-mcp/discussions)
 - **API Docs**: [Sleeper API Documentation](https://docs.sleeper.app/)
 
 ## 🔮 Roadmap

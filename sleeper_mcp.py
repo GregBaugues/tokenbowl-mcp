@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sleeper API MCP Server - Hardcoded for league 1266471057523490816"""
+"""Token Bowl MCP Server - Fantasy football league management via Sleeper API"""
 
 import httpx
 import os
@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize FastMCP server
-mcp = FastMCP("sleeper-mcp")
+mcp = FastMCP("tokenbowl-mcp")
 
 # Base URL for Sleeper API
 BASE_URL = "https://api.sleeper.app/v1"

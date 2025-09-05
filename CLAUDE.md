@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Model Context Protocol (MCP) server for the Sleeper Fantasy Sports API built with FastMCP. The server is hardcoded for league ID `1266471057523490816` (Token Bowl league) and provides 20 tools to interact with the Sleeper API.
+This is the Token Bowl MCP server - a Model Context Protocol server for the Token Bowl fantasy football league. Built with FastMCP and the Sleeper Fantasy Sports API, it's hardcoded for league ID `1266471057523490816` and provides 20 tools to interact with fantasy football data.
 
 **Context**: This is part of the larger `tokenbowl` system - an LLM-powered fantasy football league management system. 
 
