@@ -31,6 +31,15 @@ Required for local development:
 ### GitHub
 use `gh` for all interaction with github
 
+### IMPORTANT: Pre-PR Checklist
+Before creating any Pull Request, you MUST:
+1. Run linting: `uv run ruff check .`
+2. Run formatting check: `uv run ruff format . --check`
+3. Fix any issues found (use `uv run ruff format .` to auto-format)
+4. Run tests: `uv run pytest`
+
+PRs will automatically fail CI if linting doesn't pass!
+
 
 ### Running the Server
 
@@ -74,7 +83,7 @@ uv run pytest --vcr-record=once
 # Run tests without hitting external APIs (replay mode)
 uv run pytest --vcr-record=none
 
-# Run linting
+# Run linting (ALWAYS run before creating a PR)
 uv run ruff check .
 uv run ruff format . --check
 ```
@@ -98,9 +107,15 @@ This will automatically run `ruff` linting and formatting checks before each com
 
 ### CI/CD
 
+**IMPORTANT: Before creating any PR, you MUST run:**
+```bash
+uv run ruff check .
+uv run ruff format . --check
+```
+
 GitHub Actions CI runs on every push and PR:
 - Tests on Python 3.11, 3.12, and 3.13
-- Runs linting with ruff
+- Runs linting with ruff (PRs will fail if linting doesn't pass)
 - Provides test reports and artifacts
 - Uses Redis service container for integration tests
 
