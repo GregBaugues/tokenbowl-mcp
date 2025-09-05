@@ -167,8 +167,8 @@ class PlayerMapper:
         sleeper_team = self.normalize_team(sleeper_player.get("team", ""))
         ffnerd_team = self.normalize_team(ffnerd_player.get("team", ""))
 
-        sleeper_pos = sleeper_player.get("position", "").upper()
-        ffnerd_pos = ffnerd_player.get("position", "").upper()
+        sleeper_pos = (sleeper_player.get("position") or "").upper()
+        ffnerd_pos = (ffnerd_player.get("position") or "").upper()
 
         # Calculate name similarity
         name_similarity = self.calculate_similarity(sleeper_name, ffnerd_name)

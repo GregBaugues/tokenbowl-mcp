@@ -127,9 +127,9 @@ class TestFantasyNerdsClient:
                     "players": [
                         {"playerId": 1, "injury": "Ankle", "status": "Questionable"},
                         {"playerId": 2, "injury": "Hamstring", "status": "Out"},
-                    ]
+                    ],
                 }
-            ]
+            ],
         }
 
         with patch("httpx.AsyncClient.get", return_value=mock_response) as mock_get:

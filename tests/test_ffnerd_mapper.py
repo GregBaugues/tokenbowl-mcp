@@ -109,7 +109,9 @@ class TestPlayerMapper:
         assert mapper.calculate_similarity("patrick", "patrick") == 1.0
         assert mapper.calculate_similarity("patrick", "patrik") > 0.8
         assert mapper.calculate_similarity("mahomes", "mahones") > 0.8
-        assert mapper.calculate_similarity("john", "jane") <= 0.5  # john/jane has exactly 0.5 similarity
+        assert (
+            mapper.calculate_similarity("john", "jane") <= 0.5
+        )  # john/jane has exactly 0.5 similarity
         assert mapper.calculate_similarity("", "") == 1.0
 
     def test_match_player_exact(self, mapper):
