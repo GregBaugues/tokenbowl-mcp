@@ -6,14 +6,12 @@ import sys
 import json
 import time
 import asyncio
-from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Optional
 import logging
 
-from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-import httpx
 import uvicorn
 
 from request_logger import RequestLogger
