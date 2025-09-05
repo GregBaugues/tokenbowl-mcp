@@ -8,11 +8,11 @@ import logging
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
 from players_cache_redis import (
-    get_all_players, 
-    get_player_by_name, 
+    get_all_players,
+    get_player_by_name,
     get_player_by_id,
     get_cache_status,
-    force_refresh
+    force_refresh,
 )
 
 # Configure logging
@@ -69,7 +69,9 @@ async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
 async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
     """Get transactions for the league in a specific round"""
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/transactions/{round}")
+        response = await client.get(
+            f"{BASE_URL}/league/{LEAGUE_ID}/transactions/{round}"
+        )
         response.raise_for_status()
         return response.json()
 
@@ -112,26 +114,26 @@ async def get_user(username_or_id: str) -> Dict[str, Any]:
 
 @mcp.tool()
 async def get_user_leagues(
-    user_id: str, 
-    sport: str = "nfl", 
-    season: str = "2024"
+    user_id: str, sport: str = "nfl", season: str = "2024"
 ) -> List[Dict[str, Any]]:
     """Get all leagues for a user in a specific sport and season"""
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/user/{user_id}/leagues/{sport}/{season}")
+        response = await client.get(
+            f"{BASE_URL}/user/{user_id}/leagues/{sport}/{season}"
+        )
         response.raise_for_status()
         return response.json()
 
 
 @mcp.tool()
 async def get_user_drafts(
-    user_id: str,
-    sport: str = "nfl",
-    season: str = "2024"
+    user_id: str, sport: str = "nfl", season: str = "2024"
 ) -> List[Dict[str, Any]]:
     """Get all drafts for a user in a specific sport and season"""
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/user/{user_id}/drafts/{sport}/{season}")
+        response = await client.get(
+            f"{BASE_URL}/user/{user_id}/drafts/{sport}/{season}"
+        )
         response.raise_for_status()
         return response.json()
 
@@ -196,13 +198,11 @@ async def refresh_players_cache() -> Dict[str, Any]:
 
 @mcp.tool()
 async def get_trending_players(
-    type: str = "add", 
-    lookback_hours: Optional[int] = 24, 
-    limit: Optional[int] = 25
+    type: str = "add", lookback_hours: Optional[int] = 24, limit: Optional[int] = 25
 ) -> List[Dict[str, Any]]:
     """
     Get trending players being added or dropped.
-    
+
     Args:
         type: Either 'add' or 'drop' to see trending adds or drops
         lookback_hours: Number of hours to look back (6, 12, or 24)
@@ -213,11 +213,10 @@ async def get_trending_players(
         params["lookback_hours"] = lookback_hours
     if limit:
         params["limit"] = limit
-    
+
     async with httpx.AsyncClient() as client:
         response = await client.get(
-            f"{BASE_URL}/players/nfl/trending/{type}",
-            params=params
+            f"{BASE_URL}/players/nfl/trending/{type}", params=params
         )
         response.raise_for_status()
         return response.json()
@@ -254,14 +253,14 @@ if __name__ == "__main__":
     # Run the MCP server with HTTP transport
     import sys
     import os
-    
+
     # Check for environment variable or command line argument
     if os.getenv("RENDER") or (len(sys.argv) > 1 and sys.argv[1] == "http"):
         # Use PORT env variable (required by Render) or command line arg
         port = int(os.getenv("PORT", 8000))
         if len(sys.argv) > 2:
             port = int(sys.argv[2])
-        
+
         # Bind to 0.0.0.0 for external access (required for cloud deployment)
         mcp.run(transport="sse", port=port, host="0.0.0.0")
     else:
