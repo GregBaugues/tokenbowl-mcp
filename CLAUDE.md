@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Model Context Protocol (MCP) server for the Sleeper Fantasy Sports API built with FastMCP. The server is hardcoded for league ID `1266471057523490816` and provides tools to interact with the Sleeper API.
+This is a Model Context Protocol (MCP) server for the Sleeper Fantasy Sports API built with FastMCP. The server is hardcoded for league ID `1266471057523490816` (Token Bowl league) and provides 20 tools to interact with the Sleeper API.
+
+**Context**: This is part of the larger `tokenbowl` system - an LLM-powered fantasy football league management system. 
 
 ## Development Commands
 
@@ -29,48 +31,93 @@ uv run python sleeper_mcp.py http 3000   # Custom port
 uv run python sleeper_mcp.py
 ```
 
+### Utility Commands
+```bash
+# Clear Redis cache
+uv run python clear_cache.py
+
+# Debug Redis connection and view cache status
+uv run python debug_redis.py
+```
+
 ### Deployment
 
 The project is configured for Render deployment via `render.yaml`. When pushing to the main branch, it automatically deploys if autoDeploy is enabled.
+
+**Production Details:**
+- **Repository**: https://github.com/GregBaugues/sleeper-mcp
+- **Render Service ID**: `srv-d2o5vv95pdvs739hqde0`
+- **Redis Cache ID**: `red-d2o755emcj7s73b8bj9g`
+- **Deployment**: Auto-deploys on push to `main` branch
+- **MCP Tool Prefix**: When deployed, tools are prefixed with `mcp__tokenbowl__`
 
 ## Architecture
 
 ### Core Components
 
-1. **sleeper_mcp.py**: Single-file MCP server implementation
+1. **sleeper_mcp.py**: Single-file MCP server implementation (20 tools)
    - Uses FastMCP framework for tool definitions
    - All tools are async functions decorated with `@mcp.tool()`
    - Hardcoded `LEAGUE_ID = "1266471057523490816"`
    - Base API URL: `https://api.sleeper.app/v1`
+   - Environment-aware transport detection
 
-2. **Transport Modes**:
+2. **players_cache_redis.py**: Redis caching layer for NFL player data
+   - Caches 5MB+ player dataset to avoid API rate limits
+   - 24-hour TTL with automatic refresh
+   - Gzip compression to reduce memory usage
+   - Aggressive filtering for free Redis tier constraints
+   - Connection pooling and robust error handling
+
+3. **Transport Modes**:
    - **HTTP/SSE**: For web deployment (binds to 0.0.0.0 when `RENDER` env var is set or `http` argument provided)
    - **STDIO**: Default mode for Claude Desktop integration
 
-3. **Deployment Configuration**:
+4. **Deployment Configuration**:
    - **render.yaml**: Defines build and start commands for Render deployment
    - Build: `pip install uv && uv sync`
    - Start: `uv run python sleeper_mcp.py http`
    - Python version: 3.13 (specified via PYTHON_VERSION env var)
+   - Health check endpoint: `/health`
 
 ## Key Implementation Details
 
 - The server detects deployment environment via `RENDER` env variable or command line arguments
 - Port is configurable via `PORT` environment variable (required by Render) or command line
-- When deployed, binds to `0.0.0.0` for external access
+- When deployed, binds to `0.0.0.0` for external access, localhost for local development
 - All API calls use `httpx.AsyncClient` with proper error handling via `raise_for_status()`
 - Large dataset endpoints (like `get_nfl_players`) use extended timeouts (30s)
+- Redis connection via `REDIS_URL` environment variable
+- Player search functions utilize cached data for instant responses
 
 ## Available Tools
 
-The server exposes these Sleeper API endpoints as MCP tools:
-- League operations (info, rosters, users, matchups, transactions, traded picks, drafts, playoffs)
-- User operations (profile, leagues, drafts)
-- Player data (all NFL players, trending adds/drops)
-- Draft operations (draft details, picks, traded picks)
+The server exposes 20 Sleeper API endpoints as MCP tools:
+- **League operations**: info, rosters, users, matchups, transactions, traded picks, drafts, playoffs
+- **User operations**: profile, leagues, drafts
+- **Player data**: all NFL players (cached), trending adds/drops, search by name/ID
+- **Draft operations**: draft details, picks, traded picks
+- **Cache operations**: status, refresh, search functionality
 
 ## Dependencies
 
 - **fastmcp>=2.11.3**: MCP server framework
 - **httpx>=0.28.1**: Async HTTP client for API calls
+- **redis>=5.0.0**: Redis client for caching layer
 - **uv**: Modern Python package manager (must be installed separately for local development)
+
+## Production Management
+
+When deployed, you can manage the production service using Render MCP tools in Claude:
+- `mcp__render__list_services` - View deployed services
+- `mcp__render__get_service` - Get service details
+- `mcp__render__list_logs` - View production logs
+- `mcp__render__get_metrics` - Monitor performance
+- `mcp__render__update_environment_variables` - Update env vars (triggers redeploy)
+
+## Debugging Notes
+
+- Use FastMCP docs at https://gofastmcp.com/llms.txt when debugging FastMCP issues
+- Redis cache prevents hitting Sleeper API rate limits for player data
+- Player search functions use cached data for instant responses
+- Redis uses LRU eviction policy for optimal cache management within free tier limits
