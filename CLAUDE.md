@@ -18,6 +18,10 @@ uv sync
 # The project uses Python 3.12+ (see .python-version)
 ```
 
+### GitHub
+use `gh` for all interaction with github
+
+
 ### Running the Server
 
 **HTTP/SSE Mode (for web deployment):**
@@ -38,6 +42,27 @@ uv run python clear_cache.py
 
 # Debug Redis connection and view cache status
 uv run python debug_redis.py
+```
+
+### Testing
+```bash
+# Install test dependencies
+uv sync --extra test
+
+# Run all tests
+uv run pytest
+
+# Run tests with coverage
+uv run pytest --cov=. --cov-report=term-missing
+
+# Run specific test file
+uv run pytest tests/test_sleeper_mcp.py
+
+# Run tests with VCR cassette recording (first time)
+uv run pytest --vcr-record=once
+
+# Run tests without hitting external APIs (replay mode)
+uv run pytest --vcr-record=none
 ```
 
 ### Deployment
