@@ -323,39 +323,59 @@ async def test_mcp_server_initialization():
 
 def test_waiver_wire_tool_exists():
     """Test that waiver wire tool is defined."""
-    assert hasattr(sleeper_mcp, 'get_waiver_wire_players')
+    assert hasattr(sleeper_mcp, "get_waiver_wire_players")
     tool = sleeper_mcp.get_waiver_wire_players
     assert tool is not None
-    assert hasattr(tool, 'fn')  # Has the actual function
-    assert hasattr(tool, 'name')
-    assert tool.name == 'get_waiver_wire_players'
+    assert hasattr(tool, "fn")  # Has the actual function
+    assert hasattr(tool, "name")
+    assert tool.name == "get_waiver_wire_players"
 
 
 def test_waiver_wire_filtering_logic():
     """Test the filtering logic used by waiver wire tool (unit test)."""
     # Test data
     all_players = {
-        "1": {"player_id": "1", "full_name": "Player A", "position": "QB", "status": "Active"},
-        "2": {"player_id": "2", "full_name": "Player B", "position": "WR", "status": "Active"}, 
-        "3": {"player_id": "3", "full_name": "Player C", "position": "WR", "status": "Active"},
-        "4": {"player_id": "4", "full_name": "Justin Herbert", "position": "QB", "status": "Active"},
+        "1": {
+            "player_id": "1",
+            "full_name": "Player A",
+            "position": "QB",
+            "status": "Active",
+        },
+        "2": {
+            "player_id": "2",
+            "full_name": "Player B",
+            "position": "WR",
+            "status": "Active",
+        },
+        "3": {
+            "player_id": "3",
+            "full_name": "Player C",
+            "position": "WR",
+            "status": "Active",
+        },
+        "4": {
+            "player_id": "4",
+            "full_name": "Justin Herbert",
+            "position": "QB",
+            "status": "Active",
+        },
     }
     rostered = {"1", "2"}  # Players 1 and 2 are on rosters
-    
+
     # Apply filtering logic (same as in the actual function)
     available = []
     for player_id, player_data in all_players.items():
         if player_id in rostered:
             continue
-        
+
         player_info = {
             "player_id": player_id,
             "name": player_data.get("full_name"),
             "position": player_data.get("position"),
-            "status": player_data.get("status")
+            "status": player_data.get("status"),
         }
         available.append(player_info)
-    
+
     # Check results
     assert len(available) == 2
     player_ids = [p["player_id"] for p in available]
@@ -363,12 +383,12 @@ def test_waiver_wire_filtering_logic():
     assert "4" in player_ids
     assert "1" not in player_ids  # Rostered
     assert "2" not in player_ids  # Rostered
-    
+
     # Test position filtering
     wr_players = [p for p in available if p["position"] == "WR"]
     assert len(wr_players) == 1
     assert wr_players[0]["player_id"] == "3"
-    
+
     # Test name search
     justin_players = [p for p in available if "justin" in p["name"].lower()]
     assert len(justin_players) == 1

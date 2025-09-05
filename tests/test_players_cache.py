@@ -2,7 +2,6 @@
 
 import json
 import gzip
-from unittest.mock import MagicMock, patch, AsyncMock
 import pytest
 import sys
 import os
@@ -18,11 +17,11 @@ class TestPlayersCache:
     def test_cache_module_imports(self):
         """Test that cache module can be imported."""
         assert cache is not None
-        assert hasattr(cache, 'get_all_players')
-        assert hasattr(cache, 'get_player_by_name')
-        assert hasattr(cache, 'get_player_by_id')
-        assert hasattr(cache, 'get_cache_status')
-        assert hasattr(cache, 'force_refresh')
+        assert hasattr(cache, "get_all_players")
+        assert hasattr(cache, "get_player_by_name")
+        assert hasattr(cache, "get_player_by_id")
+        assert hasattr(cache, "get_cache_status")
+        assert hasattr(cache, "force_refresh")
 
     def test_cache_constants(self):
         """Test that cache constants are defined."""
@@ -35,22 +34,22 @@ class TestPlayersCache:
         """Test that compression logic works correctly."""
         # Test data
         test_data = {"player1": {"name": "Test Player"}}
-        
+
         # Test compression
         json_str = json.dumps(test_data)
         compressed = gzip.compress(json_str.encode(), compresslevel=9)
-        
+
         # Verify compression actually reduces size for larger data
         large_data = {str(i): {"data": "x" * 100} for i in range(100)}
         large_json = json.dumps(large_data)
         large_compressed = gzip.compress(large_json.encode(), compresslevel=9)
-        
+
         assert len(large_compressed) < len(large_json)
-        
+
         # Test decompression
         decompressed = gzip.decompress(compressed)
         restored_data = json.loads(decompressed.decode())
-        
+
         assert restored_data == test_data
 
     def test_filter_logic(self):
@@ -63,23 +62,23 @@ class TestPlayersCache:
             "4": {"player_id": "4", "active": None, "position": "WR"},
             "5": {"player_id": "5", "position": "K"},  # No active field
         }
-        
+
         # Apply the same filtering logic as in update_cache
         filtered = {}
         for player_id, player in test_players.items():
             # Skip if explicitly inactive (active = False)
             if player.get("active") is False:
                 continue
-            
+
             # Always include DEF and K positions
             if player.get("position") in ["DEF", "K"]:
                 filtered[player_id] = player
                 continue
-            
+
             # Include if active is True
             if player.get("active") is True:
                 filtered[player_id] = player
-        
+
         # Check filtering results
         assert "1" in filtered  # Active QB
         assert "2" not in filtered  # Inactive RB

@@ -481,36 +481,36 @@ async def get_waiver_wire_players(
     position: Optional[str] = None,
     search_term: Optional[str] = None,
     include_trending: bool = False,
-    limit: int = 50
+    limit: int = 50,
 ) -> Dict[str, Any]:
     """Get NFL players available on the waiver wire (not on any team roster).
-    
+
     This tool identifies free agents by comparing all NFL players against
     currently rostered players in the Token Bowl league.
-    
+
     Args:
         position: Filter by position (QB, RB, WR, TE, DEF, K).
                  None returns all positions.
-        
+
         search_term: Search for players by name (case-insensitive).
                     Partial matches are supported.
-        
+
         include_trending: Include trending add counts from last 24 hours.
                          Helps identify hot waiver pickups.
-        
+
         limit: Maximum number of players to return (default: 50, max: 200).
               Players are sorted by relevance (active players first).
-    
+
     Returns waiver wire data including:
     - Total available players count
     - Filtered results based on criteria
     - Player details (name, position, team, status)
     - Trending add counts (if requested)
     - Cache freshness information
-    
+
     Note: Cache refreshes daily. Recent adds/drops may not be reflected
     immediately in player details, but roster data is fetched live.
-    
+
     Returns:
         Dict with available players and metadata
     """
@@ -520,60 +520,67 @@ async def get_waiver_wire_players(
             response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/rosters")
             response.raise_for_status()
             rosters = response.json()
-        
+
         # Collect all rostered player IDs
         rostered_players = set()
         for roster in rosters:
             if roster.get("players"):
                 rostered_players.update(roster["players"])
-        
+
         # Get all NFL players from cache
         all_players = await get_all_players()
-        
+
         # Get trending data if requested
         trending_data = {}
         if include_trending:
             try:
-                trending_response = await get_trending_players.fn(type="add", lookback_hours=24, limit=200)
-                trending_data = {item["player_id"]: item["count"] for item in trending_response}
+                trending_response = await get_trending_players.fn(
+                    type="add", lookback_hours=24, limit=200
+                )
+                trending_data = {
+                    item["player_id"]: item["count"] for item in trending_response
+                }
             except Exception as e:
                 logger.warning(f"Could not fetch trending data: {e}")
-        
+
         # Filter to find available players
         available_players = []
         for player_id, player_data in all_players.items():
             # Skip if player is rostered
             if player_id in rostered_players:
                 continue
-            
+
             # Skip if player doesn't match position filter
             if position and player_data.get("position") != position.upper():
                 continue
-            
+
             # Skip if player doesn't match search term
             if search_term:
-                player_name = (player_data.get("full_name", "") or 
-                             f"{player_data.get('first_name', '')} {player_data.get('last_name', '')}").lower()
+                player_name = (
+                    player_data.get("full_name", "")
+                    or f"{player_data.get('first_name', '')} {player_data.get('last_name', '')}"
+                ).lower()
                 if search_term.lower() not in player_name:
                     continue
-            
+
             # Add player to available list
             player_info = {
                 "player_id": player_id,
-                "name": player_data.get("full_name") or f"{player_data.get('first_name', '')} {player_data.get('last_name', '')}",
+                "name": player_data.get("full_name")
+                or f"{player_data.get('first_name', '')} {player_data.get('last_name', '')}",
                 "position": player_data.get("position"),
                 "team": player_data.get("team"),
                 "status": player_data.get("status"),
                 "age": player_data.get("age"),
-                "injury_status": player_data.get("injury_status")
+                "injury_status": player_data.get("injury_status"),
             }
-            
+
             # Add trending count if available
             if player_id in trending_data:
                 player_info["trending_add_count"] = trending_data[player_id]
-            
+
             available_players.append(player_info)
-        
+
         # Sort players by relevance
         # Priority: 1) Active status, 2) Trending adds, 3) Name
         def sort_key(player):
@@ -584,15 +591,15 @@ async def get_waiver_wire_players(
             # Then alphabetically
             name = player.get("name", "")
             return (status_priority, trending, name)
-        
+
         available_players.sort(key=sort_key)
-        
+
         # Apply limit
-        filtered_players = available_players[:min(limit, 200)]
-        
+        filtered_players = available_players[: min(limit, 200)]
+
         # Get cache status
         cache_status = await get_cache_status()
-        
+
         return {
             "total_available": len(available_players),
             "filtered_count": len(filtered_players),
@@ -601,21 +608,21 @@ async def get_waiver_wire_players(
                 "position": position,
                 "search_term": search_term,
                 "include_trending": include_trending,
-                "limit": limit
+                "limit": limit,
             },
             "cache_info": {
                 "last_updated": cache_status.get("last_refresh_time"),
-                "stale_warning": cache_status.get("is_stale", False)
-            }
+                "stale_warning": cache_status.get("is_stale", False),
+            },
         }
-    
+
     except Exception as e:
         logger.error(f"Error fetching waiver wire players: {e}")
         return {
             "error": f"Failed to fetch waiver wire players: {str(e)}",
             "total_available": 0,
             "filtered_count": 0,
-            "players": []
+            "players": [],
         }
 
 

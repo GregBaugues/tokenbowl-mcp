@@ -55,8 +55,8 @@ jobs:
       env:
         REDIS_URL: redis://localhost:6379
       run: |
-        # Run only the tests that are currently passing
-        uv run pytest tests/test_integration.py tests/test_players_cache.py::TestPlayersCache::test_compression tests/test_players_cache.py::TestPlayersCache::test_filter_players tests/test_players_cache.py::TestPlayersCache::test_update_cache_mock tests/test_players_cache.py::TestPlayersCache::test_force_refresh -v --tb=short --junitxml=junit/test-results-${{ matrix.python-version }}.xml
+        # Run all tests
+        uv run pytest -v --tb=short --junitxml=junit/test-results-${{ matrix.python-version }}.xml
     
     - name: Upload test results
       uses: actions/upload-artifact@v4
