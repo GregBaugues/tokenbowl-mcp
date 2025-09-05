@@ -45,8 +45,8 @@ class TestFantasyNerdsClient:
     def test_get_headers(self, client):
         """Test header generation for API requests."""
         headers = client._get_headers()
-        assert headers["x-api-key"] == "test_api_key"
         assert headers["Accept"] == "application/json"
+        # API key is now passed as query param, not header
 
     @pytest.mark.asyncio
     async def test_get_players(self, client, mock_response):
@@ -78,7 +78,7 @@ class TestFantasyNerdsClient:
             # Check URL and params
             call_args = mock_get.call_args
             assert "players" in str(call_args[0][0])
-            assert call_args[1]["params"]["active"] == "true"
+            assert call_args[1]["params"]["apikey"] == "test_api_key"
 
     @pytest.mark.asyncio
     async def test_get_players_include_inactive(self, client, mock_response):
@@ -88,10 +88,11 @@ class TestFantasyNerdsClient:
         with patch("httpx.AsyncClient.get", return_value=mock_response) as mock_get:
             await client.get_players(include_inactive=True)
 
-            # Should not include active param when including inactive
+            # Should include include_inactive param when including inactive
             call_args = mock_get.call_args
             assert "params" in call_args[1]
-            assert "active" not in call_args[1]["params"]
+            assert call_args[1]["params"]["apikey"] == "test_api_key"
+            assert call_args[1]["params"]["include_inactive"] == "1"
 
     @pytest.mark.asyncio
     async def test_get_weekly_projections(self, client, mock_response):

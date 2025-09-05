@@ -29,7 +29,7 @@ class FantasyNerdsClient:
 
     def _get_headers(self) -> Dict[str, str]:
         """Get headers for API requests."""
-        return {"x-api-key": self.api_key, "Accept": "application/json"}
+        return {"Accept": "application/json"}
 
     async def get_players(self, include_inactive: bool = False) -> List[Dict[str, Any]]:
         """
@@ -42,15 +42,16 @@ class FantasyNerdsClient:
             List of player dictionaries with Fantasy Nerds player data.
         """
         url = f"{self.BASE_URL}/players"
-        params = {}
-        if not include_inactive:
-            params["active"] = "true"
+        params = {"apikey": self.api_key}
+        if include_inactive:
+            params["include_inactive"] = "1"
 
         async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
             response = await client.get(url, headers=self._get_headers(), params=params)
             response.raise_for_status()
             data = response.json()
-            return data.get("players", [])
+            # API returns a list directly, not a dict with "players" key
+            return data if isinstance(data, list) else []
 
     async def get_weekly_projections(
         self, week: Optional[int] = None, position: Optional[str] = None
@@ -66,7 +67,7 @@ class FantasyNerdsClient:
             Dictionary containing projections data.
         """
         url = f"{self.BASE_URL}/projections"
-        params = {}
+        params = {"apikey": self.api_key}
         if week:
             params["week"] = week
         if position:
@@ -88,7 +89,7 @@ class FantasyNerdsClient:
             List of injury report dictionaries.
         """
         url = f"{self.BASE_URL}/injuries"
-        params = {}
+        params = {"apikey": self.api_key}
         if week:
             params["week"] = week
 
@@ -96,7 +97,14 @@ class FantasyNerdsClient:
             response = await client.get(url, headers=self._get_headers(), params=params)
             response.raise_for_status()
             data = response.json()
-            return data.get("injuries", [])
+            # API returns injuries nested in teams structure
+            if isinstance(data, dict) and "teams" in data:
+                injuries = []
+                for team_data in data.get("teams", []):
+                    if "players" in team_data:
+                        injuries.extend(team_data["players"])
+                return injuries
+            return []
 
     async def get_news(
         self, player_id: Optional[int] = None, days: int = 7
@@ -112,7 +120,7 @@ class FantasyNerdsClient:
             List of news article dictionaries.
         """
         url = f"{self.BASE_URL}/news"
-        params = {"days": days}
+        params = {"apikey": self.api_key, "days": days}
         if player_id:
             params["player_id"] = player_id
 
@@ -120,7 +128,8 @@ class FantasyNerdsClient:
             response = await client.get(url, headers=self._get_headers(), params=params)
             response.raise_for_status()
             data = response.json()
-            return data.get("news", [])
+            # API returns news as a list directly
+            return data if isinstance(data, list) else []
 
     async def get_rankings(
         self,
@@ -140,7 +149,7 @@ class FantasyNerdsClient:
             List of player ranking dictionaries.
         """
         url = f"{self.BASE_URL}/rankings"
-        params = {"scoring": scoring_type.upper()}
+        params = {"apikey": self.api_key, "scoring": scoring_type.upper()}
         if position:
             params["position"] = position.upper()
         if week:
@@ -150,7 +159,16 @@ class FantasyNerdsClient:
             response = await client.get(url, headers=self._get_headers(), params=params)
             response.raise_for_status()
             data = response.json()
-            return data.get("rankings", [])
+            # Check for error in response
+            if isinstance(data, dict) and "error" in data:
+                logger.error(f"Rankings API error: {data['error']}")
+                return []
+            # API may return rankings as list or in a dict
+            if isinstance(data, list):
+                return data
+            elif isinstance(data, dict) and "rankings" in data:
+                return data["rankings"]
+            return []
 
     async def get_adp(
         self, scoring_type: str = "PPR", mock_type: str = "all"
@@ -166,13 +184,22 @@ class FantasyNerdsClient:
             List of player ADP dictionaries.
         """
         url = f"{self.BASE_URL}/adp"
-        params = {"scoring": scoring_type.upper(), "type": mock_type.lower()}
+        params = {
+            "apikey": self.api_key,
+            "scoring": scoring_type.upper(),
+            "type": mock_type.lower(),
+        }
 
         async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
             response = await client.get(url, headers=self._get_headers(), params=params)
             response.raise_for_status()
             data = response.json()
-            return data.get("adp", [])
+            # API may return ADP as list or in a dict
+            if isinstance(data, list):
+                return data
+            elif isinstance(data, dict) and "adp" in data:
+                return data["adp"]
+            return []
 
     async def get_schedule(self, week: Optional[int] = None) -> List[Dict[str, Any]]:
         """
@@ -185,7 +212,7 @@ class FantasyNerdsClient:
             List of game dictionaries.
         """
         url = f"{self.BASE_URL}/schedule"
-        params = {}
+        params = {"apikey": self.api_key}
         if week:
             params["week"] = week
 
@@ -193,7 +220,12 @@ class FantasyNerdsClient:
             response = await client.get(url, headers=self._get_headers(), params=params)
             response.raise_for_status()
             data = response.json()
-            return data.get("schedule", [])
+            # API may return schedule as list or in a dict
+            if isinstance(data, list):
+                return data
+            elif isinstance(data, dict) and "schedule" in data:
+                return data["schedule"]
+            return []
 
     async def test_connection(self) -> bool:
         """
