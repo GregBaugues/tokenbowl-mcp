@@ -23,10 +23,12 @@ cp .env.example .env
 ```
 
 ### Environment Variables
-Required for local development:
-- `FFNERD_API_KEY`: Fantasy Nerds API key for extended analytics
-- `SLEEPER_LEAGUE_ID`: Sleeper league ID (defaults to Token Bowl: 1266471057523490816)
-- `REDIS_URL`: Redis connection URL (defaults to redis://localhost:6379)
+**IMPORTANT**: The `.env` file already contains valid API keys and configuration:
+- `FFNERD_API_KEY`: ✅ Already configured with valid Fantasy Nerds API key
+- `SLEEPER_LEAGUE_ID`: ✅ Already set to Token Bowl (1266471057523490816)
+- `REDIS_URL`: Defaults to redis://localhost:6379 for local development
+
+**Note to Claude**: Stop assuming the API keys are missing - they're already in `.env`!
 
 ### GitHub
 use `gh` for all interaction with github
