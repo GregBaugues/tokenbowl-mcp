@@ -4,23 +4,40 @@ Stores enriched player data in Redis with automatic refresh.
 """
 
 import json
+import os
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 import gzip
 import asyncio
 
+import redis
 from redis.exceptions import RedisError
 import httpx
 
 from ffnerd.client import FantasyNerdsClient
 from ffnerd.mapper import PlayerMapper
-from players_cache_redis import get_redis_client, CACHE_TTL
+
+# Redis configuration
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+CACHE_TTL = 86400  # 24 hours in seconds
 
 # Cache keys for unified data
 UNIFIED_CACHE_KEY = "unified_players:data"
 UNIFIED_META_KEY = "unified_players:meta"
 FFNERD_CACHE_KEY = "ffnerd_players:data"
 SLEEPER_API_URL = "https://api.sleeper.app/v1/players/nfl"
+
+
+def get_redis_client():
+    """Get Redis client with connection pooling"""
+    return redis.from_url(
+        REDIS_URL,
+        decode_responses=False,
+        socket_connect_timeout=5,
+        socket_timeout=5,
+        retry_on_timeout=True,
+        max_connections=10,
+    )
 
 
 async def fetch_sleeper_players() -> Dict[str, Any]:
@@ -33,12 +50,7 @@ async def fetch_sleeper_players() -> Dict[str, Any]:
 
 async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
     """Fetch enrichment data from Fantasy Nerds API"""
-    try:
-        client = FantasyNerdsClient()
-    except ValueError as e:
-        # API key not configured - return empty data
-        print(f"FFNerd API not configured: {e}")
-        return {}
+    client = FantasyNerdsClient()  # Will raise if API key not configured
 
     try:
         # Fetch multiple data points in parallel
@@ -282,12 +294,10 @@ async def get_unified_players() -> Dict[str, Any]:
     return await update_unified_cache()
 
 
-async def search_unified_players(
-    name: str, include_ffnerd: bool = True
-) -> List[Dict[str, Any]]:
+async def search_unified_players(name: str) -> List[Dict[str, Any]]:
     """
     Search unified player data by name.
-    Returns enriched player data including FFNerd info if available.
+    Returns enriched player data including FFNerd info when available.
     """
     players = await get_unified_players()
     results = []
@@ -306,8 +316,8 @@ async def search_unified_players(
                 "search_rank": player_data.get("search_rank"),
             }
 
-            # Include FFNerd data if requested and available
-            if include_ffnerd and "ffnerd_data" in player_data:
+            # Include FFNerd data when available
+            if "ffnerd_data" in player_data:
                 result["ffnerd"] = player_data["ffnerd_data"]
 
             results.append(result)
