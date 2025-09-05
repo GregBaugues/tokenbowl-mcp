@@ -65,13 +65,8 @@ jobs:
         name: pytest-results-${{ matrix.python-version }}
         path: junit/test-results-${{ matrix.python-version }}.xml
     
-    - name: Test Report
-      uses: dorny/test-reporter@v1
-      if: always()
-      with:
-        name: Python ${{ matrix.python-version }} Tests
-        path: junit/test-results-${{ matrix.python-version }}.xml
-        reporter: java-junit
+    # Test reporter disabled due to permission issues
+    # Can be re-enabled with proper GitHub App permissions
 
   lint:
     runs-on: ubuntu-latest
