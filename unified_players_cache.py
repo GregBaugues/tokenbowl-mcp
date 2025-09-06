@@ -78,8 +78,10 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
         if not isinstance(players, list):
             players = []
         for player in players:
-            ffnerd_data[player["playerId"]] = {
-                "player_id": player["playerId"],
+            # Ensure player ID is an integer for consistent mapping
+            player_id = int(player["playerId"]) if isinstance(player["playerId"], str) else player["playerId"]
+            ffnerd_data[player_id] = {
+                "player_id": player_id,
                 "name": player.get("name", ""),
                 "team": player.get("team", ""),
                 "position": player.get("position", ""),
@@ -94,7 +96,7 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
         if not isinstance(injuries, list):
             injuries = []
         injury_map = {
-            inj["playerId"]: inj
+            (int(inj["playerId"]) if isinstance(inj["playerId"], str) else inj["playerId"]): inj
             for inj in injuries
             if isinstance(inj, dict) and "playerId" in inj
         }
@@ -111,7 +113,7 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
         if not isinstance(adp, list):
             adp = []
         adp_map = {
-            item["playerId"]: item
+            (int(item["playerId"]) if isinstance(item["playerId"], str) else item["playerId"]): item
             for item in adp
             if isinstance(item, dict) and "playerId" in item
         }
@@ -135,7 +137,7 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
             proj_list = []
 
         proj_map = {
-            proj["playerId"]: proj
+            (int(proj["playerId"]) if isinstance(proj["playerId"], str) else proj["playerId"]): proj
             for proj in proj_list
             if isinstance(proj, dict) and "playerId" in proj
         }
@@ -177,7 +179,10 @@ async def build_unified_player_data() -> Dict[str, Any]:
     from pathlib import Path
 
     mapping_file = Path(__file__).parent / "data" / "player_mapping.json"
+    print(f"Loading player mapping from: {mapping_file}")
+    print(f"Mapping file exists: {mapping_file.exists()}")
     mapper = PlayerMapper(mapping_file=str(mapping_file))
+    print(f"Mapper initialized with {len(mapper.sleeper_to_ffnerd)} mappings")
 
     # Build unified dataset
     unified_players = {}
@@ -220,6 +225,10 @@ async def build_unified_player_data() -> Dict[str, Any]:
 
                 # Try to enrich with FFNerd data
                 ffnerd_id = mapper.get_ffnerd_id(sleeper_id)
+                # Debug: Check both numeric and string versions
+                if enriched_count < 5 and ffnerd_id:
+                    print(f"  Checking mapping: Sleeper {sleeper_id} -> FFNerd {ffnerd_id} (type: {type(ffnerd_id).__name__})")
+                    print(f"    FFNerd data keys sample: {list(ffnerd_data.keys())[:5]} (types: {[type(k).__name__ for k in list(ffnerd_data.keys())[:5]]})")
                 if ffnerd_id and ffnerd_id in ffnerd_data:
                     enriched_count += 1
                     ffnerd_player = ffnerd_data[ffnerd_id]
