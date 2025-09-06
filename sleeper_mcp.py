@@ -847,6 +847,24 @@ async def debug_ffnerd_api() -> Dict[str, Any]:
         # Test rankings endpoint which should have projections
         rankings = await client.get_rankings(scoring_type="PPR", week=1)
         
+        # Also test the raw API call to see what's being returned
+        import httpx
+        raw_url = f"https://api.fantasynerds.com/v1/nfl/weekly-rankings"
+        raw_params = {
+            "apikey": os.getenv("FFNERD_API_KEY"),
+            "format": "ppr",
+            "week": 1,
+        }
+        
+        raw_response = None
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as raw_client:
+                raw_resp = await raw_client.get(raw_url, params=raw_params)
+                raw_resp.raise_for_status()
+                raw_response = raw_resp.json()
+        except Exception as e:
+            raw_response = {"error": str(e)}
+        
         # Check for specific players
         player_checks = {}
         target_players = ["Marvin Harrison", "DeVonta Smith", "Jake Ferguson", "James Cook", "Jahmyr Gibbs"]
@@ -871,7 +889,16 @@ async def debug_ffnerd_api() -> Dict[str, Any]:
             "rankings_count": len(rankings) if isinstance(rankings, list) else 0,
             "rankings_type": type(rankings).__name__,
             "player_checks": player_checks,
-            "sample_player": rankings[0] if isinstance(rankings, list) and len(rankings) > 0 else None
+            "sample_player": rankings[0] if isinstance(rankings, list) and len(rankings) > 0 else None,
+            "raw_api_structure": {
+                "type": type(raw_response).__name__ if raw_response else "None",
+                "keys": list(raw_response.keys()) if isinstance(raw_response, dict) else [],
+                "players_structure": {
+                    "type": type(raw_response.get("players")).__name__ if raw_response and "players" in raw_response else "Not found",
+                    "position_keys": list(raw_response.get("players", {}).keys()) if raw_response and isinstance(raw_response.get("players"), dict) else [],
+                    "total_across_positions": sum(len(pos_players) for pos_players in raw_response.get("players", {}).values()) if raw_response and isinstance(raw_response.get("players"), dict) else 0
+                } if raw_response else {}
+            }
         }
     except Exception as e:
         return {
