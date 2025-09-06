@@ -902,6 +902,84 @@ async def get_players_cache_status() -> Dict[str, Any]:
         }
 
 
+@mcp.tool()
+async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
+    """Get NFL schedule for a specific week or the current week.
+
+    Args:
+        week: NFL week number (1-18 for regular season + playoffs).
+              If not provided, returns schedule for the current week.
+
+    Returns schedule information including:
+    - Season year and current week
+    - List of games for the specified week with:
+      - Game date/time and TV station
+      - Home and away teams
+      - Scores (if game has been played)
+      - Winner (if game is complete)
+
+    Uses Fantasy Nerds API for comprehensive schedule data.
+
+    Returns:
+        Dict with week schedule and game information
+    """
+    try:
+        # Get Fantasy Nerds API key
+        api_key = os.environ.get("FFNERD_API_KEY")
+        if not api_key:
+            return {
+                "error": "Fantasy Nerds API key not configured",
+                "message": "Set FFNERD_API_KEY environment variable",
+            }
+
+        # Fetch schedule from Fantasy Nerds
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://api.fantasynerds.com/v1/nfl/schedule",
+                params={"apikey": api_key},
+                timeout=10.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        # Extract current week from response
+        current_week = data.get("current_week", 1)
+        season = data.get("season", 2025)
+
+        # Use current week if no week specified
+        target_week = week if week is not None else current_week
+
+        # Validate week number
+        if target_week < 1 or target_week > 18:
+            return {
+                "error": f"Invalid week number: {target_week}",
+                "message": "Week must be between 1 and 18",
+            }
+
+        # Filter games for the specified week
+        all_games = data.get("schedule", [])
+        week_games = [game for game in all_games if game.get("week") == target_week]
+
+        # Sort games by date/time
+        week_games.sort(key=lambda x: x.get("game_date", ""))
+
+        # Format response
+        return {
+            "season": season,
+            "current_week": current_week,
+            "requested_week": target_week,
+            "games_count": len(week_games),
+            "games": week_games,
+        }
+
+    except httpx.HTTPError as e:
+        logger.error(f"HTTP error fetching NFL schedule: {e}")
+        return {"error": "Failed to fetch NFL schedule", "details": str(e)}
+    except Exception as e:
+        logger.error(f"Error getting NFL schedule: {e}")
+        return {"error": "Failed to get NFL schedule", "details": str(e)}
+
+
 # @mcp.tool()
 # async def get_draft(draft_id: str) -> Dict[str, Any]:
 #     """Get comprehensive information about a specific fantasy draft.
