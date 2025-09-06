@@ -755,6 +755,17 @@ async def get_waiver_wire_players(
                 "injury_status": player_data.get("injury_status"),
             }
 
+            # Add projections if available from Fantasy Nerds enrichment
+            if "data" in player_data and player_data["data"].get("projections"):
+                proj = player_data["data"]["projections"]
+                if proj.get("proj_pts"):
+                    try:
+                        player_info["projected_points"] = round(
+                            float(proj.get("proj_pts", 0)), 2
+                        )
+                    except (ValueError, TypeError):
+                        pass
+
             # Add trending count if available
             if player_id in trending_data:
                 player_info["trending_add_count"] = trending_data[player_id]
@@ -762,15 +773,17 @@ async def get_waiver_wire_players(
             available_players.append(player_info)
 
         # Sort players by relevance
-        # Priority: 1) Active status, 2) Trending adds, 3) Name
+        # Priority: 1) Active status, 2) Trending adds, 3) Projected points, 4) Name
         def sort_key(player):
             # Active players first
             status_priority = 0 if player.get("status") == "Active" else 1
             # Then by trending adds (negative for descending)
             trending = -player.get("trending_add_count", 0)
+            # Then by projected points (negative for descending)
+            proj_points = -player.get("projected_points", 0)
             # Then alphabetically
             name = player.get("name", "")
-            return (status_priority, trending, name)
+            return (status_priority, trending, proj_points, name)
 
         available_players.sort(key=sort_key)
 
