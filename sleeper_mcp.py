@@ -7,13 +7,13 @@ import logging
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
-from unified_players_cache import (
-    get_unified_players as get_all_players,
-    search_unified_players as search_players_unified,
-    get_unified_player_by_id as get_player_by_id,
-    update_unified_cache,
-    get_unified_cache_status,
+from cache_client import (
+    get_enriched_players_from_cache as get_all_players,
+    search_enriched_players as search_players_unified,
+    get_enriched_player_by_id as get_player_by_id,
+    get_cache_status as get_unified_cache_status,
 )
+from build_cache import cache_enriched_players as update_unified_cache
 import logfire
 
 # Load environment variables from .env file

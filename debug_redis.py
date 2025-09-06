@@ -7,9 +7,8 @@ import httpx
 import asyncio
 import os
 
-# Redis URL - using internal URL since we're testing from Render
-# For local testing, you'd need the external URL with credentials
-REDIS_URL = os.getenv("REDIS_URL", "redis://red-d2o755emcj7s73b8bj9g:6379")
+# Redis URL from environment
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 
 
 async def test_redis_connection():

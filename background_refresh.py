@@ -1,55 +1,126 @@
+#!/usr/bin/env python3
 """
-Background cache refresh task for Render deployment.
-This runs as part of the main MCP server process.
+Background task to refresh the enriched player cache.
+Runs continuously and refreshes the cache every 6 hours.
+Can be deployed as a Render background worker.
 """
 
-import asyncio
+import time
+import logging
 import os
 from datetime import datetime, timedelta
-from unified_players_cache import update_unified_cache, get_unified_cache_status
-import logging
+from build_cache import cache_enriched_players
+import redis
+import json
+from dotenv import load_dotenv
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-# Refresh interval (in seconds)
-REFRESH_INTERVAL = int(os.getenv("CACHE_REFRESH_INTERVAL", 86400))  # Default 24 hours
+# Load environment variables
+load_dotenv()
 
+def get_redis_client() -> redis.Redis:
+    """Get Redis client connection."""
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+    return redis.from_url(redis_url, decode_responses=False)
 
-async def background_cache_refresh():
-    """
-    Background task that refreshes the cache periodically.
-    Runs as part of the main application process.
-    """
+def should_refresh_cache() -> bool:
+    """Check if cache needs refreshing based on age or missing."""
+    try:
+        r = get_redis_client()
+        
+        # Check if cache exists
+        if not r.exists("nfl_players_enriched"):
+            logger.info("Cache does not exist, refresh needed")
+            return True
+        
+        # Check metadata for last update time
+        metadata = r.get("nfl_players_enriched_metadata")
+        if not metadata:
+            logger.info("Cache metadata missing, refresh needed")
+            return True
+        
+        meta = json.loads(metadata)
+        last_updated = datetime.fromisoformat(meta.get("last_updated"))
+        age_hours = (datetime.now() - last_updated).total_seconds() / 3600
+        
+        # Refresh if older than 6 hours
+        if age_hours >= 6:
+            logger.info(f"Cache is {age_hours:.1f} hours old, refresh needed")
+            return True
+        
+        logger.info(f"Cache is {age_hours:.1f} hours old, no refresh needed yet")
+        return False
+        
+    except Exception as e:
+        logger.error(f"Error checking cache status: {e}")
+        return True  # Refresh on error
+
+def run_background_refresh():
+    """Run the background refresh loop."""
+    logger.info("Starting background refresh service...")
+    
+    # Initial delay to let the main service start
+    initial_delay = int(os.getenv("INITIAL_DELAY_SECONDS", "60"))
+    if initial_delay > 0:
+        logger.info(f"Waiting {initial_delay} seconds before first refresh check...")
+        time.sleep(initial_delay)
+    
+    # Refresh interval (default 6 hours)
+    refresh_interval_hours = float(os.getenv("REFRESH_INTERVAL_HOURS", "6"))
+    refresh_interval_seconds = refresh_interval_hours * 3600
+    
+    logger.info(f"Refresh interval set to {refresh_interval_hours} hours")
+    
     while True:
         try:
-            # Wait for the refresh interval
-            await asyncio.sleep(REFRESH_INTERVAL)
+            if should_refresh_cache():
+                logger.info("Starting cache refresh...")
+                start_time = time.time()
+                
+                success = cache_enriched_players()
+                
+                elapsed = time.time() - start_time
+                
+                if success:
+                    logger.info(f"Cache refresh completed successfully in {elapsed:.1f} seconds")
+                    
+                    # Store refresh history
+                    try:
+                        r = get_redis_client()
+                        history_key = "nfl_players_refresh_history"
+                        history = {
+                            "timestamp": datetime.now().isoformat(),
+                            "duration_seconds": elapsed,
+                            "success": True
+                        }
+                        
+                        # Keep last 10 refresh records
+                        r.lpush(history_key, json.dumps(history))
+                        r.ltrim(history_key, 0, 9)
+                        r.expire(history_key, 7 * 24 * 3600)  # Keep history for 7 days
+                    except Exception as e:
+                        logger.warning(f"Failed to store refresh history: {e}")
+                else:
+                    logger.error("Cache refresh failed")
             
-            logger.info(f"Starting scheduled cache refresh at {datetime.now().isoformat()}")
+            # Sleep until next check (check every hour, but only refresh if needed)
+            check_interval = min(3600, refresh_interval_seconds)  # Check at least hourly
+            logger.info(f"Sleeping for {check_interval/3600:.1f} hours until next check...")
+            time.sleep(check_interval)
             
-            # Check if cache needs refresh (optional - could just refresh anyway)
-            status = await get_unified_cache_status()
-            if status.get("ttl_seconds", 0) < 3600:  # Less than 1 hour left
-                logger.info("Cache TTL low, refreshing...")
-                
-                # Refresh the cache
-                data = await update_unified_cache()
-                enriched_count = sum(1 for p in data.values() if "ffnerd_data" in p)
-                
-                logger.info(f"Cache refreshed: {len(data)} players, {enriched_count} enriched")
-            else:
-                logger.info(f"Cache still fresh (TTL: {status.get('ttl_seconds')} seconds)")
-                
+        except KeyboardInterrupt:
+            logger.info("Received interrupt signal, shutting down...")
+            break
         except Exception as e:
-            logger.error(f"Background cache refresh failed: {e}")
-            # Continue running even if refresh fails
-            await asyncio.sleep(300)  # Wait 5 minutes before retrying
+            logger.error(f"Unexpected error in refresh loop: {e}")
+            logger.info("Waiting 5 minutes before retry...")
+            time.sleep(300)  # Wait 5 minutes before retrying
 
-
-def start_background_refresh():
-    """
-    Start the background refresh task.
-    Call this when starting the MCP server.
-    """
-    asyncio.create_task(background_cache_refresh())
-    logger.info(f"Background cache refresh started (interval: {REFRESH_INTERVAL} seconds)")
+if __name__ == "__main__":
+    run_background_refresh()
