@@ -203,6 +203,17 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                     if proj_pts:
                         try:
                             pts = float(proj_pts)
+                            
+                            # Include full projection data
+                            player_info["projections"] = {
+                                "points": round(pts, 2),
+                                "low": round(float(proj.get("proj_pts_low", pts)), 2) if proj.get("proj_pts_low") else None,
+                                "high": round(float(proj.get("proj_pts_high", pts)), 2) if proj.get("proj_pts_high") else None,
+                                "week": proj.get("week"),
+                                "season": proj.get("season")
+                            }
+                            
+                            # Keep backward compatibility
                             player_info["projected_points"] = round(pts, 2)
                             player_info["projection_week"] = proj.get("week")
 
@@ -221,6 +232,11 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                         "description": injury.get("injury"),
                         "last_update": injury.get("last_update"),
                     }
+                
+                # Add news if available
+                if enriched.get("news") and len(enriched["news"]) > 0:
+                    # Include latest 3 news items
+                    player_info["news"] = enriched["news"][:3]
 
             # Categorize player by roster position
             if player_id in reserve_ids:
