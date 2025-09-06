@@ -92,6 +92,8 @@ def create_player_mappings(
 
     # Create lookup dictionary for Fantasy Nerds players
     ffnerd_by_name = {}
+    ffnerd_by_partial = {}  # For partial name matching
+
     for player in ffnerd_players:
         if not player.get("name"):
             continue
@@ -105,8 +107,23 @@ def create_player_mappings(
         ffnerd_by_name[(full_name, "", position)] = player["playerId"]  # Without team
         ffnerd_by_name[(full_name, team, "")] = player["playerId"]  # Without position
 
+        # Also store without Jr/Sr/III suffixes for better matching
+        name_without_suffix = (
+            full_name.replace("jr", "")
+            .replace("sr", "")
+            .replace("iii", "")
+            .replace("ii", "")
+            .strip()
+        )
+        if name_without_suffix != full_name:
+            ffnerd_by_partial[(name_without_suffix, team, position)] = player[
+                "playerId"
+            ]
+            ffnerd_by_partial[(name_without_suffix, "", position)] = player["playerId"]
+
     # Create Sleeper to Fantasy Nerds mapping
     sleeper_to_ffnerd = {}
+    unmatched_players = []
 
     for sleeper_id, sleeper_player in sleeper_players.items():
         if not sleeper_player.get("full_name"):
@@ -132,8 +149,37 @@ def create_player_mappings(
         key = (full_name, team, "")
         if key in ffnerd_by_name:
             sleeper_to_ffnerd[sleeper_id] = ffnerd_by_name[key]
+            continue
+
+        # Try partial name matching (without suffixes)
+        name_without_suffix = (
+            full_name.replace("jr", "")
+            .replace("sr", "")
+            .replace("iii", "")
+            .replace("ii", "")
+            .strip()
+        )
+        key = (name_without_suffix, team, position)
+        if key in ffnerd_by_partial:
+            sleeper_to_ffnerd[sleeper_id] = ffnerd_by_partial[key]
+            continue
+
+        # Try partial without team
+        key = (name_without_suffix, "", position)
+        if key in ffnerd_by_partial:
+            sleeper_to_ffnerd[sleeper_id] = ffnerd_by_partial[key]
+            continue
+
+        # Track unmatched fantasy-relevant players
+        if position in ["QB", "RB", "WR", "TE", "K"] and team:
+            unmatched_players.append(
+                f"{sleeper_player.get('full_name')} ({position}, {team})"
+            )
 
     print(f"Created {len(sleeper_to_ffnerd)} player ID mappings")
+    if unmatched_players and len(unmatched_players) < 20:
+        print(f"Notable unmatched players: {', '.join(unmatched_players[:10])}")
+
     return sleeper_to_ffnerd
 
 
@@ -216,23 +262,38 @@ def enrich_and_filter_players(
 ) -> Dict:
     """Enrich Sleeper players with Fantasy Nerds data and filter to fantasy-relevant only."""
     enriched = {}
+    fantasy_positions = {"QB", "RB", "WR", "TE", "K", "DEF"}
 
     for sleeper_id, player in sleeper_players.items():
-        # Check if we have a mapping and Fantasy Nerds data
+        position = player.get("position", "")
+
+        # Include all fantasy-relevant players
+        if position not in fantasy_positions:
+            continue
+
+        # Skip inactive players unless they have injury data
+        if player.get("status") == "Inactive":
+            # Check if they have injury data that might be relevant
+            if sleeper_id in mapping:
+                ffnerd_id = str(mapping[sleeper_id])
+                if ffnerd_id not in ffnerd_data or not ffnerd_data[ffnerd_id].get(
+                    "injury"
+                ):
+                    continue
+            else:
+                continue
+
+        # Add Fantasy Nerds data if available
         if sleeper_id in mapping:
             ffnerd_id = str(mapping[sleeper_id])
-
             if ffnerd_id in ffnerd_data:
-                # Only include if player has actual Fantasy Nerds data
                 player_ffnerd_data = ffnerd_data[ffnerd_id]
-                if (
-                    player_ffnerd_data.get("projections")
-                    or player_ffnerd_data.get("injury")
-                    or player_ffnerd_data.get("news")
-                ):
-                    # Add Fantasy Nerds data to player
+                # Add the data even if it's partial
+                if player_ffnerd_data:
                     player["data"] = player_ffnerd_data
-                    enriched[sleeper_id] = player
+
+        # Include the player even without Fantasy Nerds data
+        enriched[sleeper_id] = player
 
     return enriched
 
