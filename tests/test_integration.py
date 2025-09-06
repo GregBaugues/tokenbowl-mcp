@@ -14,13 +14,13 @@ class TestMCPServer:
     def test_imports(self):
         """Test that all modules can be imported."""
         import sleeper_mcp
-        import players_cache_redis
+        import cache_client
 
         # Check that key functions exist
         assert hasattr(sleeper_mcp, "mcp")
-        assert hasattr(players_cache_redis, "get_all_players")
-        assert hasattr(players_cache_redis, "get_player_by_name")
-        assert hasattr(players_cache_redis, "get_player_by_id")
+        assert hasattr(cache_client, "get_enriched_players_from_cache")
+        assert hasattr(cache_client, "search_enriched_players")
+        assert hasattr(cache_client, "get_enriched_player_by_id")
 
     def test_constants(self):
         """Test that constants are properly defined."""
@@ -54,20 +54,26 @@ class TestMCPServer:
         for tool_name in tool_names:
             assert hasattr(sleeper_mcp, tool_name), f"Tool {tool_name} not found"
 
-    @pytest.mark.asyncio
-    async def test_cache_functions(self):
+    def test_cache_functions(self):
         """Test that cache functions can be imported and have correct signatures."""
-        from unified_players_cache import (
-            get_unified_players as get_all_players,
-            search_unified_players,
-            get_unified_player_by_id,
-            get_unified_cache_status,
+        from cache_client import (
+            get_enriched_players_from_cache as get_all_players,
+            search_enriched_players,
+            get_enriched_player_by_id,
+            get_cache_status,
         )
 
-        # These should all be async functions
+        # These are now regular functions (not async)
         import inspect
 
-        assert inspect.iscoroutinefunction(get_all_players)
-        assert inspect.iscoroutinefunction(search_unified_players)
-        assert inspect.iscoroutinefunction(get_unified_player_by_id)
-        assert inspect.iscoroutinefunction(get_unified_cache_status)
+        # Verify these are regular functions, not coroutines
+        assert callable(get_all_players)
+        assert callable(search_enriched_players)
+        assert callable(get_enriched_player_by_id)
+        assert callable(get_cache_status)
+        
+        # They should NOT be async functions
+        assert not inspect.iscoroutinefunction(get_all_players)
+        assert not inspect.iscoroutinefunction(search_enriched_players)
+        assert not inspect.iscoroutinefunction(get_enriched_player_by_id)
+        assert not inspect.iscoroutinefunction(get_cache_status)

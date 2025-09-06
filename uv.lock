@@ -1624,6 +1624,12 @@ test = [
     { name = "vcrpy" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "ruff" },
+    { name = "vcrpy" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "fakeredis", marker = "extra == 'test'", specifier = ">=2.20.0" },
@@ -1640,6 +1646,12 @@ requires-dist = [
     { name = "vcrpy", marker = "extra == 'test'", specifier = ">=6.0.0" },
 ]
 provides-extras = ["test", "dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "ruff", specifier = ">=0.12.12" },
+    { name = "vcrpy", specifier = ">=7.0.0" },
+]
 
 [[package]]
 name = "typing-extensions"

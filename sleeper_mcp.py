@@ -7,13 +7,13 @@ import logging
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
-from unified_players_cache import (
-    get_unified_players as get_all_players,
-    search_unified_players as search_players_unified,
-    get_unified_player_by_id as get_player_by_id,
-    update_unified_cache,
-    get_unified_cache_status,
+from cache_client import (
+    get_enriched_players_from_cache as get_all_players,
+    search_enriched_players as search_players_unified,
+    get_enriched_player_by_id as get_player_by_id,
+    get_cache_status as get_unified_cache_status,
 )
+from build_cache import cache_enriched_players as update_unified_cache
 import logfire
 
 # Load environment variables from .env file
@@ -216,7 +216,9 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                         # Convert string to float format with 2 decimal places
                         if proj_pts:
                             try:
-                                player_info["projected_points"] = f"{float(proj_pts):.2f}"
+                                player_info["projected_points"] = (
+                                    f"{float(proj_pts):.2f}"
+                                )
                             except (ValueError, TypeError):
                                 pass  # Skip if conversion fails
 
@@ -826,84 +828,6 @@ async def refresh_players_cache() -> Dict[str, Any]:
             "success": False,
             "error": str(e),
             "message": "Failed to refresh cache. Check REDIS_URL and FFNERD_API_KEY env vars.",
-        }
-
-
-@mcp.tool()
-async def debug_ffnerd_api() -> Dict[str, Any]:
-    """Debug Fantasy Nerds API connectivity and responses.
-    
-    This tool checks the Fantasy Nerds API connection and returns
-    diagnostic information about what data is being returned.
-    
-    Returns:
-        Dict with API response statistics and sample data
-    """
-    from ffnerd.client import FantasyNerdsClient
-    
-    try:
-        client = FantasyNerdsClient()
-        
-        # Test rankings endpoint which should have projections
-        rankings = await client.get_rankings(scoring_type="PPR", week=1)
-        
-        # Also test the raw API call to see what's being returned
-        import httpx
-        raw_url = f"https://api.fantasynerds.com/v1/nfl/weekly-rankings"
-        raw_params = {
-            "apikey": os.getenv("FFNERD_API_KEY"),
-            "format": "ppr",
-            "week": 1,
-        }
-        
-        raw_response = None
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as raw_client:
-                raw_resp = await raw_client.get(raw_url, params=raw_params)
-                raw_resp.raise_for_status()
-                raw_response = raw_resp.json()
-        except Exception as e:
-            raw_response = {"error": str(e)}
-        
-        # Check for specific players
-        player_checks = {}
-        target_players = ["Marvin Harrison", "DeVonta Smith", "Jake Ferguson", "James Cook", "Jahmyr Gibbs"]
-        
-        if isinstance(rankings, list):
-            for target in target_players:
-                found = False
-                for player in rankings:
-                    if target.lower() in player.get('name', '').lower():
-                        player_checks[target] = {
-                            "found": True,
-                            "has_projection": 'proj_pts' in player,
-                            "projection": player.get('proj_pts')
-                        }
-                        found = True
-                        break
-                if not found:
-                    player_checks[target] = {"found": False}
-        
-        return {
-            "api_key_configured": bool(os.getenv("FFNERD_API_KEY")),
-            "rankings_count": len(rankings) if isinstance(rankings, list) else 0,
-            "rankings_type": type(rankings).__name__,
-            "player_checks": player_checks,
-            "sample_player": rankings[0] if isinstance(rankings, list) and len(rankings) > 0 else None,
-            "raw_api_structure": {
-                "type": type(raw_response).__name__ if raw_response else "None",
-                "keys": list(raw_response.keys()) if isinstance(raw_response, dict) else [],
-                "players_structure": {
-                    "type": type(raw_response.get("players")).__name__ if raw_response and "players" in raw_response else "Not found",
-                    "position_keys": list(raw_response.get("players", {}).keys()) if raw_response and isinstance(raw_response.get("players"), dict) else [],
-                    "total_across_positions": sum(len(pos_players) for pos_players in raw_response.get("players", {}).values()) if raw_response and isinstance(raw_response.get("players"), dict) else 0
-                } if raw_response else {}
-            }
-        }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "api_key_configured": bool(os.getenv("FFNERD_API_KEY"))
         }
 
 

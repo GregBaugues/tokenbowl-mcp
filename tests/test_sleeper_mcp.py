@@ -165,8 +165,10 @@ class TestPlayerTools:
     @pytest.mark.asyncio
     async def test_search_player_by_name_mock(self):
         """Test searching for a player by name with mocked cache."""
+        from unittest.mock import AsyncMock
+        
         # Mock the imported function directly
-        with patch("sleeper_mcp.search_players_unified") as mock_search:
+        with patch("sleeper_mcp.search_players_unified", new_callable=AsyncMock) as mock_search:
             mock_search.return_value = [
                 {
                     "id": "1234",
@@ -188,7 +190,9 @@ class TestPlayerTools:
     @pytest.mark.asyncio
     async def test_get_player_by_sleeper_id_mock(self):
         """Test getting a player by Sleeper ID with mocked cache."""
-        with patch("sleeper_mcp.get_player_by_id") as mock_get_player:
+        from unittest.mock import AsyncMock
+        
+        with patch("sleeper_mcp.get_player_by_id", new_callable=AsyncMock) as mock_get_player:
             mock_get_player.return_value = {
                 "player_id": "1234",
                 "first_name": "Patrick",
