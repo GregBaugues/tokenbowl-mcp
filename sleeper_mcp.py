@@ -521,7 +521,7 @@ async def get_players() -> Dict[str, Any]:
     """
     try:
         logger.debug("Fetching all players from unified cache")
-        result = await get_all_players()
+        result = get_all_players()  # Sync function, don't await
         logger.info(f"Successfully retrieved {len(result)} players from cache")
         return result
     except Exception as e:
@@ -692,8 +692,8 @@ async def get_waiver_wire_players(
             if roster.get("players"):
                 rostered_players.update(roster["players"])
 
-        # Get all NFL players from cache
-        all_players = await get_all_players()
+        # Get all NFL players from cache (sync function, don't await)
+        all_players = get_all_players()
 
         # Get trending data if requested
         trending_data = {}
