@@ -89,6 +89,156 @@ async def get_league_rosters() -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
+async def get_roster(roster_id: int) -> Dict[str, Any]:
+    """Get detailed roster information with full player data for a specific team.
+    
+    Args:
+        roster_id: The roster ID (1-10) for the team you want to view.
+                  Note: Roster ID 2 is Bill Beliclaude.
+    
+    Returns a comprehensive roster including:
+    - Team information (owner, record, points)
+    - Full player details for all rostered players including:
+      - Player names, positions, teams, ages
+      - Injury status and descriptions
+      - Fantasy Nerds data (ADP, projections)
+    - Organized into starters, bench, taxi, and IR
+    
+    This eliminates the need to call get_player 15+ times.
+    
+    Returns:
+        Dict with roster info and enriched player data
+    """
+    try:
+        # First get all rosters to find the specific one
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/rosters")
+            response.raise_for_status()
+            rosters = response.json()
+        
+        # Find the specific roster
+        roster = None
+        for r in rosters:
+            if r.get("roster_id") == roster_id:
+                roster = r
+                break
+        
+        if not roster:
+            return {"error": f"Roster ID {roster_id} not found"}
+        
+        # Get all player data from cache
+        all_players = await get_all_players()
+        
+        # Get league users to find owner name
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/users")
+            response.raise_for_status()
+            users = response.json()
+        
+        # Find owner info
+        owner_info = None
+        for user in users:
+            if user.get("user_id") == roster.get("owner_id"):
+                owner_info = {
+                    "user_id": user.get("user_id"),
+                    "username": user.get("username"),
+                    "display_name": user.get("display_name"),
+                    "team_name": user.get("metadata", {}).get("team_name", user.get("display_name"))
+                }
+                break
+        
+        # Build enriched roster data
+        enriched_roster = {
+            "roster_id": roster_id,
+            "owner": owner_info,
+            "settings": roster.get("settings", {}),
+            "starters": [],
+            "bench": [],
+            "taxi": [],
+            "reserve": []
+        }
+        
+        # Get player details for each player
+        starters_ids = roster.get("starters", [])
+        all_player_ids = roster.get("players", [])
+        taxi_ids = roster.get("taxi", []) or []
+        reserve_ids = roster.get("reserve", []) or []
+        
+        # Process each player
+        for player_id in all_player_ids:
+            if not player_id:
+                continue
+                
+            # Get player details from cache
+            player_data = all_players.get(player_id, {})
+            
+            # For team defenses, create a simple entry
+            if len(player_id) <= 3 and player_id.isalpha():  # Team defense
+                player_info = {
+                    "player_id": player_id,
+                    "name": f"{player_id} Defense",
+                    "position": "DEF",
+                    "team": player_id
+                }
+            else:
+                # Extract key player info
+                player_info = {
+                    "player_id": player_id,
+                    "name": player_data.get("full_name", "Unknown"),
+                    "position": player_data.get("position"),
+                    "team": player_data.get("team"),
+                    "age": player_data.get("age"),
+                    "status": player_data.get("status"),
+                    "injury_status": player_data.get("injury_status")
+                }
+                
+                # Add Fantasy Nerds data if available
+                if "ffnerd_data" in player_data:
+                    ffnerd = player_data["ffnerd_data"]
+                    
+                    # Add injury info
+                    if "injury" in ffnerd and ffnerd["injury"]:
+                        player_info["injury"] = {
+                            "status": ffnerd["injury"].get("status"),
+                            "description": ffnerd["injury"].get("desc"),
+                            "last_update": ffnerd["injury"].get("last_update")
+                        }
+                    
+                    # Add ADP
+                    if "adp" in ffnerd and ffnerd["adp"]:
+                        player_info["adp"] = ffnerd["adp"].get("avg")
+                    
+                    # Add weekly projection
+                    if "projection_week1" in ffnerd and ffnerd["projection_week1"]:
+                        player_info["projected_points"] = ffnerd["projection_week1"].get("projected_points")
+            
+            # Categorize player by roster position
+            if player_id in reserve_ids:
+                enriched_roster["reserve"].append(player_info)
+            elif player_id in taxi_ids:
+                enriched_roster["taxi"].append(player_info)
+            elif player_id in starters_ids:
+                enriched_roster["starters"].append(player_info)
+            else:
+                enriched_roster["bench"].append(player_info)
+        
+        # Add summary stats
+        enriched_roster["summary"] = {
+            "total_players": len(all_player_ids),
+            "starters_count": len(enriched_roster["starters"]),
+            "bench_count": len(enriched_roster["bench"]),
+            "injured_count": sum(1 for cat in ["starters", "bench", "taxi", "reserve"] 
+                               for p in enriched_roster[cat] if "injury" in p)
+        }
+        
+        return enriched_roster
+        
+    except Exception as e:
+        logger.error(f"Error getting roster {roster_id}: {e}")
+        return {"error": f"Failed to get roster: {str(e)}"}
+
+
+@mcp.tool()
 async def get_league_users() -> List[Dict[str, Any]]:
     """Get all users (team owners) participating in the Token Bowl league.
 
@@ -601,48 +751,50 @@ async def get_waiver_wire_players(
 @mcp.tool()
 async def refresh_players_cache() -> Dict[str, Any]:
     """Refresh the unified player cache with latest Sleeper and Fantasy Nerds data.
-    
+
     This tool fetches fresh data from both APIs and updates the Redis cache:
     - Sleeper API: All NFL players with current info (team, status, age, etc.)
     - Fantasy Nerds API: Enrichment data (ADP, injuries, projections, rankings)
     - Performs ID mapping between the two systems
     - Compresses and stores in Redis with 24-hour TTL
-    
+
     Use this when:
     - Player projections appear outdated or missing
     - You need the latest injury reports or ADP data
     - Weekly projections need to be refreshed
     - Cache has expired (check with get_players_cache_status first)
-    
+
     Note: This operation takes 10-30 seconds as it fetches and processes ~4000 players.
-    
+
     Returns:
         Dict with refresh results including player counts and enrichment stats
     """
     try:
         logger.info("Starting unified cache refresh...")
-        
+
         # Get current status before refresh
         before_status = await get_unified_cache_status()
-        
+
         # Perform the cache refresh
         data = await update_unified_cache()
-        
+
         # Count enriched players
         enriched_count = sum(1 for p in data.values() if "ffnerd_data" in p)
-        
+
         # Get new status after refresh
         after_status = await get_unified_cache_status()
-        
-        logger.info(f"Cache refresh complete: {len(data)} players, {enriched_count} enriched")
-        
+
+        logger.info(
+            f"Cache refresh complete: {len(data)} players, {enriched_count} enriched"
+        )
+
         return {
             "success": True,
             "message": "Cache refreshed successfully",
             "statistics": {
                 "total_players": len(data),
                 "enriched_players": enriched_count,
-                "enrichment_rate": f"{(enriched_count/len(data)*100):.1f}%",
+                "enrichment_rate": f"{(enriched_count / len(data) * 100):.1f}%",
             },
             "cache_info": {
                 "ttl_seconds": after_status.get("ttl_seconds", 86400),
@@ -653,9 +805,9 @@ async def refresh_players_cache() -> Dict[str, Any]:
                 "was_valid": before_status.get("valid", False),
                 "previous_players": before_status.get("total_players", 0),
                 "previous_enriched": before_status.get("enriched_players", 0),
-            }
+            },
         }
-        
+
     except Exception as e:
         logger.error(f"Error refreshing cache: {e}")
         return {
@@ -668,22 +820,22 @@ async def refresh_players_cache() -> Dict[str, Any]:
 @mcp.tool()
 async def get_players_cache_status() -> Dict[str, Any]:
     """Get the current status of the unified players cache.
-    
+
     Returns information about:
     - Cache validity and last update time
     - Total players and enrichment statistics
     - TTL (time to live) remaining before expiry
     - Memory usage and compression stats
     - Data source availability (Sleeper + Fantasy Nerds)
-    
+
     Use this to check if cache needs refreshing before making player queries.
-    
+
     Returns:
         Dict with cache status and statistics
     """
     try:
         status = await get_unified_cache_status()
-        
+
         if status.get("valid"):
             return {
                 "valid": True,
@@ -695,7 +847,9 @@ async def get_players_cache_status() -> Dict[str, Any]:
                 "ttl_remaining_hours": f"{status.get('ttl_seconds', 0) / 3600:.1f}",
                 "cache_size_mb": status.get("compressed_size_mb", 0),
                 "redis_memory_mb": status.get("redis_memory_used_mb", 0),
-                "recommendation": "Cache is valid and fresh" if status.get("ttl_seconds", 0) > 3600 else "Consider refreshing cache soon",
+                "recommendation": "Cache is valid and fresh"
+                if status.get("ttl_seconds", 0) > 3600
+                else "Consider refreshing cache soon",
             }
         else:
             return {
@@ -703,7 +857,7 @@ async def get_players_cache_status() -> Dict[str, Any]:
                 "error": status.get("error", "Cache invalid or missing"),
                 "recommendation": "Run refresh_players_cache to populate cache",
             }
-            
+
     except Exception as e:
         logger.error(f"Error checking cache status: {e}")
         return {
@@ -807,9 +961,10 @@ if __name__ == "__main__":
         # Start background cache refresh if enabled (for Render deployment)
         if os.getenv("ENABLE_BACKGROUND_REFRESH", "false").lower() == "true":
             from background_refresh import start_background_refresh
+
             start_background_refresh()
             logger.info("Background cache refresh enabled")
-        
+
         # Use PORT env variable (required by Render) or command line arg
         port = int(os.getenv("PORT", 8000))
         if len(sys.argv) > 2:
