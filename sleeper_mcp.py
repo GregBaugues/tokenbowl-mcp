@@ -91,11 +91,11 @@ async def get_league_rosters() -> List[Dict[str, Any]]:
 @mcp.tool()
 async def get_roster(roster_id: int) -> Dict[str, Any]:
     """Get detailed roster information with full player data for a specific team.
-    
+
     Args:
         roster_id: The roster ID (1-10) for the team you want to view.
                   Note: Roster ID 2 is Bill Beliclaude.
-    
+
     Returns a comprehensive roster including:
     - Team information (owner, record, points)
     - Full player details for all rostered players including:
@@ -103,9 +103,9 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
       - Injury status and descriptions
       - Fantasy Nerds data (ADP, projections)
     - Organized into starters, bench, taxi, and IR
-    
+
     This eliminates the need to call get_player 15+ times.
-    
+
     Returns:
         Dict with roster info and enriched player data
     """
@@ -115,26 +115,26 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
             response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/rosters")
             response.raise_for_status()
             rosters = response.json()
-        
+
         # Find the specific roster
         roster = None
         for r in rosters:
             if r.get("roster_id") == roster_id:
                 roster = r
                 break
-        
+
         if not roster:
             return {"error": f"Roster ID {roster_id} not found"}
-        
+
         # Get all player data from cache
         all_players = await get_all_players()
-        
+
         # Get league users to find owner name
         async with httpx.AsyncClient() as client:
             response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/users")
             response.raise_for_status()
             users = response.json()
-        
+
         # Find owner info
         owner_info = None
         for user in users:
@@ -143,10 +143,12 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                     "user_id": user.get("user_id"),
                     "username": user.get("username"),
                     "display_name": user.get("display_name"),
-                    "team_name": user.get("metadata", {}).get("team_name", user.get("display_name"))
+                    "team_name": user.get("metadata", {}).get(
+                        "team_name", user.get("display_name")
+                    ),
                 }
                 break
-        
+
         # Build enriched roster data
         enriched_roster = {
             "roster_id": roster_id,
@@ -155,30 +157,30 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
             "starters": [],
             "bench": [],
             "taxi": [],
-            "reserve": []
+            "reserve": [],
         }
-        
+
         # Get player details for each player
         starters_ids = roster.get("starters", [])
         all_player_ids = roster.get("players", [])
         taxi_ids = roster.get("taxi", []) or []
         reserve_ids = roster.get("reserve", []) or []
-        
+
         # Process each player
         for player_id in all_player_ids:
             if not player_id:
                 continue
-                
+
             # Get player details from cache
             player_data = all_players.get(player_id, {})
-            
+
             # For team defenses, create a simple entry
             if len(player_id) <= 3 and player_id.isalpha():  # Team defense
                 player_info = {
                     "player_id": player_id,
                     "name": f"{player_id} Defense",
                     "position": "DEF",
-                    "team": player_id
+                    "team": player_id,
                 }
             else:
                 # Extract key player info
@@ -189,29 +191,31 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                     "team": player_data.get("team"),
                     "age": player_data.get("age"),
                     "status": player_data.get("status"),
-                    "injury_status": player_data.get("injury_status")
+                    "injury_status": player_data.get("injury_status"),
                 }
-                
+
                 # Add Fantasy Nerds data if available
                 if "ffnerd_data" in player_data:
                     ffnerd = player_data["ffnerd_data"]
-                    
+
                     # Add injury info
                     if "injury" in ffnerd and ffnerd["injury"]:
                         player_info["injury"] = {
                             "status": ffnerd["injury"].get("status"),
                             "description": ffnerd["injury"].get("desc"),
-                            "last_update": ffnerd["injury"].get("last_update")
+                            "last_update": ffnerd["injury"].get("last_update"),
                         }
-                    
+
                     # Add ADP
                     if "adp" in ffnerd and ffnerd["adp"]:
                         player_info["adp"] = ffnerd["adp"].get("avg")
-                    
+
                     # Add weekly projection
                     if "projection_week1" in ffnerd and ffnerd["projection_week1"]:
-                        player_info["projected_points"] = ffnerd["projection_week1"].get("projected_points")
-            
+                        player_info["projected_points"] = ffnerd[
+                            "projection_week1"
+                        ].get("projected_points")
+
             # Categorize player by roster position
             if player_id in reserve_ids:
                 enriched_roster["reserve"].append(player_info)
@@ -221,18 +225,22 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                 enriched_roster["starters"].append(player_info)
             else:
                 enriched_roster["bench"].append(player_info)
-        
+
         # Add summary stats
         enriched_roster["summary"] = {
             "total_players": len(all_player_ids),
             "starters_count": len(enriched_roster["starters"]),
             "bench_count": len(enriched_roster["bench"]),
-            "injured_count": sum(1 for cat in ["starters", "bench", "taxi", "reserve"] 
-                               for p in enriched_roster[cat] if "injury" in p)
+            "injured_count": sum(
+                1
+                for cat in ["starters", "bench", "taxi", "reserve"]
+                for p in enriched_roster[cat]
+                if "injury" in p
+            ),
         }
-        
+
         return enriched_roster
-        
+
     except Exception as e:
         logger.error(f"Error getting roster {roster_id}: {e}")
         return {"error": f"Failed to get roster: {str(e)}"}
