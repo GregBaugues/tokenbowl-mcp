@@ -57,19 +57,19 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
         players_task = asyncio.create_task(client.get_players())
         injuries_task = asyncio.create_task(client.get_injuries())
         adp_task = asyncio.create_task(client.get_adp())
-        projections_task = asyncio.create_task(client.get_weekly_projections(1))
+        rankings_task = asyncio.create_task(client.get_rankings(scoring_type="PPR", week=1))
 
         players = await players_task
         injuries = await injuries_task
         adp = await adp_task
-        projections = await projections_task
+        rankings = await rankings_task
         
         # Debug: Log what we received from FFNerd API
         print("FFNerd API responses:")
         print(f"  - Players: {type(players).__name__}, count={len(players) if isinstance(players, list) else 0}")
         print(f"  - Injuries: {type(injuries).__name__}, count={len(injuries) if isinstance(injuries, list) else 0}")
         print(f"  - ADP: {type(adp).__name__}, count={len(adp) if isinstance(adp, list) else 0}")
-        print(f"  - Projections: {type(projections).__name__}, has_data={'data' in projections if isinstance(projections, dict) else False}")
+        print(f"  - Rankings: {type(rankings).__name__}, count={len(rankings) if isinstance(rankings, list) else 0}")
 
         # Organize by player ID for easy lookup
         ffnerd_data = {}
@@ -126,32 +126,24 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
                     "std_dev": adp_info.get("adpStdev"),
                 }
 
-        # Add weekly projections
-        # Handle projections - could be dict or list
-        if isinstance(projections, dict):
-            # If it's a dict, might have a data key or be the data itself
-            proj_list = projections.get("data", []) if "data" in projections else []
-        elif isinstance(projections, list):
-            proj_list = projections
-        else:
-            proj_list = []
-
-        proj_map = {
-            (int(proj["playerId"]) if isinstance(proj["playerId"], str) else proj["playerId"]): proj
-            for proj in proj_list
-            if isinstance(proj, dict) and "playerId" in proj
+        # Add weekly rankings with projections
+        # Rankings are returned as a list of player dictionaries
+        if not isinstance(rankings, list):
+            rankings = []
+        
+        rankings_map = {
+            (int(rank["playerId"]) if isinstance(rank["playerId"], str) else rank["playerId"]): rank
+            for rank in rankings
+            if isinstance(rank, dict) and "playerId" in rank
         }
-        for player_id, proj in proj_map.items():
+        for player_id, rank_data in rankings_map.items():
             if player_id in ffnerd_data:
                 ffnerd_data[player_id]["projection_week1"] = {
-                    "projected_points": proj.get("projectedPoints"),
-                    "passing_yards": proj.get("passingYards"),
-                    "passing_tds": proj.get("passingTDs"),
-                    "rushing_yards": proj.get("rushingYards"),
-                    "rushing_tds": proj.get("rushingTDs"),
-                    "receiving_yards": proj.get("receivingYards"),
-                    "receiving_tds": proj.get("receivingTDs"),
-                    "receptions": proj.get("receptions"),
+                    "projected_points": rank_data.get("proj_pts"),
+                    "proj_pts_low": rank_data.get("proj_pts_low"),
+                    "proj_pts_high": rank_data.get("proj_pts_high"),
+                    "rank": rank_data.get("rank"),
+                    "tier": rank_data.get("tier"),
                 }
 
         print(f"FFNerd data built: {len(ffnerd_data)} players with base data")

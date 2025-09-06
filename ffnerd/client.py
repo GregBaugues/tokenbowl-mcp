@@ -66,7 +66,7 @@ class FantasyNerdsClient:
         Returns:
             Dictionary containing projections data.
         """
-        url = f"{self.BASE_URL}/projections"
+        url = f"{self.BASE_URL}/weekly-projections"
         params = {"apikey": self.api_key}
         if week:
             params["week"] = week
@@ -148,12 +148,16 @@ class FantasyNerdsClient:
         Returns:
             List of player ranking dictionaries.
         """
-        url = f"{self.BASE_URL}/rankings"
-        params = {"apikey": self.api_key, "scoring": scoring_type.upper()}
+        # Use weekly-rankings endpoint when week is specified
+        if week:
+            url = f"{self.BASE_URL}/weekly-rankings"
+            params = {"apikey": self.api_key, "format": scoring_type.lower(), "week": week}
+        else:
+            url = f"{self.BASE_URL}/rankings"
+            params = {"apikey": self.api_key, "scoring": scoring_type.upper()}
+        
         if position:
             params["position"] = position.upper()
-        if week:
-            params["week"] = week
 
         async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
             response = await client.get(url, headers=self._get_headers(), params=params)
@@ -163,7 +167,16 @@ class FantasyNerdsClient:
             if isinstance(data, dict) and "error" in data:
                 logger.error(f"Rankings API error: {data['error']}")
                 return []
-            # API may return rankings as list or in a dict
+            
+            # Weekly rankings return data in a different format
+            if week and isinstance(data, dict) and "players" in data:
+                # Flatten the positional structure into a single list
+                all_players = []
+                for position_players in data["players"].values():
+                    all_players.extend(position_players)
+                return all_players
+            
+            # Season rankings format
             if isinstance(data, list):
                 return data
             elif isinstance(data, dict) and "rankings" in data:
