@@ -63,6 +63,13 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
         injuries = await injuries_task
         adp = await adp_task
         projections = await projections_task
+        
+        # Debug: Log what we received from FFNerd API
+        print(f"FFNerd API responses:")
+        print(f"  - Players: {type(players).__name__}, count={len(players) if isinstance(players, list) else 0}")
+        print(f"  - Injuries: {type(injuries).__name__}, count={len(injuries) if isinstance(injuries, list) else 0}")
+        print(f"  - ADP: {type(adp).__name__}, count={len(adp) if isinstance(adp, list) else 0}")
+        print(f"  - Projections: {type(projections).__name__}, has_data={'data' in projections if isinstance(projections, dict) else False}")
 
         # Organize by player ID for easy lookup
         ffnerd_data = {}
@@ -145,10 +152,13 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
                     "receptions": proj.get("receptions"),
                 }
 
+        print(f"FFNerd data built: {len(ffnerd_data)} players with base data")
         return ffnerd_data
 
     except Exception as e:
         print(f"Error fetching FFNerd data: {e}")
+        import traceback
+        traceback.print_exc()
         return {}
 
 
