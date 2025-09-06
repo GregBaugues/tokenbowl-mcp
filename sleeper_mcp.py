@@ -5,6 +5,7 @@ import httpx
 import os
 import logging
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
@@ -149,9 +150,12 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                 }
                 break
 
-        # Initialize roster structure with current datetime
+        # Initialize roster structure with current datetime in EDT
+        edt_time = datetime.now(ZoneInfo("America/New_York"))
+        formatted_datetime = edt_time.strftime("%A, %B %d, %Y at %I:%M %p EDT")
+
         enriched_roster = {
-            "current_datetime": datetime.now().isoformat(),
+            "current_datetime": formatted_datetime,
             "season": None,  # Will be populated from player projections
             "week": None,  # Will be populated from player projections
             "roster_id": roster_id,
