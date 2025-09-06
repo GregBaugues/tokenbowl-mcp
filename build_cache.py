@@ -37,7 +37,7 @@ def fetch_sleeper_players() -> Dict[str, Any]:
 
 def fetch_fantasy_nerds_data() -> tuple[Dict, Dict, List]:
     """Fetch all Fantasy Nerds data (rankings, injuries, news)."""
-    api_key = os.getenv("FFNERD_API_KEY", "PFGTZXFXBTEFYH6Y8JM9")
+    api_key = os.getenv("FFNERD_API_KEY")
     
     print("Fetching Fantasy Nerds weekly rankings...")
     with httpx.Client(timeout=30.0) as client:
@@ -61,7 +61,7 @@ def fetch_fantasy_nerds_data() -> tuple[Dict, Dict, List]:
 
 def fetch_fantasy_nerds_players() -> List[Dict]:
     """Fetch Fantasy Nerds player list for ID mapping."""
-    api_key = os.getenv("FFNERD_API_KEY", "PFGTZXFXBTEFYH6Y8JM9")
+    api_key = os.getenv("FFNERD_API_KEY")
     url = f"https://api.fantasynerds.com/v1/nfl/players?apikey={api_key}&include_inactive="
     
     print("Fetching Fantasy Nerds player list for mapping...")
