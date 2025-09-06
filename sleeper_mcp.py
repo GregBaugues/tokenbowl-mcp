@@ -216,7 +216,9 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                         # Convert string to float format with 2 decimal places
                         if proj_pts:
                             try:
-                                player_info["projected_points"] = f"{float(proj_pts):.2f}"
+                                player_info["projected_points"] = (
+                                    f"{float(proj_pts):.2f}"
+                                )
                             except (ValueError, TypeError):
                                 pass  # Skip if conversion fails
 
