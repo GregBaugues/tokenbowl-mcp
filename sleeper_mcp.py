@@ -212,9 +212,13 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
 
                     # Add weekly projection
                     if "projection_week1" in ffnerd and ffnerd["projection_week1"]:
-                        player_info["projected_points"] = ffnerd[
-                            "projection_week1"
-                        ].get("projected_points")
+                        proj_pts = ffnerd["projection_week1"].get("projected_points")
+                        # Convert string to float format with 2 decimal places
+                        if proj_pts:
+                            try:
+                                player_info["projected_points"] = f"{float(proj_pts):.2f}"
+                            except (ValueError, TypeError):
+                                pass  # Skip if conversion fails
 
             # Categorize player by roster position
             if player_id in reserve_ids:
