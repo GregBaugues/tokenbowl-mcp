@@ -117,19 +117,32 @@ class TestFantasyNerdsClient:
     @pytest.mark.asyncio
     async def test_get_injuries(self, client, mock_response):
         """Test fetching injury reports."""
-        # API returns injuries nested in teams structure
+        # API returns injuries nested in teams structure (dict format)
         mock_response.json.return_value = {
-            "season": "2025",
-            "week": "1",
-            "teams": [
-                {
-                    "team": "KC",
-                    "players": [
-                        {"playerId": 1, "injury": "Ankle", "status": "Questionable"},
-                        {"playerId": 2, "injury": "Hamstring", "status": "Out"},
-                    ],
-                }
-            ],
+            "season": 2025,
+            "week": 1,
+            "teams": {
+                "KC": [
+                    {
+                        "playerId": 1,
+                        "name": "Player One",
+                        "team": "KC",
+                        "position": "RB",
+                        "injury": "Ankle",
+                        "game_status": "Questionable",
+                        "last_update": "2025-01-01",
+                    },
+                    {
+                        "playerId": 2,
+                        "name": "Player Two",
+                        "team": "KC",
+                        "position": "WR",
+                        "injury": "Hamstring",
+                        "game_status": "Out",
+                        "last_update": "2025-01-01",
+                    },
+                ]
+            },
         }
 
         with patch("httpx.AsyncClient.get", return_value=mock_response) as mock_get:
@@ -182,9 +195,11 @@ class TestFantasyNerdsClient:
             assert rankings[0]["rank"] == 1
             mock_get.assert_called_once()
 
-            # Check params
+            # Check params - when week is specified, uses weekly-rankings endpoint
             call_args = mock_get.call_args
-            assert call_args[1]["params"]["scoring"] == "PPR"
+            assert (
+                call_args[1]["params"]["format"] == "ppr"
+            )  # lowercase for weekly endpoint
             assert call_args[1]["params"]["position"] == "RB"
             assert call_args[1]["params"]["week"] == 10
 
