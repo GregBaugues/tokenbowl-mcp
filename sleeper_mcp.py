@@ -101,7 +101,7 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
     - Full player details for all rostered players
     - Current week projections and scoring
     - Organized into starters, bench, taxi, and IR
-    - Useful meta information (total projected points, etc.)
+    - Useful meta information (projected points for starters, bench points, etc.)
 
     Returns:
         Dict with roster info and enriched player data
@@ -203,19 +203,19 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                     if proj_pts:
                         try:
                             pts = float(proj_pts)
-                            
+
                             # Include full projection data
                             player_info["projections"] = {
                                 "points": round(pts, 2),
-                                "low": round(float(proj.get("proj_pts_low", pts)), 2) if proj.get("proj_pts_low") else None,
-                                "high": round(float(proj.get("proj_pts_high", pts)), 2) if proj.get("proj_pts_high") else None,
+                                "low": round(float(proj.get("proj_pts_low", pts)), 2)
+                                if proj.get("proj_pts_low")
+                                else None,
+                                "high": round(float(proj.get("proj_pts_high", pts)), 2)
+                                if proj.get("proj_pts_high")
+                                else None,
                                 "week": proj.get("week"),
-                                "season": proj.get("season")
+                                "season": proj.get("season"),
                             }
-                            
-                            # Keep backward compatibility
-                            player_info["projected_points"] = round(pts, 2)
-                            player_info["projection_week"] = proj.get("week")
 
                             # Add to totals
                             total_projected += pts
@@ -232,7 +232,7 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                         "description": injury.get("injury"),
                         "last_update": injury.get("last_update"),
                     }
-                
+
                 # Add news if available
                 if enriched.get("news") and len(enriched["news"]) > 0:
                     # Include latest 3 news items
@@ -253,8 +253,7 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
             "total_players": len(all_player_ids),
             "starters_count": len(enriched_roster["starters"]),
             "bench_count": len(enriched_roster["bench"]),
-            "total_projected_points": round(total_projected, 2),
-            "starters_projected_points": round(starters_projected, 2),
+            "projected_points": round(starters_projected, 2),
             "bench_projected_points": round(total_projected - starters_projected, 2),
             "injured_count": sum(
                 1
