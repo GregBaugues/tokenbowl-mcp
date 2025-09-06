@@ -830,6 +830,57 @@ async def refresh_players_cache() -> Dict[str, Any]:
 
 
 @mcp.tool()
+async def debug_ffnerd_api() -> Dict[str, Any]:
+    """Debug Fantasy Nerds API connectivity and responses.
+    
+    This tool checks the Fantasy Nerds API connection and returns
+    diagnostic information about what data is being returned.
+    
+    Returns:
+        Dict with API response statistics and sample data
+    """
+    from ffnerd.client import FantasyNerdsClient
+    
+    try:
+        client = FantasyNerdsClient()
+        
+        # Test rankings endpoint which should have projections
+        rankings = await client.get_rankings(scoring_type="PPR", week=1)
+        
+        # Check for specific players
+        player_checks = {}
+        target_players = ["Marvin Harrison", "DeVonta Smith", "Jake Ferguson", "James Cook", "Jahmyr Gibbs"]
+        
+        if isinstance(rankings, list):
+            for target in target_players:
+                found = False
+                for player in rankings:
+                    if target.lower() in player.get('name', '').lower():
+                        player_checks[target] = {
+                            "found": True,
+                            "has_projection": 'proj_pts' in player,
+                            "projection": player.get('proj_pts')
+                        }
+                        found = True
+                        break
+                if not found:
+                    player_checks[target] = {"found": False}
+        
+        return {
+            "api_key_configured": bool(os.getenv("FFNERD_API_KEY")),
+            "rankings_count": len(rankings) if isinstance(rankings, list) else 0,
+            "rankings_type": type(rankings).__name__,
+            "player_checks": player_checks,
+            "sample_player": rankings[0] if isinstance(rankings, list) and len(rankings) > 0 else None
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "api_key_configured": bool(os.getenv("FFNERD_API_KEY"))
+        }
+
+
+@mcp.tool()
 async def get_players_cache_status() -> Dict[str, Any]:
     """Get the current status of the unified players cache.
 
