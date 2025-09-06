@@ -65,7 +65,7 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
         projections = await projections_task
         
         # Debug: Log what we received from FFNerd API
-        print(f"FFNerd API responses:")
+        print("FFNerd API responses:")
         print(f"  - Players: {type(players).__name__}, count={len(players) if isinstance(players, list) else 0}")
         print(f"  - Injuries: {type(injuries).__name__}, count={len(injuries) if isinstance(injuries, list) else 0}")
         print(f"  - ADP: {type(adp).__name__}, count={len(adp) if isinstance(adp, list) else 0}")
