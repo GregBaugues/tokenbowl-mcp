@@ -157,7 +157,6 @@ class FantasyNerdsClient:
                 "apikey": self.api_key,
                 "format": scoring_type.lower(),
                 "week": week,
-                "count": 1000,  # Request more players to avoid truncation
             }
         else:
             url = f"{self.BASE_URL}/rankings"
