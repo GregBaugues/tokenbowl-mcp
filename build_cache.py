@@ -48,7 +48,8 @@ def fetch_fantasy_nerds_data() -> tuple[Dict, Dict, List]:
     print("Fetching Fantasy Nerds weekly rankings...")
     with httpx.Client(timeout=30.0) as client:
         rankings_resp = client.get(
-            f"https://api.fantasynerds.com/v1/nfl/weekly-rankings?apikey={api_key}"
+            f"https://api.fantasynerds.com/v1/nfl/weekly-rankings?format=ppr
+&apikey={api_key}"
         )
         rankings_resp.raise_for_status()
         rankings = rankings_resp.json()
