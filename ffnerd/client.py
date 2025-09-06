@@ -12,7 +12,7 @@ class FantasyNerdsClient:
     """Async client for Fantasy Nerds API."""
 
     BASE_URL = "https://api.fantasynerds.com/v1/nfl"
-    TIMEOUT = 30.0
+    TIMEOUT = 60.0  # Increased timeout for production
 
     def __init__(self, api_key: Optional[str] = None):
         """
@@ -165,14 +165,16 @@ class FantasyNerdsClient:
         if position:
             params["position"] = position.upper()
 
-        async with httpx.AsyncClient(timeout=self.TIMEOUT) as client:
-            response = await client.get(url, headers=self._get_headers(), params=params)
+        # Try synchronous request to avoid async issues
+        with httpx.Client(timeout=self.TIMEOUT) as client:
+            response = client.get(url, headers=self._get_headers(), params=params)
             response.raise_for_status()
             data = response.json()
-            # Check for error in response
-            if isinstance(data, dict) and "error" in data:
-                logger.error(f"Rankings API error: {data['error']}")
-                return []
+        
+        # Check for error in response
+        if isinstance(data, dict) and "error" in data:
+            logger.error(f"Rankings API error: {data['error']}")
+            return []
 
             # Weekly rankings return data in a different format
             if week and isinstance(data, dict) and "players" in data:
