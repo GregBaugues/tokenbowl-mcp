@@ -57,19 +57,29 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
         players_task = asyncio.create_task(client.get_players())
         injuries_task = asyncio.create_task(client.get_injuries())
         adp_task = asyncio.create_task(client.get_adp())
-        rankings_task = asyncio.create_task(client.get_rankings(scoring_type="PPR", week=1))
+        rankings_task = asyncio.create_task(
+            client.get_rankings(scoring_type="PPR", week=1)
+        )
 
         players = await players_task
         injuries = await injuries_task
         adp = await adp_task
         rankings = await rankings_task
-        
+
         # Debug: Log what we received from FFNerd API
         print("FFNerd API responses:")
-        print(f"  - Players: {type(players).__name__}, count={len(players) if isinstance(players, list) else 0}")
-        print(f"  - Injuries: {type(injuries).__name__}, count={len(injuries) if isinstance(injuries, list) else 0}")
-        print(f"  - ADP: {type(adp).__name__}, count={len(adp) if isinstance(adp, list) else 0}")
-        print(f"  - Rankings: {type(rankings).__name__}, count={len(rankings) if isinstance(rankings, list) else 0}")
+        print(
+            f"  - Players: {type(players).__name__}, count={len(players) if isinstance(players, list) else 0}"
+        )
+        print(
+            f"  - Injuries: {type(injuries).__name__}, count={len(injuries) if isinstance(injuries, list) else 0}"
+        )
+        print(
+            f"  - ADP: {type(adp).__name__}, count={len(adp) if isinstance(adp, list) else 0}"
+        )
+        print(
+            f"  - Rankings: {type(rankings).__name__}, count={len(rankings) if isinstance(rankings, list) else 0}"
+        )
 
         # Organize by player ID for easy lookup
         ffnerd_data = {}
@@ -79,7 +89,11 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
             players = []
         for player in players:
             # Ensure player ID is an integer for consistent mapping
-            player_id = int(player["playerId"]) if isinstance(player["playerId"], str) else player["playerId"]
+            player_id = (
+                int(player["playerId"])
+                if isinstance(player["playerId"], str)
+                else player["playerId"]
+            )
             ffnerd_data[player_id] = {
                 "player_id": player_id,
                 "name": player.get("name", ""),
@@ -95,25 +109,74 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
         # Add injury data
         if not isinstance(injuries, list):
             injuries = []
-        injury_map = {
-            (int(inj["playerId"]) if isinstance(inj["playerId"], str) else inj["playerId"]): inj
-            for inj in injuries
-            if isinstance(inj, dict) and "playerId" in inj
-        }
+
+        # First pass: Map injuries with valid player IDs
+        injury_map = {}
+        unmapped_injuries = []
+
+        for inj in injuries:
+            if isinstance(inj, dict):
+                player_id = (
+                    int(inj.get("playerId", 0))
+                    if isinstance(inj.get("playerId"), str)
+                    else inj.get("playerId", 0)
+                )
+                if player_id > 0:
+                    injury_map[player_id] = inj
+                else:
+                    # Save injuries without valid IDs for name matching
+                    unmapped_injuries.append(inj)
+
+        # Apply injuries with valid player IDs
         for player_id, injury in injury_map.items():
             if player_id in ffnerd_data:
                 ffnerd_data[player_id]["injury"] = {
-                    "status": injury.get("injuryCode"),
-                    "desc": injury.get("injuryDesc"),
-                    "practice_status": injury.get("practiceStatus"),
-                    "game_status": injury.get("gameStatus"),
+                    "status": injury.get(
+                        "game_status"
+                    ),  # e.g., "Questionable For Week 1"
+                    "desc": injury.get("injury"),  # e.g., "Knee"
+                    "last_update": injury.get("last_update"),  # e.g., "2025-09-05"
+                    "team": injury.get("team"),  # Team code
+                    "position": injury.get("position"),  # Position
                 }
+
+        # Second pass: Try to match unmapped injuries by name and team
+        for injury in unmapped_injuries:
+            injury_name = injury.get("name", "").lower()
+            injury_team = injury.get("team", "")
+            injury_pos = injury.get("position", "")
+
+            # Find matching player by name, team, and position
+            for player_id, player_data in ffnerd_data.items():
+                if (
+                    player_data.get("name", "").lower() == injury_name
+                    and player_data.get("team", "") == injury_team
+                    and player_data.get("position", "") == injury_pos
+                ):
+                    ffnerd_data[player_id]["injury"] = {
+                        "status": injury.get("game_status"),
+                        "desc": injury.get("injury"),
+                        "last_update": injury.get("last_update"),
+                        "team": injury_team,
+                        "position": injury_pos,
+                    }
+                    break
+
+        # Log injury matching stats
+        injury_count = sum(1 for p in ffnerd_data.values() if "injury" in p)
+        print(
+            f"  - Matched {injury_count} injuries out of {len(injuries)} total injuries"
+        )
 
         # Add ADP data
         if not isinstance(adp, list):
             adp = []
         adp_map = {
-            (int(item["playerId"]) if isinstance(item["playerId"], str) else item["playerId"]): item
+            (
+                int(item["playerId"])
+                if isinstance(item["playerId"], str)
+                else item["playerId"]
+            ): item
             for item in adp
             if isinstance(item, dict) and "playerId" in item
         }
@@ -130,9 +193,13 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
         # Rankings are returned as a list of player dictionaries
         if not isinstance(rankings, list):
             rankings = []
-        
+
         rankings_map = {
-            (int(rank["playerId"]) if isinstance(rank["playerId"], str) else rank["playerId"]): rank
+            (
+                int(rank["playerId"])
+                if isinstance(rank["playerId"], str)
+                else rank["playerId"]
+            ): rank
             for rank in rankings
             if isinstance(rank, dict) and "playerId" in rank
         }
@@ -152,6 +219,7 @@ async def fetch_ffnerd_enrichment_data() -> Dict[str, Any]:
     except Exception as e:
         print(f"Error fetching FFNerd data: {e}")
         import traceback
+
         traceback.print_exc()
         return {}
 
@@ -219,8 +287,12 @@ async def build_unified_player_data() -> Dict[str, Any]:
                 ffnerd_id = mapper.get_ffnerd_id(sleeper_id)
                 # Debug: Check both numeric and string versions
                 if enriched_count < 5 and ffnerd_id:
-                    print(f"  Checking mapping: Sleeper {sleeper_id} -> FFNerd {ffnerd_id} (type: {type(ffnerd_id).__name__})")
-                    print(f"    FFNerd data keys sample: {list(ffnerd_data.keys())[:5]} (types: {[type(k).__name__ for k in list(ffnerd_data.keys())[:5]]})")
+                    print(
+                        f"  Checking mapping: Sleeper {sleeper_id} -> FFNerd {ffnerd_id} (type: {type(ffnerd_id).__name__})"
+                    )
+                    print(
+                        f"    FFNerd data keys sample: {list(ffnerd_data.keys())[:5]} (types: {[type(k).__name__ for k in list(ffnerd_data.keys())[:5]]})"
+                    )
                 if ffnerd_id and ffnerd_id in ffnerd_data:
                     enriched_count += 1
                     ffnerd_player = ffnerd_data[ffnerd_id]

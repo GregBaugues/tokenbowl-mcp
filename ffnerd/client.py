@@ -100,9 +100,11 @@ class FantasyNerdsClient:
             # API returns injuries nested in teams structure
             if isinstance(data, dict) and "teams" in data:
                 injuries = []
-                for team_data in data.get("teams", []):
-                    if "players" in team_data:
-                        injuries.extend(team_data["players"])
+                teams = data.get("teams", {})
+                # Teams is a dict with team codes as keys, each containing a list of injuries
+                for team_code, team_injuries in teams.items():
+                    if isinstance(team_injuries, list):
+                        injuries.extend(team_injuries)
                 return injuries
             return []
 
@@ -151,11 +153,15 @@ class FantasyNerdsClient:
         # Use weekly-rankings endpoint when week is specified
         if week:
             url = f"{self.BASE_URL}/weekly-rankings"
-            params = {"apikey": self.api_key, "format": scoring_type.lower(), "week": week}
+            params = {
+                "apikey": self.api_key,
+                "format": scoring_type.lower(),
+                "week": week,
+            }
         else:
             url = f"{self.BASE_URL}/rankings"
             params = {"apikey": self.api_key, "scoring": scoring_type.upper()}
-        
+
         if position:
             params["position"] = position.upper()
 
@@ -167,7 +173,7 @@ class FantasyNerdsClient:
             if isinstance(data, dict) and "error" in data:
                 logger.error(f"Rankings API error: {data['error']}")
                 return []
-            
+
             # Weekly rankings return data in a different format
             if week and isinstance(data, dict) and "players" in data:
                 # Flatten the positional structure into a single list
@@ -175,7 +181,7 @@ class FantasyNerdsClient:
                 for position_players in data["players"].values():
                     all_players.extend(position_players)
                 return all_players
-            
+
             # Season rankings format
             if isinstance(data, list):
                 return data
