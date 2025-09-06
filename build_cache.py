@@ -169,8 +169,23 @@ def create_player_mappings(
         if key in ffnerd_by_partial:
             sleeper_to_ffnerd[sleeper_id] = ffnerd_by_partial[key]
             continue
+        
+        # Special case: Try adding "jr" if name doesn't have it
+        # (e.g., "Marvin Harrison" -> "Marvin Harrison Jr")
+        if "jr" not in full_name and "sr" not in full_name:
+            name_with_jr = full_name + "jr"
+            key = (name_with_jr, team, position)
+            if key in ffnerd_by_name:
+                sleeper_to_ffnerd[sleeper_id] = ffnerd_by_name[key]
+                continue
+            
+            # Try with Jr but without team
+            key = (name_with_jr, "", position)
+            if key in ffnerd_by_name:
+                sleeper_to_ffnerd[sleeper_id] = ffnerd_by_name[key]
+                continue
 
-        # Track unmatched fantasy-relevant players
+        # Track unmatched fantasy-relevant players (for debugging)
         if position in ["QB", "RB", "WR", "TE", "K"] and team:
             unmatched_players.append(
                 f"{sleeper_player.get('full_name')} ({position}, {team})"
@@ -260,28 +275,21 @@ def organize_ffnerd_data(rankings: Dict, injuries: Dict, news: List) -> Dict[str
 def enrich_and_filter_players(
     sleeper_players: Dict, mapping: Dict, ffnerd_data: Dict
 ) -> Dict:
-    """Enrich Sleeper players with Fantasy Nerds data and filter to fantasy-relevant only."""
+    """Enrich Sleeper players with Fantasy Nerds data. Include ALL Sleeper players."""
     enriched = {}
     fantasy_positions = {"QB", "RB", "WR", "TE", "K", "DEF"}
 
     for sleeper_id, player in sleeper_players.items():
         position = player.get("position", "")
 
-        # Include all fantasy-relevant players
+        # Include ALL fantasy-relevant players regardless of matching
         if position not in fantasy_positions:
             continue
 
-        # Skip inactive players unless they have injury data
-        if player.get("status") == "Inactive":
-            # Check if they have injury data that might be relevant
-            if sleeper_id in mapping:
-                ffnerd_id = str(mapping[sleeper_id])
-                if ffnerd_id not in ffnerd_data or not ffnerd_data[ffnerd_id].get(
-                    "injury"
-                ):
-                    continue
-            else:
-                continue
+        # Skip only truly inactive players (not IR or Out)
+        status = player.get("status", "")
+        if status == "Inactive" and not player.get("injury_status"):
+            continue
 
         # Add Fantasy Nerds data if available
         if sleeper_id in mapping:
@@ -292,7 +300,7 @@ def enrich_and_filter_players(
                 if player_ffnerd_data:
                     player["data"] = player_ffnerd_data
 
-        # Include the player even without Fantasy Nerds data
+        # ALWAYS include the player, even without Fantasy Nerds data
         enriched[sleeper_id] = player
 
     return enriched
