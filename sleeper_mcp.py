@@ -4,6 +4,7 @@
 import httpx
 import os
 import logging
+from datetime import datetime
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
@@ -148,8 +149,11 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                 }
                 break
 
-        # Initialize roster structure
+        # Initialize roster structure with current datetime
         enriched_roster = {
+            "current_datetime": datetime.now().isoformat(),
+            "season": None,  # Will be populated from player projections
+            "week": None,  # Will be populated from player projections
             "roster_id": roster_id,
             "owner": owner_info,
             "settings": roster.get("settings", {}),
@@ -168,6 +172,10 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
         # Track totals for meta information
         total_projected = 0.0
         starters_projected = 0.0
+
+        # Track season and week from projections (will be extracted from first player with projections)
+        projection_season = None
+        projection_week = None
 
         # Process each player
         for player_id in all_player_ids:
@@ -204,7 +212,13 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                         try:
                             pts = float(proj_pts)
 
-                            # Include full projection data
+                            # Extract season and week for top-level (only from first player with projections)
+                            if projection_season is None and proj.get("season"):
+                                projection_season = proj.get("season")
+                            if projection_week is None and proj.get("week"):
+                                projection_week = proj.get("week")
+
+                            # Include projection data WITHOUT season and week
                             player_info["projections"] = {
                                 "points": round(pts, 2),
                                 "low": round(float(proj.get("proj_pts_low", pts)), 2)
@@ -213,8 +227,6 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                                 "high": round(float(proj.get("proj_pts_high", pts)), 2)
                                 if proj.get("proj_pts_high")
                                 else None,
-                                "week": proj.get("week"),
-                                "season": proj.get("season"),
                             }
 
                             # Add to totals
@@ -247,6 +259,10 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                 enriched_roster["starters"].append(player_info)
             else:
                 enriched_roster["bench"].append(player_info)
+
+        # Update season and week at top level
+        enriched_roster["season"] = projection_season
+        enriched_roster["week"] = projection_week
 
         # Add comprehensive meta information
         enriched_roster["meta"] = {
