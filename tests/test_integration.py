@@ -18,9 +18,9 @@ class TestMCPServer:
 
         # Check that key functions exist
         assert hasattr(sleeper_mcp, "mcp")
-        assert hasattr(cache_client, "get_enriched_players_from_cache")
-        assert hasattr(cache_client, "search_enriched_players")
-        assert hasattr(cache_client, "get_enriched_player_by_id")
+        assert hasattr(cache_client, "get_players_from_cache")
+        assert hasattr(cache_client, "search_players")
+        assert hasattr(cache_client, "get_player_by_id")
 
     def test_constants(self):
         """Test that constants are properly defined."""
@@ -57,9 +57,9 @@ class TestMCPServer:
     def test_cache_functions(self):
         """Test that cache functions can be imported and have correct signatures."""
         from cache_client import (
-            get_enriched_players_from_cache as get_all_players,
-            search_enriched_players,
-            get_enriched_player_by_id,
+            get_players_from_cache as get_all_players,
+            search_players,
+            get_player_by_id,
             get_cache_status,
         )
 
@@ -68,12 +68,12 @@ class TestMCPServer:
 
         # Verify these are regular functions, not coroutines
         assert callable(get_all_players)
-        assert callable(search_enriched_players)
-        assert callable(get_enriched_player_by_id)
+        assert callable(search_players)
+        assert callable(get_player_by_id)
         assert callable(get_cache_status)
         
         # They should NOT be async functions
         assert not inspect.iscoroutinefunction(get_all_players)
-        assert not inspect.iscoroutinefunction(search_enriched_players)
-        assert not inspect.iscoroutinefunction(get_enriched_player_by_id)
+        assert not inspect.iscoroutinefunction(search_players)
+        assert not inspect.iscoroutinefunction(get_player_by_id)
         assert not inspect.iscoroutinefunction(get_cache_status)
