@@ -9,7 +9,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from fastmcp import FastMCP
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any
 from cache_client import (
     get_players_from_cache,
     search_players as search_players_unified,
@@ -175,10 +175,6 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
         total_projected = 0.0
         starters_projected = 0.0
 
-        # Track season and week from projections (will be extracted from first player with projections)
-        projection_season = None
-        projection_week = None
-
         # Process each player
         for player_id in all_player_ids:
             if not player_id:
@@ -202,41 +198,41 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                 player_info["position"] = "DEF"
                 player_info["team"] = player_id
 
-            # Add enriched data if available
+            # Add stats data if available (new structure)
+            if "stats" in player_data:
+                stats = player_data["stats"]
+
+                # Add projections from new structure
+                if stats.get("projected"):
+                    proj = stats["projected"]
+                    fantasy_points = proj.get("fantasy_points", 0)
+
+                    # Include projection data
+                    player_info["projections"] = {
+                        "points": round(fantasy_points, 2),
+                        "low": round(proj.get("fantasy_points_low", fantasy_points), 2),
+                        "high": round(
+                            proj.get("fantasy_points_high", fantasy_points), 2
+                        ),
+                    }
+
+                    # Add to totals
+                    total_projected += fantasy_points
+                    if player_id in starters_ids:
+                        starters_projected += fantasy_points
+
+                # Add actual stats if game has been played
+                if stats.get("actual"):
+                    actual = stats["actual"]
+                    player_info["actual_stats"] = {
+                        "fantasy_points": round(actual.get("fantasy_points", 0), 2),
+                        "game_status": actual.get("game_status", "unknown"),
+                        "game_stats": actual.get("game_stats"),
+                    }
+
+            # Add other enriched data if available (injury, news - backward compatible)
             if "data" in player_data:
                 enriched = player_data["data"]
-
-                # Add current week projections
-                if enriched.get("projections"):
-                    proj = enriched["projections"]
-                    proj_pts = proj.get("proj_pts")
-                    if proj_pts:
-                        try:
-                            pts = float(proj_pts)
-
-                            # Extract season and week for top-level (only from first player with projections)
-                            if projection_season is None and proj.get("season"):
-                                projection_season = proj.get("season")
-                            if projection_week is None and proj.get("week"):
-                                projection_week = proj.get("week")
-
-                            # Include projection data WITHOUT season and week
-                            player_info["projections"] = {
-                                "points": round(pts, 2),
-                                "low": round(float(proj.get("proj_pts_low", pts)), 2)
-                                if proj.get("proj_pts_low")
-                                else None,
-                                "high": round(float(proj.get("proj_pts_high", pts)), 2)
-                                if proj.get("proj_pts_high")
-                                else None,
-                            }
-
-                            # Add to totals
-                            total_projected += pts
-                            if player_id in starters_ids:
-                                starters_projected += pts
-                        except (ValueError, TypeError):
-                            pass
 
                 # Add injury info
                 if enriched.get("injury"):
@@ -262,9 +258,8 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
             else:
                 enriched_roster["bench"].append(player_info)
 
-        # Update season and week at top level
-        enriched_roster["season"] = projection_season
-        enriched_roster["week"] = projection_week
+        # Season and week can be fetched separately if needed
+        # For now, leaving them as None since they're not in the new structure
 
         # Add comprehensive meta information
         enriched_roster["meta"] = {
@@ -523,15 +518,15 @@ async def get_user(username_or_id: str) -> Dict[str, Any]:
 # @mcp.tool()
 # async def get_players() -> Dict[str, Any]:
 #     """Get comprehensive NFL player data with Fantasy Nerds enrichment (active players on teams only).
-# 
+#
 #     Returns unified player data including:
 #     - Sleeper base data (name, team, position, status, age, etc.)
 #     - Fantasy Nerds enrichment (ADP, injuries, projections)
 #     - Player IDs for both systems
 #     - Only includes players where active=true and team is not null
-# 
+#
 #     Data is cached in Redis (24-hour TTL) with active players on teams only.
-# 
+#
 #     Returns:
 #         Dict with player_id as keys and unified player data as values (active players on teams only)
 #     """
