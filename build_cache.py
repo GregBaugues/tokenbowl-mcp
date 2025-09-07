@@ -81,7 +81,14 @@ def fetch_fantasy_nerds_players() -> List[Dict]:
     with httpx.Client(timeout=30.0) as client:
         response = client.get(url)
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        # Ensure we return a list even if API returns an error
+        if not isinstance(data, list):
+            print(
+                f"Warning: Fantasy Nerds API returned non-list response: {type(data)}"
+            )
+            return []
+        return data
 
 
 def create_player_mappings(
@@ -95,6 +102,9 @@ def create_player_mappings(
     ffnerd_by_partial = {}  # For partial name matching
 
     for player in ffnerd_players:
+        # Skip if player is not a dict (in case of bad API response)
+        if not isinstance(player, dict):
+            continue
         if not player.get("name"):
             continue
 
