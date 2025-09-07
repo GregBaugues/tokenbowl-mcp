@@ -1,8 +1,7 @@
 """Test Sleeper MCP tools with mocked API responses."""
 
-import os
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, AsyncMock
 import sleeper_mcp
 
 
@@ -18,18 +17,18 @@ class TestLeagueToolsMocked:
             "season": "2025",
             "sport": "nfl",
             "status": "in_season",
-            "settings": {"max_keepers": 0, "playoff_teams": 6}
+            "settings": {"max_keepers": 0, "playoff_teams": 6},
         }
-        
+
         with patch("httpx.AsyncClient") as mock_client:
             mock_instance = AsyncMock()
             mock_client.return_value.__aenter__.return_value = mock_instance
-            
+
             mock_resp = AsyncMock()
             mock_resp.json.return_value = mock_response
             mock_resp.raise_for_status = AsyncMock()
             mock_instance.get.return_value = mock_resp
-            
+
             result = await sleeper_mcp.get_league_info.fn()
 
             assert "league_id" in result
@@ -47,19 +46,19 @@ class TestLeagueToolsMocked:
                 "owner_id": "123456",
                 "players": ["4046", "4034"],
                 "starters": ["4046"],
-                "settings": {"wins": 5, "losses": 2}
+                "settings": {"wins": 5, "losses": 2},
             }
         ]
-        
+
         with patch("httpx.AsyncClient") as mock_client:
             mock_instance = AsyncMock()
             mock_client.return_value.__aenter__.return_value = mock_instance
-            
+
             mock_resp = AsyncMock()
             mock_resp.json.return_value = mock_response
             mock_resp.raise_for_status = AsyncMock()
             mock_instance.get.return_value = mock_resp
-            
+
             result = await sleeper_mcp.get_league_rosters.fn()
 
             assert isinstance(result, list)
@@ -75,19 +74,19 @@ class TestLeagueToolsMocked:
                 "user_id": "123456",
                 "username": "testuser",
                 "display_name": "Test User",
-                "avatar": "abc123"
+                "avatar": "abc123",
             }
         ]
-        
+
         with patch("httpx.AsyncClient") as mock_client:
             mock_instance = AsyncMock()
             mock_client.return_value.__aenter__.return_value = mock_instance
-            
+
             mock_resp = AsyncMock()
             mock_resp.json.return_value = mock_response
             mock_resp.raise_for_status = AsyncMock()
             mock_instance.get.return_value = mock_resp
-            
+
             result = await sleeper_mcp.get_league_users.fn()
 
             assert isinstance(result, list)
@@ -103,19 +102,19 @@ class TestLeagueToolsMocked:
                 "matchup_id": 1,
                 "roster_id": 1,
                 "points": 120.5,
-                "starters_points": [25.5, 18.2]
+                "starters_points": [25.5, 18.2],
             }
         ]
-        
+
         with patch("httpx.AsyncClient") as mock_client:
             mock_instance = AsyncMock()
             mock_client.return_value.__aenter__.return_value = mock_instance
-            
+
             mock_resp = AsyncMock()
             mock_resp.json.return_value = mock_response
             mock_resp.raise_for_status = AsyncMock()
             mock_instance.get.return_value = mock_resp
-            
+
             result = await sleeper_mcp.get_league_matchups.fn(week=1)
 
             assert isinstance(result, list)
@@ -133,19 +132,19 @@ class TestLeagueToolsMocked:
                 "roster_ids": [1],
                 "adds": {"4046": 1},
                 "drops": {},
-                "status": "complete"
+                "status": "complete",
             }
         ]
-        
+
         with patch("httpx.AsyncClient") as mock_client:
             mock_instance = AsyncMock()
             mock_client.return_value.__aenter__.return_value = mock_instance
-            
+
             mock_resp = AsyncMock()
             mock_resp.json.return_value = mock_response
             mock_resp.raise_for_status = AsyncMock()
             mock_instance.get.return_value = mock_resp
-            
+
             result = await sleeper_mcp.get_league_transactions.fn(round=1)
 
             assert isinstance(result, list)
@@ -164,18 +163,18 @@ class TestUserToolsMocked:
             "user_id": "123456",
             "username": "testuser",
             "display_name": "Test User",
-            "avatar": "abc123"
+            "avatar": "abc123",
         }
-        
+
         with patch("httpx.AsyncClient") as mock_client:
             mock_instance = AsyncMock()
             mock_client.return_value.__aenter__.return_value = mock_instance
-            
+
             mock_resp = AsyncMock()
             mock_resp.json.return_value = mock_response
             mock_resp.raise_for_status = AsyncMock()
             mock_instance.get.return_value = mock_resp
-            
+
             result = await sleeper_mcp.get_user.fn(username_or_id="testuser")
 
             assert "user_id" in result
@@ -191,25 +190,25 @@ class TestPlayerToolsMocked:
         """Test getting trending players with mocked response."""
         mock_response = [
             {"player_id": "4046", "count": 150},
-            {"player_id": "4034", "count": 120}
+            {"player_id": "4034", "count": 120},
         ]
-        
+
         with patch("httpx.AsyncClient") as mock_client:
             mock_instance = AsyncMock()
             mock_client.return_value.__aenter__.return_value = mock_instance
-            
+
             mock_resp = AsyncMock()
             mock_resp.json.return_value = mock_response
             mock_resp.raise_for_status = AsyncMock()
             mock_instance.get.return_value = mock_resp
-            
+
             # Mock the cache function
             with patch("sleeper_mcp.get_players_from_cache") as mock_cache:
                 mock_cache.return_value = {
                     "4046": {"full_name": "Patrick Mahomes", "position": "QB"},
-                    "4034": {"full_name": "Davante Adams", "position": "WR"}
+                    "4034": {"full_name": "Davante Adams", "position": "WR"},
                 }
-                
+
                 result = await sleeper_mcp.get_trending_players.fn(type="add")
 
                 assert isinstance(result, list)
