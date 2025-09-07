@@ -623,7 +623,7 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_trending_players(
-    type: str = "add", lookback_hours: Optional[int] = 24, limit: Optional[int] = 25
+    type: str = "add", limit: Optional[int] = 25
 ) -> List[Dict[str, Any]]:
     """Get trending NFL players based on recent add/drop activity across all Sleeper leagues.
 
@@ -632,26 +632,21 @@ async def get_trending_players(
               - "add": Players being picked up from waivers/free agency
               - "drop": Players being dropped to waivers
 
-        lookback_hours: Time window for trending data (default: 24)
-                       Options: 6, 12, or 24 hours
-                       Shorter windows show immediate trends.
-
         limit: Number of players to return (default: 25, max: 200)
                Returns most trending players first.
 
     Returns player trending data with:
     - Full player information including name, position, team
     - FFNerd enrichment data (projections, injuries when available)
-    - Count of adds/drops
+    - Count of adds/drops over the last 24 hours
     - Useful for identifying breakout players or injury news
     - Great for waiver wire decisions
 
     Returns:
         List of dictionaries with enriched player data and add/drop counts
     """
-    params = {}
-    if lookback_hours:
-        params["lookback_hours"] = lookback_hours
+    # Always use 24 hour lookback
+    params = {"lookback_hours": 24}
     if limit:
         params["limit"] = limit
 
