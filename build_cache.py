@@ -285,7 +285,8 @@ def organize_ffnerd_data(rankings: Dict, injuries: Dict, news: List) -> Dict[str
 def enrich_and_filter_players(
     sleeper_players: Dict, mapping: Dict, ffnerd_data: Dict
 ) -> Dict:
-    """Enrich Sleeper players with Fantasy Nerds data. Include ALL Sleeper players."""
+    """Enrich Sleeper players with Fantasy Nerds data. 
+    Only includes active players on NFL teams (excludes free agents and retired players)."""
     enriched = {}
     fantasy_positions = {"QB", "RB", "WR", "TE", "K", "DEF"}
 
@@ -299,6 +300,10 @@ def enrich_and_filter_players(
         # Skip only truly inactive players (not IR or Out)
         status = player.get("status", "")
         if status == "Inactive" and not player.get("injury_status"):
+            continue
+        
+        # Skip players without a team (free agents, retired players)
+        if not player.get("team"):
             continue
 
         # Add Fantasy Nerds data if available
