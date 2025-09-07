@@ -27,10 +27,13 @@ def get_redis_client() -> redis.Redis:
     return redis.from_url(redis_url, decode_responses=False)
 
 
-def get_players_from_cache() -> Optional[Dict[str, Any]]:
+def get_players_from_cache(active_only: bool = True) -> Optional[Dict[str, Any]]:
     """
     Get player data from Redis cache.
     Automatically refreshes if cache is missing or expired.
+
+    Args:
+        active_only: If True, only return active players (default: True)
     """
     try:
         r = get_redis_client()
@@ -51,7 +54,22 @@ def get_players_from_cache() -> Optional[Dict[str, Any]]:
                 if age_hours < 6:
                     logger.info(f"Using cached player data ({age_hours:.1f} hours old)")
                     decompressed = gzip.decompress(cached_data).decode("utf-8")
-                    return json.loads(decompressed)
+                    players = json.loads(decompressed)
+
+                    # Filter for active players if requested
+                    if active_only:
+                        active_players = {
+                            pid: pdata
+                            for pid, pdata in players.items()
+                            if pdata.get("active", False) is True
+                            and pdata.get("team") is not None
+                        }
+                        logger.info(
+                            f"Filtered to {len(active_players)} active players with teams from {len(players)} total"
+                        )
+                        return active_players
+
+                    return players
                 else:
                     logger.info(f"Cache is {age_hours:.1f} hours old, refreshing...")
             else:
@@ -68,7 +86,22 @@ def get_players_from_cache() -> Optional[Dict[str, Any]]:
             cached_data = r.get(cache_key)
             if cached_data:
                 decompressed = gzip.decompress(cached_data).decode("utf-8")
-                return json.loads(decompressed)
+                players = json.loads(decompressed)
+
+                # Filter for active players if requested
+                if active_only:
+                    active_players = {
+                        pid: pdata
+                        for pid, pdata in players.items()
+                        if pdata.get("active", False) is True
+                        and pdata.get("team") is not None
+                    }
+                    logger.info(
+                        f"Filtered to {len(active_players)} active players with teams from {len(players)} total"
+                    )
+                    return active_players
+
+                return players
 
         logger.error("Failed to refresh cache")
         return None
@@ -103,13 +136,18 @@ def get_name_lookup_from_cache() -> Optional[Dict[str, str]]:
         return None
 
 
-def search_players(query: str, limit: int = 10) -> list:
+def search_players(query: str, limit: int = 10, active_only: bool = True) -> list:
     """
     Search players by name using cached lookup table for fast access.
     Returns list of matching players with all data.
+
+    Args:
+        query: Player name to search for
+        limit: Maximum number of results to return (default: 10)
+        active_only: If True, only return active players (default: True)
     """
     # Get both the players data and name lookup table
-    players = get_players_from_cache()
+    players = get_players_from_cache(active_only=active_only)
     if not players:
         return []
 

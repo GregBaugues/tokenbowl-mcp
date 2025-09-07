@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any, Union
 from cache_client import (
-    get_players_from_cache as get_all_players,
+    get_players_from_cache,
     search_players as search_players_unified,
     get_player_by_id,
 )
@@ -124,7 +124,7 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
             return {"error": f"Roster ID {roster_id} not found"}
 
         # Get all player data from cache (sync function, don't await)
-        all_players = get_all_players()
+        all_players = get_players_from_cache(active_only=False)
         if not all_players:
             return {"error": "Failed to load player data from cache"}
 
@@ -521,25 +521,23 @@ async def get_user(username_or_id: str) -> Dict[str, Any]:
 
 @mcp.tool()
 async def get_players() -> Dict[str, Any]:
-    """Get comprehensive NFL player data with Fantasy Nerds enrichment.
+    """Get comprehensive NFL player data with Fantasy Nerds enrichment (active players on teams only).
 
     Returns unified player data including:
     - Sleeper base data (name, team, position, status, age, etc.)
     - Fantasy Nerds enrichment (ADP, injuries, projections)
     - Player IDs for both systems
+    - Only includes players where active=true and team is not null
 
-    Data is cached in Redis (24-hour TTL) with ~1,200+ players enriched.
-
-    WARNING: Returns large dataset (3,800+ players).
-    Consider using search_players() for specific players.
+    Data is cached in Redis (24-hour TTL) with active players on teams only.
 
     Returns:
-        Dict with player_id as keys and unified player data as values
+        Dict with player_id as keys and unified player data as values (active players on teams only)
     """
     try:
-        logger.debug("Fetching all players from unified cache")
-        result = get_all_players()  # Sync function, don't await
-        logger.info(f"Successfully retrieved {len(result)} players from cache")
+        logger.debug("Fetching active players from unified cache")
+        result = get_players_from_cache(active_only=True)  # Sync function, don't await
+        logger.info(f"Successfully retrieved {len(result)} active players from cache")
         return result
     except Exception as e:
         logger.error(f"Error getting players: {e}", exc_info=True)
@@ -665,7 +663,7 @@ async def get_trending_players(
         trending_data = response.json()
 
     # Get cached player data for enrichment
-    all_players = get_all_players()
+    all_players = get_players_from_cache(active_only=False)
 
     # Enrich trending data with full player information
     enriched_trending = []
@@ -735,7 +733,7 @@ async def get_waiver_wire_players(
                 rostered_players.update(roster["players"])
 
         # Get all NFL players from cache (sync function, don't await)
-        all_players = get_all_players()
+        all_players = get_players_from_cache(active_only=False)
 
         # Get trending data if requested
         trending_data = {}
