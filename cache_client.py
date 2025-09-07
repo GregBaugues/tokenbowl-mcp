@@ -235,6 +235,9 @@ def get_cache_status() -> Dict[str, Any]:
                 "players_with_projections": meta.get("players_with_projections"),
                 "players_with_injuries": meta.get("players_with_injuries"),
                 "players_with_news": meta.get("players_with_news"),
+                "players_with_stats": meta.get("players_with_stats", 0),
+                "current_week": meta.get("current_week"),
+                "season": meta.get("season"),
                 "compressed_size_mb": round(
                     meta.get("compressed_size_bytes", 0) / 1024 / 1024, 2
                 ),

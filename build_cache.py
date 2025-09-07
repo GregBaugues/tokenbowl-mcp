@@ -41,6 +41,96 @@ def fetch_sleeper_players() -> Dict[str, Any]:
         return response.json()
 
 
+def fetch_current_nfl_week() -> tuple[int, str]:
+    """Fetch current NFL week and season from Sleeper state API."""
+    url = "https://api.sleeper.app/v1/state/nfl"
+
+    print("Fetching current NFL week...")
+    with httpx.Client(timeout=10.0) as client:
+        response = client.get(url)
+        response.raise_for_status()
+        state = response.json()
+        return state.get("week", 1), state.get("season", "2025")
+
+
+def fetch_player_stats(week: int, season: str) -> Dict[str, Any]:
+    """Fetch player stats for a specific week."""
+    url = f"https://api.sleeper.app/v1/stats/nfl/regular/{season}/{week}"
+
+    print(f"Fetching player stats for week {week}, season {season}...")
+    with httpx.Client(timeout=30.0) as client:
+        response = client.get(url)
+        response.raise_for_status()
+        return response.json()
+
+
+def filter_ppr_relevant_stats(stats: Dict[str, Any]) -> Dict[str, Any]:
+    """Filter stats to only include PPR points and contributing stats."""
+    # Define which stats contribute to PPR scoring
+    ppr_relevant_stats = {
+        # Core PPR score
+        "pts_ppr",
+        # Passing stats
+        "pass_yd",
+        "pass_td",
+        "pass_int",
+        "pass_2pt",
+        # Rushing stats
+        "rush_yd",
+        "rush_td",
+        "rush_2pt",
+        # Receiving stats (PPR)
+        "rec",
+        "rec_yd",
+        "rec_td",
+        "rec_2pt",
+        # Fumbles
+        "fum_lost",
+        # Kicking stats
+        "fgm",
+        "fgm_0_19",
+        "fgm_20_29",
+        "fgm_30_39",
+        "fgm_40_49",
+        "fgm_50p",
+        "fgmiss",
+        "xpm",
+        "xpmiss",
+        # Defensive stats (for IDP if used)
+        "def_td",
+        "def_int",
+        "def_sack",
+        "def_ff",
+        "def_fr",
+        # Bonus stats that might affect scoring
+        "bonus_pass_yd_300",
+        "bonus_pass_yd_400",
+        "bonus_rush_yd_100",
+        "bonus_rush_yd_200",
+        "bonus_rec_yd_100",
+        "bonus_rec_yd_200",
+    }
+
+    # Filter the stats
+    filtered = {}
+    for player_id, player_stats in stats.items():
+        if isinstance(player_stats, dict):
+            # Only include stats that are relevant to PPR scoring
+            filtered_player_stats = {
+                k: v
+                for k, v in player_stats.items()
+                if k in ppr_relevant_stats and v is not None and v != 0
+            }
+            # Only add player if they have PPR points
+            if filtered_player_stats.get("pts_ppr"):
+                filtered[player_id] = filtered_player_stats
+        else:
+            # Handle case where stats might not be a dict
+            filtered[player_id] = player_stats
+
+    return filtered
+
+
 def fetch_fantasy_nerds_data() -> tuple[Dict, Dict, List]:
     """Fetch all Fantasy Nerds data (rankings, injuries, news)."""
     api_key = os.getenv("FFNERD_API_KEY")
@@ -283,9 +373,9 @@ def organize_ffnerd_data(rankings: Dict, injuries: Dict, news: List) -> Dict[str
 
 
 def enrich_and_filter_players(
-    sleeper_players: Dict, mapping: Dict, ffnerd_data: Dict
+    sleeper_players: Dict, mapping: Dict, ffnerd_data: Dict, stats_data: Dict
 ) -> Dict:
-    """Enrich Sleeper players with Fantasy Nerds data.
+    """Enrich Sleeper players with Fantasy Nerds data and current week stats.
     Only includes active players on NFL teams (excludes free agents and retired players)."""
     enriched = {}
     fantasy_positions = {"QB", "RB", "WR", "TE", "K", "DEF"}
@@ -314,6 +404,10 @@ def enrich_and_filter_players(
                 # Add the data even if it's partial
                 if player_ffnerd_data:
                     player["data"] = player_ffnerd_data
+
+        # Add current week stats if available
+        if sleeper_id in stats_data:
+            player["current_week_stats"] = stats_data[sleeper_id]
 
         # ALWAYS include the player, even without Fantasy Nerds data
         enriched[sleeper_id] = player
@@ -379,6 +473,14 @@ def cache_players():
         ffnerd_players = fetch_fantasy_nerds_players()
         rankings, injuries, news = fetch_fantasy_nerds_data()
 
+        # Get current NFL week and fetch stats
+        current_week, season = fetch_current_nfl_week()
+        raw_stats = fetch_player_stats(current_week, season)
+
+        # Filter to only PPR-relevant stats
+        stats_data = filter_ppr_relevant_stats(raw_stats)
+        print(f"Filtered to {len(stats_data)} players with PPR-relevant stats")
+
         # Create ID mappings
         mapping = create_player_mappings(sleeper_players, ffnerd_players)
 
@@ -388,7 +490,9 @@ def cache_players():
 
         # Enrich and filter to fantasy-relevant players only
         print("Enriching and filtering players...")
-        players = enrich_and_filter_players(sleeper_players, mapping, ffnerd_data)
+        players = enrich_and_filter_players(
+            sleeper_players, mapping, ffnerd_data, stats_data
+        )
 
         print(f"Total fantasy-relevant players: {len(players)}")
 
@@ -398,10 +502,12 @@ def cache_players():
         )
         has_injury = sum(1 for p in players.values() if p.get("data", {}).get("injury"))
         has_news = sum(1 for p in players.values() if p.get("data", {}).get("news"))
+        has_stats = sum(1 for p in players.values() if p.get("current_week_stats"))
 
         print(f"  - With projections: {has_proj}")
         print(f"  - With injury data: {has_injury}")
         print(f"  - With news: {has_news}")
+        print(f"  - With current week stats: {has_stats}")
 
         # Build name lookup table
         print("\nBuilding player name lookup table...")
@@ -444,6 +550,9 @@ def cache_players():
             "players_with_projections": has_proj,
             "players_with_injuries": has_injury,
             "players_with_news": has_news,
+            "players_with_stats": has_stats,
+            "current_week": current_week,
+            "season": season,
             "last_updated": datetime.now().isoformat(),
             "ttl_seconds": ttl,
             "compressed_size_bytes": len(compressed_data),
