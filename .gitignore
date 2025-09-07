@@ -37,6 +37,6 @@ fantasy_relevant_players_backup.json
 enriched_sleeper_players.json
 fantasy_relevant_players.json
 
-# Test files
-test_*.py
+# Debug files (but not test files)
 debug_*.py
+# Don't ignore test_*.py files in tests/ directory
