@@ -519,29 +519,30 @@ async def get_user(username_or_id: str) -> Dict[str, Any]:
 #         return response.json()
 
 
-@mcp.tool()
-async def get_players() -> Dict[str, Any]:
-    """Get comprehensive NFL player data with Fantasy Nerds enrichment (active players on teams only).
-
-    Returns unified player data including:
-    - Sleeper base data (name, team, position, status, age, etc.)
-    - Fantasy Nerds enrichment (ADP, injuries, projections)
-    - Player IDs for both systems
-    - Only includes players where active=true and team is not null
-
-    Data is cached in Redis (24-hour TTL) with active players on teams only.
-
-    Returns:
-        Dict with player_id as keys and unified player data as values (active players on teams only)
-    """
-    try:
-        logger.debug("Fetching active players from unified cache")
-        result = get_players_from_cache(active_only=True)  # Sync function, don't await
-        logger.info(f"Successfully retrieved {len(result)} active players from cache")
-        return result
-    except Exception as e:
-        logger.error(f"Error getting players: {e}", exc_info=True)
-        return {"error": f"Failed to get players: {str(e)}"}
+# Commented out - response too large (422K tokens) to be useful as an MCP tool
+# @mcp.tool()
+# async def get_players() -> Dict[str, Any]:
+#     """Get comprehensive NFL player data with Fantasy Nerds enrichment (active players on teams only).
+# 
+#     Returns unified player data including:
+#     - Sleeper base data (name, team, position, status, age, etc.)
+#     - Fantasy Nerds enrichment (ADP, injuries, projections)
+#     - Player IDs for both systems
+#     - Only includes players where active=true and team is not null
+# 
+#     Data is cached in Redis (24-hour TTL) with active players on teams only.
+# 
+#     Returns:
+#         Dict with player_id as keys and unified player data as values (active players on teams only)
+#     """
+#     try:
+#         logger.debug("Fetching active players from unified cache")
+#         result = get_players_from_cache(active_only=True)  # Sync function, don't await
+#         logger.info(f"Successfully retrieved {len(result)} active players from cache")
+#         return result
+#     except Exception as e:
+#         logger.error(f"Error getting players: {e}", exc_info=True)
+#         return {"error": f"Failed to get players: {str(e)}"}
 
 
 @mcp.tool()
@@ -626,9 +627,7 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
 
 
 @mcp.tool()
-async def get_trending_players(
-    type: str = "add", limit: Optional[int] = 25
-) -> List[Dict[str, Any]]:
+async def get_trending_players(type: str = "add") -> List[Dict[str, Any]]:
     """Get trending NFL players based on recent add/drop activity across all Sleeper leagues.
 
     Args:
@@ -636,10 +635,7 @@ async def get_trending_players(
               - "add": Players being picked up from waivers/free agency
               - "drop": Players being dropped to waivers
 
-        limit: Number of players to return (default: 25, max: 200)
-               Returns most trending players first.
-
-    Returns player trending data with:
+    Returns top 25 trending players with:
     - Full player information including name, position, team
     - FFNerd enrichment data (projections, injuries when available)
     - Count of adds/drops over the last 24 hours
@@ -649,10 +645,8 @@ async def get_trending_players(
     Returns:
         List of dictionaries with enriched player data and add/drop counts
     """
-    # Always use 24 hour lookback
-    params = {"lookback_hours": 24}
-    if limit:
-        params["limit"] = limit
+    # Always use 24 hour lookback and return 25 players
+    params = {"lookback_hours": 24, "limit": 25}
 
     async with httpx.AsyncClient() as client:
         response = await client.get(
@@ -814,7 +808,7 @@ async def get_waiver_wire_players(
 
 
 @mcp.tool()
-async def get_nfl_schedule(week: Union[int, None] = None) -> Dict[str, Any]:
+async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
     """Get NFL schedule for a specific week or the current week.
 
     Args:
