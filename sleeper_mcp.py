@@ -680,7 +680,6 @@ async def get_trending_players(
 async def get_waiver_wire_players(
     position: Optional[str] = None,
     search_term: Optional[str] = None,
-    include_trending: bool = False,
     limit: int = 50,
 ) -> Dict[str, Any]:
     """Get NFL players available on the waiver wire (not on any team roster).
@@ -695,9 +694,6 @@ async def get_waiver_wire_players(
         search_term: Search for players by name (case-insensitive).
                     Partial matches are supported.
 
-        include_trending: Include trending add counts from last 24 hours.
-                         Helps identify hot waiver pickups.
-
         limit: Maximum number of players to return (default: 50, max: 200).
               Players are sorted by relevance (active players first).
 
@@ -705,7 +701,7 @@ async def get_waiver_wire_players(
     - Total available players count
     - Filtered results based on criteria
     - Player details (name, position, team, status)
-    - Trending add counts (if requested)
+    - Trending add counts from last 24 hours (always included)
     - Cache freshness information
 
     Note: Cache refreshes daily. Recent adds/drops may not be reflected
@@ -730,18 +726,15 @@ async def get_waiver_wire_players(
         # Get all NFL players from cache (sync function, don't await)
         all_players = get_players_from_cache(active_only=False)
 
-        # Get trending data if requested
+        # Always get trending data to identify hot waiver pickups
         trending_data = {}
-        if include_trending:
-            try:
-                trending_response = await get_trending_players.fn(
-                    type="add", lookback_hours=24, limit=200
-                )
-                trending_data = {
-                    item["player_id"]: item["count"] for item in trending_response
-                }
-            except Exception as e:
-                logger.warning(f"Could not fetch trending data: {e}")
+        try:
+            trending_response = await get_trending_players.fn(type="add", limit=200)
+            trending_data = {
+                item["player_id"]: item["count"] for item in trending_response
+            }
+        except Exception as e:
+            logger.warning(f"Could not fetch trending data: {e}")
 
         # Filter to find available players
         available_players = []
@@ -763,34 +756,12 @@ async def get_waiver_wire_players(
                 if search_term.lower() not in player_name:
                     continue
 
-            # Add player to available list
-            player_info = {
-                "player_id": player_id,
-                "name": player_data.get("full_name")
-                or f"{player_data.get('first_name', '')} {player_data.get('last_name', '')}",
-                "position": player_data.get("position"),
-                "team": player_data.get("team"),
-                "status": player_data.get("status"),
-                "age": player_data.get("age"),
-                "injury_status": player_data.get("injury_status"),
-            }
-
-            # Add projections if available from Fantasy Nerds enrichment
-            if "data" in player_data and player_data["data"].get("projections"):
-                proj = player_data["data"]["projections"]
-                if proj.get("proj_pts"):
-                    try:
-                        player_info["projected_points"] = round(
-                            float(proj.get("proj_pts", 0)), 2
-                        )
-                    except (ValueError, TypeError):
-                        pass
-
-            # Add trending count if available
+            # Pass through the full player data from cache
+            # Just add trending count if available
             if player_id in trending_data:
-                player_info["trending_add_count"] = trending_data[player_id]
+                player_data["trending_add_count"] = trending_data[player_id]
 
-            available_players.append(player_info)
+            available_players.append(player_data)
 
         # Sort players by relevance
         # Priority: 1) Active status, 2) Trending adds, 3) Projected points, 4) Name
@@ -800,9 +771,16 @@ async def get_waiver_wire_players(
             # Then by trending adds (negative for descending)
             trending = -player.get("trending_add_count", 0)
             # Then by projected points (negative for descending)
-            proj_points = -player.get("projected_points", 0)
+            proj_points = 0
+            if "data" in player and player["data"].get("projections"):
+                try:
+                    proj_points = -float(
+                        player["data"]["projections"].get("proj_pts", 0)
+                    )
+                except (ValueError, TypeError):
+                    pass
             # Then alphabetically
-            name = player.get("name", "")
+            name = player.get("full_name", "") or ""
             return (status_priority, trending, proj_points, name)
 
         available_players.sort(key=sort_key)
@@ -817,7 +795,6 @@ async def get_waiver_wire_players(
             "filters_applied": {
                 "position": position,
                 "search_term": search_term,
-                "include_trending": include_trending,
                 "limit": limit,
             },
         }
