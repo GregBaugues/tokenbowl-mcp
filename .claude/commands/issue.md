@@ -17,7 +17,7 @@ Follow these steps to analyze and fix the GitHub issue: $ARGUMENTS.
 - Open a PR. 
 
 # REVIEW
-- Request a PR from Sandy Metz
+- Request a PR from a subagent. Focus on pythonic best practices. 
 - If the review passes, move on. 
 - If the review does not pass, fix the code, stage, and review until it does
 

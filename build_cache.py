@@ -169,7 +169,7 @@ def create_player_mappings(
         if key in ffnerd_by_partial:
             sleeper_to_ffnerd[sleeper_id] = ffnerd_by_partial[key]
             continue
-        
+
         # Special case: Try adding "jr" if name doesn't have it
         # (e.g., "Marvin Harrison" -> "Marvin Harrison Jr")
         if "jr" not in full_name and "sr" not in full_name:
@@ -178,7 +178,7 @@ def create_player_mappings(
             if key in ffnerd_by_name:
                 sleeper_to_ffnerd[sleeper_id] = ffnerd_by_name[key]
                 continue
-            
+
             # Try with Jr but without team
             key = (name_with_jr, "", position)
             if key in ffnerd_by_name:

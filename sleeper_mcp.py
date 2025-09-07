@@ -8,14 +8,12 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from fastmcp import FastMCP
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 from cache_client import (
     get_enriched_players_from_cache as get_all_players,
     search_enriched_players as search_players_unified,
     get_enriched_player_by_id as get_player_by_id,
-    get_cache_status as get_unified_cache_status,
 )
-from build_cache import cache_enriched_players as update_unified_cache
 import logfire
 
 # Load environment variables from .env file
@@ -816,127 +814,9 @@ async def get_waiver_wire_players(
         }
 
 
-@mcp.tool()
-async def refresh_players_cache() -> Dict[str, Any]:
-    """Refresh the unified player cache with latest Sleeper and Fantasy Nerds data.
-
-    This tool fetches fresh data from both APIs and updates the Redis cache:
-    - Sleeper API: All NFL players with current info (team, status, age, etc.)
-    - Fantasy Nerds API: Enrichment data (ADP, injuries, projections, rankings)
-    - Performs ID mapping between the two systems
-    - Compresses and stores in Redis with 24-hour TTL
-
-    Use this when:
-    - Player projections appear outdated or missing
-    - You need the latest injury reports or ADP data
-    - Weekly projections need to be refreshed
-    - Cache has expired (check with get_players_cache_status first)
-
-    Note: This operation takes 10-30 seconds as it fetches and processes ~4000 players.
-
-    Returns:
-        Dict with refresh results including player counts and enrichment stats
-    """
-    try:
-        logger.info("Starting unified cache refresh...")
-
-        # Get current status before refresh
-        before_status = await get_unified_cache_status()
-
-        # Perform the cache refresh
-        data = await update_unified_cache()
-
-        # Count enriched players
-        enriched_count = sum(1 for p in data.values() if "ffnerd_data" in p)
-
-        # Get new status after refresh
-        after_status = await get_unified_cache_status()
-
-        logger.info(
-            f"Cache refresh complete: {len(data)} players, {enriched_count} enriched"
-        )
-
-        return {
-            "success": True,
-            "message": "Cache refreshed successfully",
-            "statistics": {
-                "total_players": len(data),
-                "enriched_players": enriched_count,
-                "enrichment_rate": f"{(enriched_count / len(data) * 100):.1f}%",
-            },
-            "cache_info": {
-                "ttl_seconds": after_status.get("ttl_seconds", 86400),
-                "compressed_size_mb": after_status.get("compressed_size_mb", 0),
-                "redis_memory_used_mb": after_status.get("redis_memory_used_mb", 0),
-            },
-            "before_status": {
-                "was_valid": before_status.get("valid", False),
-                "previous_players": before_status.get("total_players", 0),
-                "previous_enriched": before_status.get("enriched_players", 0),
-            },
-        }
-
-    except Exception as e:
-        logger.error(f"Error refreshing cache: {e}")
-        return {
-            "success": False,
-            "error": str(e),
-            "message": "Failed to refresh cache. Check REDIS_URL and FFNERD_API_KEY env vars.",
-        }
-
 
 @mcp.tool()
-async def get_players_cache_status() -> Dict[str, Any]:
-    """Get the current status of the unified players cache.
-
-    Returns information about:
-    - Cache validity and last update time
-    - Total players and enrichment statistics
-    - TTL (time to live) remaining before expiry
-    - Memory usage and compression stats
-    - Data source availability (Sleeper + Fantasy Nerds)
-
-    Use this to check if cache needs refreshing before making player queries.
-
-    Returns:
-        Dict with cache status and statistics
-    """
-    try:
-        status = await get_unified_cache_status()
-
-        if status.get("valid"):
-            return {
-                "valid": True,
-                "total_players": status.get("total_players", 0),
-                "enriched_players": status.get("enriched_players", 0),
-                "enrichment_rate": f"{(status.get('enriched_players', 0) / max(status.get('total_players', 1), 1) * 100):.1f}%",
-                "last_updated": status.get("last_updated", "Unknown"),
-                "ttl_remaining_seconds": status.get("ttl_seconds", 0),
-                "ttl_remaining_hours": f"{status.get('ttl_seconds', 0) / 3600:.1f}",
-                "cache_size_mb": status.get("compressed_size_mb", 0),
-                "redis_memory_mb": status.get("redis_memory_used_mb", 0),
-                "recommendation": "Cache is valid and fresh"
-                if status.get("ttl_seconds", 0) > 3600
-                else "Consider refreshing cache soon",
-            }
-        else:
-            return {
-                "valid": False,
-                "error": status.get("error", "Cache invalid or missing"),
-                "recommendation": "Run refresh_players_cache to populate cache",
-            }
-
-    except Exception as e:
-        logger.error(f"Error checking cache status: {e}")
-        return {
-            "valid": False,
-            "error": str(e),
-            "recommendation": "Check Redis connection and run refresh_players_cache",
-        }
-
-
-@mcp.tool()
-async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
+async def get_nfl_schedule(week: Union[int, None] = None) -> Dict[str, Any]:
     """Get NFL schedule for a specific week or the current week.
 
     Args:

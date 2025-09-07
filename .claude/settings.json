@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__tokenbowl__.*"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
