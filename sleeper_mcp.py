@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 logfire.instrument_httpx()
 
 # Log that the server is starting
-league_id = os.environ.get("SLEEPER_LEAGUE_ID", "1266471057523490816")
-logger.info(f"Initializing Token Bowl MCP Server with league_id={league_id}")
+LEAGUE_ID = os.environ.get("SLEEPER_LEAGUE_ID")
+logger.info(f"Initializing Token Bowl MCP Server with league_id={LEAGUE_ID}")
 
 # Initialize FastMCP server
 mcp = FastMCP("tokenbowl-mcp")
@@ -45,7 +45,7 @@ mcp = FastMCP("tokenbowl-mcp")
 BASE_URL = "https://api.sleeper.app/v1"
 
 # Get league ID from environment variable with fallback to Token Bowl
-LEAGUE_ID = os.environ.get("SLEEPER_LEAGUE_ID", "1266471057523490816")
+
 
 
 @mcp.tool()
