@@ -171,11 +171,13 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
         all_player_ids = roster.get("players", [])
         taxi_ids = roster.get("taxi", []) or []
         reserve_ids = roster.get("reserve", []) or []
-        
+
         # Spot refresh stats for roster players
         player_ids_set = set(filter(None, all_player_ids))  # Filter out None values
         if player_ids_set:
-            logger.info(f"Spot refreshing stats for {len(player_ids_set)} roster players")
+            logger.info(
+                f"Spot refreshing stats for {len(player_ids_set)} roster players"
+            )
             spot_refresh_player_stats(player_ids_set)
 
         # Track totals for meta information
@@ -336,7 +338,7 @@ async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
         response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/matchups/{week}")
         response.raise_for_status()
         matchups = response.json()
-        
+
         # Collect all player IDs from matchups for spot refresh
         all_player_ids = set()
         for matchup in matchups:
@@ -344,12 +346,14 @@ async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
                 players = matchup.get("players", [])
                 if players:
                     all_player_ids.update(filter(None, players))
-        
+
         # Spot refresh stats for all players in matchups
         if all_player_ids:
-            logger.info(f"Spot refreshing stats for {len(all_player_ids)} players in week {week} matchups")
+            logger.info(
+                f"Spot refreshing stats for {len(all_player_ids)} players in week {week} matchups"
+            )
             spot_refresh_player_stats(all_player_ids)
-        
+
         return matchups
 
 
@@ -597,16 +601,18 @@ async def search_players_by_name(name: str) -> List[Dict[str, Any]]:
         # Run sync function in executor
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(None, search_players_unified, name)
-        
+
         # Spot refresh stats for found players
         if result:
             player_ids = {p.get("player_id") for p in result if p.get("player_id")}
             if player_ids:
-                logger.info(f"Spot refreshing stats for {len(player_ids)} searched players")
+                logger.info(
+                    f"Spot refreshing stats for {len(player_ids)} searched players"
+                )
                 spot_refresh_player_stats(player_ids)
                 # Re-fetch the results to get updated stats
                 result = await loop.run_in_executor(None, search_players_unified, name)
-        
+
         return result if result else []
     except Exception as e:
         logger.error(f"Error searching for player {name}: {e}")
@@ -636,7 +642,7 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
         # Spot refresh stats for this specific player
         logger.info(f"Spot refreshing stats for player {player_id}")
         spot_refresh_player_stats({player_id})
-        
+
         # Run sync function in executor to get updated data
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(None, get_player_by_id, player_id)

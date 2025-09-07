@@ -203,67 +203,66 @@ def spot_refresh_player_stats(player_ids: Optional[Set[str]] = None) -> bool:
     """
     Spot refresh stats for specific players or all players with recent stats.
     This fetches current week stats and updates only those players in cache.
-    
+
     Args:
         player_ids: Optional set of player IDs to specifically update.
                    If None, updates all players with stats in current week.
-    
+
     Returns:
         True if update successful, False otherwise
     """
     try:
         # Get current week from NFL schedule
         import httpx
-        
+
         # Get current week/season info
         current_year = datetime.now().year
         season = str(current_year)
-        
+
         # Fetch current week from schedule endpoint
         with httpx.Client(timeout=10.0) as client:
-            schedule_resp = client.get(
-                "https://api.sleeper.app/v1/state/nfl"
-            )
+            schedule_resp = client.get("https://api.sleeper.app/v1/state/nfl")
             schedule_resp.raise_for_status()
             state = schedule_resp.json()
             current_week = state.get("week", 1)
-            
+
             logger.info(f"Fetching live stats for week {current_week}, season {season}")
-            
+
             # Fetch stats for current week
-            stats_url = f"https://api.sleeper.app/v1/stats/nfl/regular/{season}/{current_week}"
+            stats_url = (
+                f"https://api.sleeper.app/v1/stats/nfl/regular/{season}/{current_week}"
+            )
             stats_resp = client.get(stats_url)
             stats_resp.raise_for_status()
             raw_stats = stats_resp.json()
-        
+
         # Filter to PPR-relevant stats using the same logic as build_cache
         filtered_stats = filter_ppr_relevant_stats(raw_stats)
-        
+
         # If specific player_ids provided, filter to just those
         if player_ids:
             filtered_stats = {
-                pid: stats for pid, stats in filtered_stats.items() 
-                if pid in player_ids
+                pid: stats for pid, stats in filtered_stats.items() if pid in player_ids
             }
-        
+
         if not filtered_stats:
             logger.info("No stats to update")
             return True
-            
+
         # Get Redis client and current cache
         r = get_redis_client()
         cache_key = "nfl_players_cache"
-        
+
         # Get current cache
         cached_data = r.get(cache_key)
         if not cached_data:
             logger.warning("No cache exists to spot update")
             return False
-            
+
         # Decompress and load current cache
         decompressed = gzip.decompress(cached_data).decode("utf-8")
         players = json.loads(decompressed)
-        
+
         # Update stats for matching players
         updated_count = 0
         for player_id, stats in filtered_stats.items():
@@ -271,29 +270,26 @@ def spot_refresh_player_stats(player_ids: Optional[Set[str]] = None) -> bool:
                 # Update the stats.actual structure
                 if "stats" not in players[player_id]:
                     players[player_id]["stats"] = {"projected": None, "actual": None}
-                
+
                 # Extract fantasy points
                 fantasy_points = stats.get("fantasy_points")
-                
+
                 # Separate game stats from fantasy points
-                game_stats = {
-                    k: v for k, v in stats.items() 
-                    if k != "fantasy_points"
-                }
-                
+                game_stats = {k: v for k, v in stats.items() if k != "fantasy_points"}
+
                 players[player_id]["stats"]["actual"] = {
                     "fantasy_points": fantasy_points,
                     "game_stats": game_stats if game_stats else None,
-                    "game_status": "live"  # Could be enhanced with actual game status
+                    "game_status": "live",  # Could be enhanced with actual game status
                 }
                 updated_count += 1
-        
+
         logger.info(f"Updated stats for {updated_count} players")
-        
+
         # Re-compress and save back to cache
         compressed = gzip.compress(json.dumps(players).encode("utf-8"))
         r.set(cache_key, compressed)
-        
+
         # Update metadata with spot refresh time
         metadata = r.get(f"{cache_key}_metadata")
         if metadata:
@@ -301,9 +297,9 @@ def spot_refresh_player_stats(player_ids: Optional[Set[str]] = None) -> bool:
             meta["last_spot_refresh"] = datetime.now().isoformat()
             meta["last_spot_refresh_count"] = updated_count
             r.set(f"{cache_key}_metadata", json.dumps(meta))
-        
+
         return True
-        
+
     except Exception as e:
         logger.error(f"Error in spot refresh: {e}")
         return False
@@ -312,7 +308,7 @@ def spot_refresh_player_stats(player_ids: Optional[Set[str]] = None) -> bool:
 def filter_ppr_relevant_stats(stats: Dict[str, Any]) -> Dict[str, Any]:
     """Filter stats to only include PPR points and contributing stats.
     Duplicated from build_cache.py for efficiency."""
-    
+
     # Define mapping from Sleeper API fields to our descriptive names
     field_mapping = {
         "pts_ppr": "fantasy_points",
@@ -349,13 +345,13 @@ def filter_ppr_relevant_stats(stats: Dict[str, Any]) -> Dict[str, Any]:
         "bonus_rec_yd_100": "bonus_receiving_100_yards",
         "bonus_rec_yd_200": "bonus_receiving_200_yards",
     }
-    
+
     filtered = {}
     for player_id, player_stats in stats.items():
         if isinstance(player_stats, dict):
             transformed_stats = {}
             fantasy_points = None
-            
+
             for old_field, new_field in field_mapping.items():
                 if old_field in player_stats:
                     value = player_stats[old_field]
@@ -363,13 +359,13 @@ def filter_ppr_relevant_stats(stats: Dict[str, Any]) -> Dict[str, Any]:
                         transformed_stats[new_field] = value
                         if old_field == "pts_ppr":
                             fantasy_points = value
-            
+
             # Only add player if they have fantasy points
             if fantasy_points is not None:
                 filtered[player_id] = transformed_stats
         else:
             filtered[player_id] = player_stats
-    
+
     return filtered
 
 
