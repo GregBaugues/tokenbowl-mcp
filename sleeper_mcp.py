@@ -637,12 +637,14 @@ async def get_trending_players(
                Returns most trending players first.
 
     Returns player trending data with:
-    - Player ID and count of adds/drops
+    - Full player information including name, position, team
+    - FFNerd enrichment data (projections, injuries when available)
+    - Count of adds/drops
     - Useful for identifying breakout players or injury news
     - Great for waiver wire decisions
 
     Returns:
-        List of dictionaries with player_id and add/drop counts
+        List of dictionaries with enriched player data and add/drop counts
     """
     params = {}
     if lookback_hours:
@@ -655,7 +657,25 @@ async def get_trending_players(
             f"{BASE_URL}/players/nfl/trending/{type}", params=params
         )
         response.raise_for_status()
-        return response.json()
+        trending_data = response.json()
+        
+    # Get cached player data for enrichment
+    all_players = get_all_players()
+    
+    # Enrich trending data with full player information
+    enriched_trending = []
+    for item in trending_data:
+        player_id = str(item.get("player_id"))
+        if player_id in all_players:
+            player_data = all_players[player_id].copy()
+            player_data["count"] = item.get("count", 0)
+            enriched_trending.append(player_data)
+        else:
+            # If player not in cache, return basic info
+            item["player_id"] = player_id
+            enriched_trending.append(item)
+    
+    return enriched_trending
 
 
 @mcp.tool()
