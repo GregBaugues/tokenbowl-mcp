@@ -306,6 +306,52 @@ def enrich_and_filter_players(
     return enriched
 
 
+def build_name_lookup_table(players: Dict) -> Dict[str, str]:
+    """Build a lookup table from normalized player names to Sleeper IDs.
+
+    Args:
+        players: Dictionary of Sleeper player data
+
+    Returns:
+        Dictionary mapping normalized names to Sleeper IDs
+    """
+    name_to_id = {}
+
+    for sleeper_id, player in players.items():
+        if not player.get("full_name"):
+            continue
+
+        # Add full name
+        full_name = normalize_name(player["full_name"])
+        name_to_id[full_name] = sleeper_id
+
+        # Add first + last name
+        if player.get("first_name") and player.get("last_name"):
+            first_last = normalize_name(f"{player['first_name']} {player['last_name']}")
+            if first_last != full_name:
+                name_to_id[first_last] = sleeper_id
+
+        # Add last name only (if unique or overwriting is ok)
+        if player.get("last_name"):
+            last_name = normalize_name(player["last_name"])
+            # Only add if not already there or this is a more prominent player
+            if last_name not in name_to_id:
+                name_to_id[last_name] = sleeper_id
+
+        # Add common variations without suffixes
+        name_without_suffix = (
+            full_name.replace("jr", "")
+            .replace("sr", "")
+            .replace("iii", "")
+            .replace("ii", "")
+            .strip()
+        )
+        if name_without_suffix != full_name and name_without_suffix:
+            name_to_id[name_without_suffix] = sleeper_id
+
+    return name_to_id
+
+
 def cache_enriched_players():
     """Main function to fetch, enrich, and cache player data."""
 
@@ -348,6 +394,11 @@ def cache_enriched_players():
         print(f"  - With injury data: {has_injury}")
         print(f"  - With news: {has_news}")
 
+        # Build name lookup table
+        print("\nBuilding player name lookup table...")
+        name_lookup = build_name_lookup_table(enriched_players)
+        print(f"Created {len(name_lookup)} name mappings")
+
         # Compress and cache
         print("\nCaching enriched player data to Redis...")
 
@@ -368,6 +419,15 @@ def cache_enriched_players():
 
         # Set new cache
         r.set(cache_key, compressed_data, ex=ttl)
+
+        # Cache the name lookup table
+        name_lookup_key = "player_name_lookup"
+        name_lookup_json = json.dumps(name_lookup)
+        name_lookup_compressed = gzip.compress(name_lookup_json.encode("utf-8"))
+        r.set(name_lookup_key, name_lookup_compressed, ex=ttl)
+        print(
+            f"Cached name lookup table ({len(name_lookup_compressed) / 1024:.1f} KB compressed)"
+        )
 
         # Store metadata
         metadata = {
