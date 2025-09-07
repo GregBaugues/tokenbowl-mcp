@@ -622,6 +622,49 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
 
 
 @mcp.tool()
+async def get_player_stats(
+    week: int, season: int = 2025, player_ids: Optional[List[str]] = None
+) -> Dict[str, Any]:
+    """Get actual stats and fantasy points for players for a specific week.
+
+    Args:
+        week: NFL week number (1-18)
+        season: Season year (default: 2025)
+        player_ids: Optional list of specific player IDs to fetch.
+                   If not provided, returns all players with stats for that week.
+
+    Returns stats including:
+    - Fantasy points scored (pts_ppr, pts_half_ppr, pts_std)
+    - Detailed stats (passing, rushing, receiving, kicking, etc.)
+    - Snap counts and usage data
+    - Only includes players who actually played
+
+    Note: This fetches live/final stats, not projections.
+
+    Returns:
+        Dict with player_id as keys and stats as values
+    """
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(f"{BASE_URL}/stats/nfl/regular/{season}/{week}")
+            response.raise_for_status()
+            all_stats = response.json()
+
+        # If specific player IDs requested, filter to just those
+        if player_ids:
+            filtered_stats = {
+                pid: stats for pid, stats in all_stats.items() if pid in player_ids
+            }
+            return filtered_stats
+
+        return all_stats
+
+    except Exception as e:
+        logger.error(f"Error fetching player stats for week {week}: {e}")
+        return {"error": f"Failed to fetch stats: {str(e)}"}
+
+
+@mcp.tool()
 async def get_trending_players(
     type: str = "add", limit: Optional[int] = 25
 ) -> List[Dict[str, Any]]:
