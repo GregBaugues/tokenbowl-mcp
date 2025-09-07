@@ -212,7 +212,7 @@ class TestPlayerTools:
         # Mock get_players_from_cache to return empty dict if cache fails
         with patch("sleeper_mcp.get_players_from_cache") as mock_get_cache:
             mock_get_cache.return_value = {}
-            
+
             result = await sleeper_mcp.get_trending_players.fn(type="add")
 
             assert isinstance(result, list)

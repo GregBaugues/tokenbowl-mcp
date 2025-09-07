@@ -70,7 +70,7 @@ class TestMCPServer:
         assert callable(search_players)
         assert callable(get_player_by_id)
         assert callable(get_cache_status)
-        
+
         # They should NOT be async functions
         assert not inspect.iscoroutinefunction(get_all_players)
         assert not inspect.iscoroutinefunction(search_players)
