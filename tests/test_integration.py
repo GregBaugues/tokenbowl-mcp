@@ -1,6 +1,5 @@
 """Simple integration tests for the MCP server."""
 
-import pytest
 import sys
 import os
 
