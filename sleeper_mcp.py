@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 logfire.instrument_httpx()
 
 # Log that the server is starting
-LEAGUE_ID = os.environ.get("SLEEPER_LEAGUE_ID")
+LEAGUE_ID = os.environ.get("SLEEPER_LEAGUE_ID", "1266471057523490816")
 logger.info(f"Initializing Token Bowl MCP Server with league_id={LEAGUE_ID}")
 
 # Initialize FastMCP server
