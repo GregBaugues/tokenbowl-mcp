@@ -209,13 +209,11 @@ class TestPlayerTools:
     @pytest.mark.vcr()
     async def test_get_trending_players(self):
         """Test getting trending players."""
-        # Mock get_all_players to return empty dict if cache fails
-        with patch("sleeper_mcp.get_all_players") as mock_get_all:
-            mock_get_all.return_value = {}
+        # Mock get_players_from_cache to return empty dict if cache fails
+        with patch("sleeper_mcp.get_players_from_cache") as mock_get_cache:
+            mock_get_cache.return_value = {}
             
-            result = await sleeper_mcp.get_trending_players.fn(
-                type="add", lookback_hours=24, limit=10
-            )
+            result = await sleeper_mcp.get_trending_players.fn(type="add")
 
             assert isinstance(result, list)
             # Result might be empty depending on current trends

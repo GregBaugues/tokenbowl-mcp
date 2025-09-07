@@ -44,7 +44,7 @@ class TestMCPServer:
             "get_league_rosters",
             "get_league_users",
             "get_league_matchups",
-            "get_players",
+            # "get_players",  # Commented out as it's too large for MCP
             "search_players_by_name",
             "get_player_by_sleeper_id",
             "get_trending_players",
