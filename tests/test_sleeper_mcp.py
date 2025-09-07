@@ -165,10 +165,8 @@ class TestPlayerTools:
     @pytest.mark.asyncio
     async def test_search_player_by_name_mock(self):
         """Test searching for a player by name with mocked cache."""
-        from unittest.mock import AsyncMock
-        
-        # Mock the imported function directly
-        with patch("sleeper_mcp.search_players_unified", new_callable=AsyncMock) as mock_search:
+        # Mock the imported function directly (it's a sync function)
+        with patch("sleeper_mcp.search_players_unified") as mock_search:
             mock_search.return_value = [
                 {
                     "id": "1234",
@@ -190,9 +188,8 @@ class TestPlayerTools:
     @pytest.mark.asyncio
     async def test_get_player_by_sleeper_id_mock(self):
         """Test getting a player by Sleeper ID with mocked cache."""
-        from unittest.mock import AsyncMock
-        
-        with patch("sleeper_mcp.get_player_by_id", new_callable=AsyncMock) as mock_get_player:
+        # Mock the imported function directly (it's a sync function)
+        with patch("sleeper_mcp.get_player_by_id") as mock_get_player:
             mock_get_player.return_value = {
                 "player_id": "1234",
                 "first_name": "Patrick",
@@ -212,15 +209,19 @@ class TestPlayerTools:
     @pytest.mark.vcr()
     async def test_get_trending_players(self):
         """Test getting trending players."""
-        result = await sleeper_mcp.get_trending_players.fn(
-            type="add", lookback_hours=24, limit=10
-        )
+        # Mock get_all_players to return empty dict if cache fails
+        with patch("sleeper_mcp.get_all_players") as mock_get_all:
+            mock_get_all.return_value = {}
+            
+            result = await sleeper_mcp.get_trending_players.fn(
+                type="add", lookback_hours=24, limit=10
+            )
 
-        assert isinstance(result, list)
-        # Result might be empty depending on current trends
-        if result:
-            assert "player_id" in result[0]
-            assert "count" in result[0]
+            assert isinstance(result, list)
+            # Result might be empty depending on current trends
+            if result:
+                assert "player_id" in result[0]
+                assert "count" in result[0]
 
 
 class TestDraftTools:

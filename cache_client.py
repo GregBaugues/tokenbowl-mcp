@@ -80,24 +80,74 @@ def get_enriched_players_from_cache() -> Optional[Dict[str, Any]]:
         return None
 
 
+def normalize_name(name: str) -> str:
+    """Normalize player name for matching."""
+    return (
+        name.lower().replace(".", "").replace("'", "").replace("-", "").replace(" ", "")
+    )
+
+
+def get_name_lookup_from_cache() -> Optional[Dict[str, str]]:
+    """Get the player name to Sleeper ID lookup table from cache."""
+    try:
+        r = get_redis_client()
+        cache_key = "player_name_lookup"
+        cached_data = r.get(cache_key)
+
+        if cached_data:
+            decompressed = gzip.decompress(cached_data).decode("utf-8")
+            return json.loads(decompressed)
+
+        logger.warning("Name lookup table not found in cache")
+        return None
+    except Exception as e:
+        logger.error(f"Error getting name lookup from cache: {e}")
+        return None
+
+
 def search_enriched_players(query: str, limit: int = 10) -> list:
     """
-    Search enriched players by name.
+    Search enriched players by name using cached lookup table for fast access.
     Returns list of matching players with all enriched data.
     """
+    # Get both the players data and name lookup table
     players = get_enriched_players_from_cache()
     if not players:
         return []
 
-    query_lower = query.lower()
+    name_lookup = get_name_lookup_from_cache()
+    normalized_query = normalize_name(query)
     results = []
+    matched_ids = set()
 
-    for player_id, player in players.items():
-        full_name = player.get("full_name", "").lower()
-        if query_lower in full_name:
-            results.append({"player_id": player_id, **player})
-            if len(results) >= limit:
-                break
+    # First, try exact match using the lookup table
+    if name_lookup and normalized_query in name_lookup:
+        player_id = name_lookup[normalized_query]
+        if player_id in players:
+            results.append({"player_id": player_id, **players[player_id]})
+            matched_ids.add(player_id)
+
+    # Then do partial matching on the lookup table keys
+    if name_lookup and len(results) < limit:
+        for name_key, player_id in name_lookup.items():
+            if player_id not in matched_ids and normalized_query in name_key:
+                if player_id in players:
+                    results.append({"player_id": player_id, **players[player_id]})
+                    matched_ids.add(player_id)
+                    if len(results) >= limit:
+                        break
+
+    # Fall back to searching full names in player data if needed
+    if len(results) < limit:
+        query_lower = query.lower()
+        for player_id, player in players.items():
+            if player_id not in matched_ids:
+                full_name = player.get("full_name", "").lower()
+                if query_lower in full_name:
+                    results.append({"player_id": player_id, **player})
+                    matched_ids.add(player_id)
+                    if len(results) >= limit:
+                        break
 
     return results
 

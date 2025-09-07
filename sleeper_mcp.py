@@ -4,6 +4,7 @@
 import httpx
 import os
 import logging
+import asyncio
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
@@ -576,11 +577,15 @@ async def search_players_by_name(name: str) -> List[Dict[str, Any]]:
     """
     try:
         if not name or len(name) < 2:
-            return {"error": "Name must be at least 2 characters"}
-        return await search_players_unified(name)
+            return []  # Return empty list instead of error dict
+
+        # Run sync function in executor
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, search_players_unified, name)
+        return result if result else []
     except Exception as e:
         logger.error(f"Error searching for player {name}: {e}")
-        return {"error": f"Failed to search players: {str(e)}"}
+        return []  # Return empty list on error
 
 
 @mcp.tool()
@@ -601,14 +606,15 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
     """
     try:
         if not player_id:
-            return {"error": "Player ID is required"}
-        result = await get_player_by_id(player_id)
-        if result:
-            return result
-        return {"error": f"Player with ID {player_id} not found"}
+            return None  # Return None instead of error dict
+
+        # Run sync function in executor
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, get_player_by_id, player_id)
+        return result if result else None
     except Exception as e:
         logger.error(f"Error getting player {player_id}: {e}")
-        return {"error": f"Failed to get player: {str(e)}"}
+        return None  # Return None on error
 
 
 # Cache status removed - cache management should be handled elsewhere, not in MCP server
@@ -658,10 +664,10 @@ async def get_trending_players(
         )
         response.raise_for_status()
         trending_data = response.json()
-        
+
     # Get cached player data for enrichment
     all_players = get_all_players()
-    
+
     # Enrich trending data with full player information
     enriched_trending = []
     for item in trending_data:
@@ -674,7 +680,7 @@ async def get_trending_players(
             # If player not in cache, return basic info
             item["player_id"] = player_id
             enriched_trending.append(item)
-    
+
     return enriched_trending
 
 
@@ -832,7 +838,6 @@ async def get_waiver_wire_players(
             "filtered_count": 0,
             "players": [],
         }
-
 
 
 @mcp.tool()
