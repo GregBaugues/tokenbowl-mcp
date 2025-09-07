@@ -65,65 +65,73 @@ def fetch_player_stats(week: int, season: str) -> Dict[str, Any]:
 
 
 def filter_ppr_relevant_stats(stats: Dict[str, Any]) -> Dict[str, Any]:
-    """Filter stats to only include PPR points and contributing stats."""
-    # Define which stats contribute to PPR scoring
-    ppr_relevant_stats = {
+    """Filter stats to only include PPR points and contributing stats.
+    Also transforms field names to be more descriptive."""
+
+    # Define mapping from Sleeper API fields to our descriptive names
+    field_mapping = {
         # Core PPR score
-        "pts_ppr",
+        "pts_ppr": "fantasy_points",
         # Passing stats
-        "pass_yd",
-        "pass_td",
-        "pass_int",
-        "pass_2pt",
+        "pass_yd": "passing_yards",
+        "pass_td": "passing_touchdowns",
+        "pass_int": "passing_interceptions",
+        "pass_2pt": "passing_two_point_conversions",
         # Rushing stats
-        "rush_yd",
-        "rush_td",
-        "rush_2pt",
+        "rush_yd": "rushing_yards",
+        "rush_td": "rushing_touchdowns",
+        "rush_2pt": "rushing_two_point_conversions",
         # Receiving stats (PPR)
-        "rec",
-        "rec_yd",
-        "rec_td",
-        "rec_2pt",
+        "rec": "receptions",
+        "rec_yd": "receiving_yards",
+        "rec_td": "receiving_touchdowns",
+        "rec_2pt": "receiving_two_point_conversions",
         # Fumbles
-        "fum_lost",
+        "fum_lost": "fumbles_lost",
         # Kicking stats
-        "fgm",
-        "fgm_0_19",
-        "fgm_20_29",
-        "fgm_30_39",
-        "fgm_40_49",
-        "fgm_50p",
-        "fgmiss",
-        "xpm",
-        "xpmiss",
+        "fgm": "field_goals_made",
+        "fgm_0_19": "field_goals_made_0_19",
+        "fgm_20_29": "field_goals_made_20_29",
+        "fgm_30_39": "field_goals_made_30_39",
+        "fgm_40_49": "field_goals_made_40_49",
+        "fgm_50p": "field_goals_made_50_plus",
+        "fgmiss": "field_goals_missed",
+        "xpm": "extra_points_made",
+        "xpmiss": "extra_points_missed",
         # Defensive stats (for IDP if used)
-        "def_td",
-        "def_int",
-        "def_sack",
-        "def_ff",
-        "def_fr",
+        "def_td": "defensive_touchdowns",
+        "def_int": "defensive_interceptions",
+        "def_sack": "defensive_sacks",
+        "def_ff": "defensive_forced_fumbles",
+        "def_fr": "defensive_fumble_recoveries",
         # Bonus stats that might affect scoring
-        "bonus_pass_yd_300",
-        "bonus_pass_yd_400",
-        "bonus_rush_yd_100",
-        "bonus_rush_yd_200",
-        "bonus_rec_yd_100",
-        "bonus_rec_yd_200",
+        "bonus_pass_yd_300": "bonus_passing_300_yards",
+        "bonus_pass_yd_400": "bonus_passing_400_yards",
+        "bonus_rush_yd_100": "bonus_rushing_100_yards",
+        "bonus_rush_yd_200": "bonus_rushing_200_yards",
+        "bonus_rec_yd_100": "bonus_receiving_100_yards",
+        "bonus_rec_yd_200": "bonus_receiving_200_yards",
     }
 
-    # Filter the stats
+    # Filter and transform the stats
     filtered = {}
     for player_id, player_stats in stats.items():
         if isinstance(player_stats, dict):
-            # Only include stats that are relevant to PPR scoring
-            filtered_player_stats = {
-                k: v
-                for k, v in player_stats.items()
-                if k in ppr_relevant_stats and v is not None and v != 0
-            }
-            # Only add player if they have PPR points
-            if filtered_player_stats.get("pts_ppr"):
-                filtered[player_id] = filtered_player_stats
+            # Transform field names and filter to relevant stats
+            transformed_stats = {}
+            fantasy_points = None
+
+            for old_field, new_field in field_mapping.items():
+                if old_field in player_stats:
+                    value = player_stats[old_field]
+                    if value is not None and value != 0:
+                        transformed_stats[new_field] = value
+                        if old_field == "pts_ppr":
+                            fantasy_points = value
+
+            # Only add player if they have fantasy points
+            if fantasy_points is not None:
+                filtered[player_id] = transformed_stats
         else:
             # Handle case where stats might not be a dict
             filtered[player_id] = player_stats
@@ -376,7 +384,8 @@ def enrich_and_filter_players(
     sleeper_players: Dict, mapping: Dict, ffnerd_data: Dict, stats_data: Dict
 ) -> Dict:
     """Enrich Sleeper players with Fantasy Nerds data and current week stats.
-    Only includes active players on NFL teams (excludes free agents and retired players)."""
+    Only includes active players on NFL teams (excludes free agents and retired players).
+    Creates a consistent stats structure with both projected and actual data."""
     enriched = {}
     fantasy_positions = {"QB", "RB", "WR", "TE", "K", "DEF"}
 
@@ -396,18 +405,65 @@ def enrich_and_filter_players(
         if not player.get("team"):
             continue
 
-        # Add Fantasy Nerds data if available
+        # Create the new stats structure
+        player["stats"] = {"projected": None, "actual": None}
+
+        # Add Fantasy Nerds projections data
         if sleeper_id in mapping:
             ffnerd_id = str(mapping[sleeper_id])
             if ffnerd_id in ffnerd_data:
                 player_ffnerd_data = ffnerd_data[ffnerd_id]
-                # Add the data even if it's partial
-                if player_ffnerd_data:
-                    player["data"] = player_ffnerd_data
 
-        # Add current week stats if available
+                # Add projections to the new stats structure
+                if player_ffnerd_data and player_ffnerd_data.get("projections"):
+                    proj = player_ffnerd_data["projections"]
+                    try:
+                        # Convert string values to floats
+                        fantasy_points = float(proj.get("proj_pts", 0))
+                        fantasy_points_low = float(
+                            proj.get("proj_pts_low", fantasy_points)
+                        )
+                        fantasy_points_high = float(
+                            proj.get("proj_pts_high", fantasy_points)
+                        )
+
+                        player["stats"]["projected"] = {
+                            "fantasy_points": fantasy_points,
+                            "fantasy_points_low": fantasy_points_low,
+                            "fantasy_points_high": fantasy_points_high,
+                        }
+                    except (ValueError, TypeError):
+                        pass
+
+                # Keep other FFNerd data (injury, news) in the old location for now
+                # This maintains backward compatibility
+                if player_ffnerd_data:
+                    player["data"] = {
+                        "injury": player_ffnerd_data.get("injury"),
+                        "news": player_ffnerd_data.get("news"),
+                    }
+
+        # Add current week actual stats if available
         if sleeper_id in stats_data:
-            player["current_week_stats"] = stats_data[sleeper_id]
+            player_stats = stats_data[sleeper_id]
+
+            # Extract fantasy points from the transformed stats
+            fantasy_points = player_stats.get("fantasy_points")
+
+            # Separate game stats from fantasy points
+            game_stats = {
+                k: v for k, v in player_stats.items() if k != "fantasy_points"
+            }
+
+            # Determine game status (for now, assume "final" if stats exist)
+            # TODO: Could enhance this by checking game schedule
+            game_status = "final" if fantasy_points else "not_started"
+
+            player["stats"]["actual"] = {
+                "fantasy_points": fantasy_points,
+                "game_stats": game_stats if game_stats else None,
+                "game_status": game_status,
+            }
 
         # ALWAYS include the player, even without Fantasy Nerds data
         enriched[sleeper_id] = player
@@ -496,13 +552,13 @@ def cache_players():
 
         print(f"Total fantasy-relevant players: {len(players)}")
 
-        # Count statistics
+        # Count statistics with new structure
         has_proj = sum(
-            1 for p in players.values() if p.get("data", {}).get("projections")
+            1 for p in players.values() if p.get("stats", {}).get("projected")
         )
         has_injury = sum(1 for p in players.values() if p.get("data", {}).get("injury"))
         has_news = sum(1 for p in players.values() if p.get("data", {}).get("news"))
-        has_stats = sum(1 for p in players.values() if p.get("current_week_stats"))
+        has_stats = sum(1 for p in players.values() if p.get("stats", {}).get("actual"))
 
         print(f"  - With projections: {has_proj}")
         print(f"  - With injury data: {has_injury}")

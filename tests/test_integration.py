@@ -1,6 +1,5 @@
 """Simple integration tests for the MCP server."""
 
-import pytest
 import sys
 import os
 
@@ -44,7 +43,7 @@ class TestMCPServer:
             "get_league_rosters",
             "get_league_users",
             "get_league_matchups",
-            "get_players",
+            # "get_players",  # Commented out as it's too large for MCP
             "search_players_by_name",
             "get_player_by_sleeper_id",
             "get_trending_players",
@@ -71,7 +70,7 @@ class TestMCPServer:
         assert callable(search_players)
         assert callable(get_player_by_id)
         assert callable(get_cache_status)
-        
+
         # They should NOT be async functions
         assert not inspect.iscoroutinefunction(get_all_players)
         assert not inspect.iscoroutinefunction(search_players)
