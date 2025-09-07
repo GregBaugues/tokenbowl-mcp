@@ -11,9 +11,9 @@ from dotenv import load_dotenv
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any, Union
 from cache_client import (
-    get_enriched_players_from_cache as get_all_players,
-    search_enriched_players as search_players_unified,
-    get_enriched_player_by_id as get_player_by_id,
+    get_players_from_cache as get_all_players,
+    search_players as search_players_unified,
+    get_player_by_id,
 )
 import logfire
 
@@ -45,7 +45,6 @@ mcp = FastMCP("tokenbowl-mcp")
 BASE_URL = "https://api.sleeper.app/v1"
 
 # Get league ID from environment variable with fallback to Token Bowl
-
 
 
 @mcp.tool()

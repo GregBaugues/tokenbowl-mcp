@@ -362,7 +362,7 @@ def build_name_lookup_table(players: Dict) -> Dict[str, str]:
     return name_to_id
 
 
-def cache_enriched_players():
+def cache_players():
     """Main function to fetch, enrich, and cache player data."""
 
     try:
@@ -383,22 +383,16 @@ def cache_enriched_players():
 
         # Enrich and filter to fantasy-relevant players only
         print("Enriching and filtering players...")
-        enriched_players = enrich_and_filter_players(
-            sleeper_players, mapping, ffnerd_data
-        )
+        players = enrich_and_filter_players(sleeper_players, mapping, ffnerd_data)
 
-        print(f"Total fantasy-relevant players: {len(enriched_players)}")
+        print(f"Total fantasy-relevant players: {len(players)}")
 
         # Count statistics
         has_proj = sum(
-            1 for p in enriched_players.values() if p.get("data", {}).get("projections")
+            1 for p in players.values() if p.get("data", {}).get("projections")
         )
-        has_injury = sum(
-            1 for p in enriched_players.values() if p.get("data", {}).get("injury")
-        )
-        has_news = sum(
-            1 for p in enriched_players.values() if p.get("data", {}).get("news")
-        )
+        has_injury = sum(1 for p in players.values() if p.get("data", {}).get("injury"))
+        has_news = sum(1 for p in players.values() if p.get("data", {}).get("news"))
 
         print(f"  - With projections: {has_proj}")
         print(f"  - With injury data: {has_injury}")
@@ -406,22 +400,22 @@ def cache_enriched_players():
 
         # Build name lookup table
         print("\nBuilding player name lookup table...")
-        name_lookup = build_name_lookup_table(enriched_players)
+        name_lookup = build_name_lookup_table(players)
         print(f"Created {len(name_lookup)} name mappings")
 
         # Compress and cache
-        print("\nCaching enriched player data to Redis...")
+        print("\nCaching player data to Redis...")
 
         # Convert to JSON and compress
-        json_data = json.dumps(enriched_players)
+        json_data = json.dumps(players)
         compressed_data = gzip.compress(json_data.encode("utf-8"))
 
         # Store in Redis with 6-hour TTL
-        cache_key = "nfl_players_enriched"
+        cache_key = "nfl_players_cache"
         ttl = 6 * 60 * 60  # 6 hours
 
         # Clear old cache keys if they exist
-        old_keys = ["nfl_players_cache", "nfl_players_unified"]
+        old_keys = ["nfl_players_enriched", "nfl_players_unified"]
         for key in old_keys:
             if r.exists(key):
                 r.delete(key)
@@ -441,7 +435,7 @@ def cache_enriched_players():
 
         # Store metadata
         metadata = {
-            "total_players": len(enriched_players),
+            "total_players": len(players),
             "players_with_projections": has_proj,
             "players_with_injuries": has_injury,
             "players_with_news": has_news,
@@ -464,7 +458,7 @@ def cache_enriched_players():
 
         # Also save to local file for backup
         with open("fantasy_relevant_players_backup.json", "w") as f:
-            json.dump(enriched_players, f, indent=2)
+            json.dump(players, f, indent=2)
         print("\nBackup saved to fantasy_relevant_players_backup.json")
 
         return True
@@ -475,5 +469,5 @@ def cache_enriched_players():
 
 
 if __name__ == "__main__":
-    success = cache_enriched_players()
+    success = cache_players()
     exit(0 if success else 1)

@@ -11,7 +11,7 @@ import os
 import logging
 from typing import Dict, Any, Optional
 from datetime import datetime
-from build_cache import cache_enriched_players
+from build_cache import cache_players
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -27,16 +27,16 @@ def get_redis_client() -> redis.Redis:
     return redis.from_url(redis_url, decode_responses=False)
 
 
-def get_enriched_players_from_cache() -> Optional[Dict[str, Any]]:
+def get_players_from_cache() -> Optional[Dict[str, Any]]:
     """
-    Get enriched player data from Redis cache.
+    Get player data from Redis cache.
     Automatically refreshes if cache is missing or expired.
     """
     try:
         r = get_redis_client()
 
         # Try to get cached data
-        cache_key = "nfl_players_enriched"
+        cache_key = "nfl_players_cache"
         cached_data = r.get(cache_key)
 
         if cached_data:
@@ -49,9 +49,7 @@ def get_enriched_players_from_cache() -> Optional[Dict[str, Any]]:
 
                 # If cache is less than 6 hours old, use it
                 if age_hours < 6:
-                    logger.info(
-                        f"Using cached enriched data ({age_hours:.1f} hours old)"
-                    )
+                    logger.info(f"Using cached player data ({age_hours:.1f} hours old)")
                     decompressed = gzip.decompress(cached_data).decode("utf-8")
                     return json.loads(decompressed)
                 else:
@@ -62,8 +60,8 @@ def get_enriched_players_from_cache() -> Optional[Dict[str, Any]]:
             logger.info("No cached data found, fetching fresh data...")
 
         # Cache is missing or too old - refresh it
-        logger.info("Refreshing enriched player cache...")
-        success = cache_enriched_players()
+        logger.info("Refreshing player cache...")
+        success = cache_players()
 
         if success:
             # Try to get the newly cached data
@@ -76,7 +74,7 @@ def get_enriched_players_from_cache() -> Optional[Dict[str, Any]]:
         return None
 
     except Exception as e:
-        logger.error(f"Error accessing enriched player cache: {e}")
+        logger.error(f"Error accessing player cache: {e}")
         return None
 
 
@@ -105,13 +103,13 @@ def get_name_lookup_from_cache() -> Optional[Dict[str, str]]:
         return None
 
 
-def search_enriched_players(query: str, limit: int = 10) -> list:
+def search_players(query: str, limit: int = 10) -> list:
     """
-    Search enriched players by name using cached lookup table for fast access.
-    Returns list of matching players with all enriched data.
+    Search players by name using cached lookup table for fast access.
+    Returns list of matching players with all data.
     """
     # Get both the players data and name lookup table
-    players = get_enriched_players_from_cache()
+    players = get_players_from_cache()
     if not players:
         return []
 
@@ -152,11 +150,11 @@ def search_enriched_players(query: str, limit: int = 10) -> list:
     return results
 
 
-def get_enriched_player_by_id(player_id: str) -> Optional[Dict[str, Any]]:
+def get_player_by_id(player_id: str) -> Optional[Dict[str, Any]]:
     """
-    Get a specific enriched player by Sleeper ID.
+    Get a specific player by Sleeper ID.
     """
-    players = get_enriched_players_from_cache()
+    players = get_players_from_cache()
     if not players:
         return None
 
@@ -165,13 +163,13 @@ def get_enriched_player_by_id(player_id: str) -> Optional[Dict[str, Any]]:
 
 def get_cache_status() -> Dict[str, Any]:
     """
-    Get the status of the enriched player cache.
+    Get the status of the player cache.
     """
     try:
         r = get_redis_client()
 
         # Check if cache exists
-        cache_key = "nfl_players_enriched"
+        cache_key = "nfl_players_cache"
         exists = r.exists(cache_key)
 
         if not exists:
@@ -221,7 +219,7 @@ if __name__ == "__main__":
             print(json.dumps(status, indent=2))
         elif sys.argv[1] == "search":
             if len(sys.argv) > 2:
-                results = search_enriched_players(sys.argv[2])
+                results = search_players(sys.argv[2])
                 for player in results[:3]:
                     print(
                         f"{player['full_name']} - {player.get('team')} {player.get('position')}"
@@ -231,10 +229,10 @@ if __name__ == "__main__":
                             f"  Proj Points: {player['data']['projections']['proj_pts']}"
                         )
             else:
-                print("Usage: python players_cache_enriched.py search <name>")
+                print("Usage: python cache_client.py search <name>")
         elif sys.argv[1] == "refresh":
             print("Forcing cache refresh...")
-            success = cache_enriched_players()
+            success = cache_players()
             print("Success!" if success else "Failed!")
     else:
-        print("Usage: python players_cache_enriched.py [status|search|refresh]")
+        print("Usage: python cache_client.py [status|search|refresh]")
