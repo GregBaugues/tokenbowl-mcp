@@ -83,6 +83,7 @@ def filter_ppr_relevant_stats(stats: Dict[str, Any]) -> Dict[str, Any]:
         "rush_2pt": "rushing_two_point_conversions",
         # Receiving stats (PPR)
         "rec": "receptions",
+        "rec_tgt": "targets",
         "rec_yd": "receiving_yards",
         "rec_td": "receiving_touchdowns",
         "rec_2pt": "receiving_two_point_conversions",
