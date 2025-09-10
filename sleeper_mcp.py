@@ -1006,6 +1006,269 @@ async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
 
 # Unified player tools removed - consolidated into main player tools above
 
+
+# ============================================================================
+# ChatGPT Compatibility Tools - Required for ChatGPT Connectors
+# ============================================================================
+
+
+@mcp.tool()
+async def search(query: str) -> Dict[str, List[Dict[str, Any]]]:
+    """Search for fantasy football information across players, teams, and league data.
+
+    This tool is required for ChatGPT compatibility and searches through:
+    - NFL players by name or position
+    - Waiver wire availability
+    - Trending players (adds/drops)
+    - Team rosters and matchups
+
+    Args:
+        query: Natural language search query (e.g., "Patrick Mahomes", "waiver RB", "trending")
+
+    Returns:
+        Dictionary with 'results' key containing list of matching items.
+        Each result includes id, title, and url for proper citation.
+    """
+    results = []
+    query_lower = query.lower()
+
+    try:
+        # Search for players by name first
+        if len(query) >= 2:  # Minimum 2 chars for player search
+            # Call the actual function, not the decorated tool
+            players = await search_players_by_name.fn(query)
+            for player in players[:5]:  # Limit to top 5 player results
+                # Create a unique ID with type prefix for fetch tool
+                player_id = f"player_{player.get('player_id', '')}"
+
+                # Build title with position and team
+                position = player.get("position", "")
+                team = player.get("team", "FA")
+                title = (
+                    f"{player.get('full_name', 'Unknown Player')} ({position} - {team})"
+                )
+
+                # Generate URL (using Sleeper app URL format)
+                sleeper_id = player.get("player_id", "")
+                url = f"https://sleeper.app/players/nfl/{sleeper_id}"
+
+                results.append({"id": player_id, "title": title, "url": url})
+
+        # Check for waiver/free agent queries
+        if any(term in query_lower for term in ["waiver", "free agent", "available"]):
+            # Extract position if mentioned
+            position = None
+            for pos in ["QB", "RB", "WR", "TE", "K", "DEF"]:
+                if pos.lower() in query_lower:
+                    position = pos
+                    break
+
+            waiver_players = await get_waiver_wire_players.fn(
+                position=position, limit=5
+            )
+
+            if "players" in waiver_players:
+                for player in waiver_players["players"]:
+                    player_id = f"player_{player.get('player_id', '')}"
+                    position = player.get("position", "")
+                    team = player.get("team", "FA")
+                    title = f"{player.get('full_name', 'Unknown')} ({position} - {team}) [Waiver]"
+                    sleeper_id = player.get("player_id", "")
+                    url = f"https://sleeper.app/players/nfl/{sleeper_id}"
+
+                    results.append({"id": player_id, "title": title, "url": url})
+
+        # Check for trending queries
+        if any(
+            term in query_lower
+            for term in ["trending", "hot", "popular", "add", "drop"]
+        ):
+            trend_type = "drop" if "drop" in query_lower else "add"
+            trending = await get_trending_players.fn(type=trend_type)
+
+            for player in trending[:5]:  # Top 5 trending
+                player_id = f"player_{player.get('player_id', '')}"
+                position = player.get("position", "")
+                team = player.get("team", "FA")
+                trend_label = (
+                    "↑ Trending Add" if trend_type == "add" else "↓ Trending Drop"
+                )
+                title = f"{player.get('full_name', 'Unknown')} ({position} - {team}) {trend_label}"
+                sleeper_id = player.get("player_id", "")
+                url = f"https://sleeper.app/players/nfl/{sleeper_id}"
+
+                results.append({"id": player_id, "title": title, "url": url})
+
+        # Check for roster/team queries
+        if any(term in query_lower for term in ["roster", "team", "bill beliclaude"]):
+            rosters = await get_league_rosters.fn()
+            users = await get_league_users.fn()
+
+            # Create user lookup
+            user_map = {u["user_id"]: u for u in users}
+
+            for roster in rosters[:3]:  # Show top 3 rosters
+                roster_id = roster.get("roster_id", "")
+                owner_id = roster.get("owner_id", "")
+                user = user_map.get(owner_id, {})
+                team_name = user.get("metadata", {}).get(
+                    "team_name", user.get("display_name", f"Team {roster_id}")
+                )
+
+                # Add record
+                wins = roster.get("settings", {}).get("wins", 0)
+                losses = roster.get("settings", {}).get("losses", 0)
+                title = f"{team_name} ({wins}-{losses})"
+
+                results.append(
+                    {
+                        "id": f"roster_{roster_id}",
+                        "title": title,
+                        "url": f"https://sleeper.app/leagues/{LEAGUE_ID}/team/{roster_id}",
+                    }
+                )
+
+    except Exception as e:
+        logger.error(f"Error in search tool: {e}")
+
+    return {"results": results}
+
+
+@mcp.tool()
+async def fetch(id: str) -> Dict[str, Any]:
+    """Retrieve complete information for a specific fantasy football resource.
+
+    This tool is required for ChatGPT compatibility and fetches full details for:
+    - Player statistics and projections
+    - Team rosters with all players
+    - User profiles
+    - Matchup details
+
+    Args:
+        id: Resource identifier with type prefix (e.g., "player_4046", "roster_2")
+
+    Returns:
+        Complete resource data with id, title, text, url, and optional metadata.
+    """
+    try:
+        # Parse the ID to determine resource type
+        if "_" in id:
+            resource_type, resource_id = id.split("_", 1)
+        else:
+            # Fallback to player if no prefix
+            resource_type = "player"
+            resource_id = id
+
+        if resource_type == "player":
+            # Fetch player details
+            player = await get_player_by_sleeper_id.fn(resource_id)
+
+            if not player:
+                raise ValueError(f"Player not found: {resource_id}")
+
+            # Build comprehensive text content
+            text_parts = []
+            text_parts.append(f"Name: {player.get('full_name', 'Unknown')}")
+            text_parts.append(f"Position: {player.get('position', 'Unknown')}")
+            text_parts.append(f"Team: {player.get('team', 'Free Agent')}")
+            text_parts.append(f"Age: {player.get('age', 'Unknown')}")
+            text_parts.append(f"Status: {player.get('status', 'Unknown')}")
+
+            # Add injury info if available
+            if player.get("injury_status"):
+                text_parts.append(f"Injury: {player.get('injury_status')}")
+
+            # Add stats if available
+            if player.get("stats"):
+                text_parts.append("\nFantasy Stats:")
+                stats = player.get("stats", {})
+                if "pts_ppr" in stats:
+                    text_parts.append(f"  PPR Points: {stats['pts_ppr']}")
+                if "rank_ppr" in stats:
+                    text_parts.append(f"  PPR Rank: {stats['rank_ppr']}")
+
+            # Add Fantasy Nerds data if available
+            if player.get("ffnerd_id"):
+                text_parts.append("\nFantasy Analysis:")
+                if player.get("adp"):
+                    text_parts.append(f"  ADP: {player.get('adp')}")
+                if player.get("injury"):
+                    text_parts.append(f"  Injury Report: {player.get('injury')}")
+
+            return {
+                "id": id,
+                "title": f"{player.get('full_name', 'Unknown')} - {player.get('position', '')} {player.get('team', '')}",
+                "text": "\n".join(text_parts),
+                "url": f"https://sleeper.app/players/nfl/{resource_id}",
+                "metadata": {
+                    "type": "player",
+                    "position": player.get("position"),
+                    "team": player.get("team"),
+                    "status": player.get("status"),
+                },
+            }
+
+        elif resource_type == "roster":
+            # Fetch roster details
+            roster_id = int(resource_id)
+            roster_data = await get_roster.fn(roster_id)
+
+            # Build roster text
+            text_parts = []
+            text_parts.append(
+                f"Team: {roster_data.get('team_name', f'Roster {roster_id}')}"
+            )
+            text_parts.append(f"Owner: {roster_data.get('owner_name', 'Unknown')}")
+            text_parts.append(
+                f"Record: {roster_data.get('wins', 0)}-{roster_data.get('losses', 0)}"
+            )
+            text_parts.append(f"Points For: {roster_data.get('points_for', 0)}")
+            text_parts.append(f"Points Against: {roster_data.get('points_against', 0)}")
+
+            text_parts.append("\nRoster:")
+            text_parts.append("\nStarters:")
+            for player in roster_data.get("starters_detail", []):
+                name = player.get("full_name", "Unknown")
+                pos = player.get("position", "")
+                team = player.get("team", "")
+                text_parts.append(f"  - {name} ({pos} - {team})")
+
+            text_parts.append("\nBench:")
+            for player in roster_data.get("bench_detail", []):
+                name = player.get("full_name", "Unknown")
+                pos = player.get("position", "")
+                team = player.get("team", "")
+                text_parts.append(f"  - {name} ({pos} - {team})")
+
+            return {
+                "id": id,
+                "title": roster_data.get("team_name", f"Roster {roster_id}"),
+                "text": "\n".join(text_parts),
+                "url": f"https://sleeper.app/leagues/{LEAGUE_ID}/team/{roster_id}",
+                "metadata": {
+                    "type": "roster",
+                    "wins": roster_data.get("wins"),
+                    "losses": roster_data.get("losses"),
+                    "roster_id": roster_id,
+                },
+            }
+
+        else:
+            raise ValueError(f"Unknown resource type: {resource_type}")
+
+    except Exception as e:
+        logger.error(f"Error in fetch tool: {e}")
+        return {
+            "id": id,
+            "title": "Error",
+            "text": f"Failed to fetch resource: {str(e)}",
+            "url": "",
+            "metadata": {"error": str(e)},
+        }
+
+
+# Unified player tools removed - consolidated into main player tools above
+
 if __name__ == "__main__":
     # Run the MCP server with HTTP transport
     import sys
