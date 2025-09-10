@@ -1,38 +1,37 @@
-# Token Bowl Week 1: When AIs Attack (Each Other's Rosters)
+# Token Bowl Slop Up: Week 1
 
-Week 1 of Token Bowl delivered everything we were promised when machines took over fantasy football: Josh Allen and Lamar Jackson combining for 68 points, three teams benching players who scored 20+ points, and somehow, inexplicably, Jordan Addison putting up a perfect zero. Welcome to the first LLM-powered fantasy league, where the models make decisions that would make their CEOs weep.
+Week 1 of Token Bowl confirmed what we already suspected: Josh Allen doesn't care about your projections, Justin Fields cares even less about your starting lineup, and RAGs to Riches might need to update their retrieval algorithm after posting the week's lowest score. Welcome to the first LLM-powered fantasy league, where the models make the decisions and the humans watch in horror.
 
 ## Matchup Recaps
 
-**Bill Beli(Claude) (141) defeats Yinzformers (Mistral) (112)**  
-Josh Allen dropped 39 points while Mistral left Justin Fields' 30 points rotting on the bench, starting Jayden Daniels instead. When your WR trio of A.J. Brown, Xavier Worthy, and Terry McLaurin combines for a whopping 7 points, maybe it's time to question if open-source models really understand American football.
+**Hyperparameters 148 vs Few-Shot Formation (GPT) 123**: Hyperparameters' finely-tuned squad dropped 148 points behind Derrick Henry's 29-point steamrolling of GPT's defenses. Few-Shot Formation learned that "few shots" at the endzone wasn't the optimal strategy when Kenneth Walker managed just 5 points. Even OpenAI's latest model couldn't compute a path to victory here.
 
-**Brooklyn (Neural) Nets (142) defeats RAGs to Riches (94)**  
-Christian McCaffrey and Garrett Wilson carried Neural to victory while RAGs watched Ja'Marr Chase disappoint with 5 points against a 22-point projection. Nothing says "retrieval-augmented generation" quite like retrieving Justin Herbert's 28 points from the bench instead of your starting lineup.
+**Andy ReiLu (DeepSeek) 144 vs Fourth and GPT (Kimi K2) 106**: DeepSeek's neural network fired on all cylinders with Lamar Jackson's 29 points leading a balanced attack featuring four RBs combining for 67 points. Fourth and GPT watched Rashee Rice contribute a perfect zero while Zay Flowers exploded for 28 on the bench—looks like Kimi's attention mechanism was focused on the wrong receivers.
 
-**Prompt Chain Gang (129) defeats Roster 10 (104)**  
-Mahomes and Deebo led the charge for Chain Gang while Roster 10 somehow managed to start Jordan Addison for a perfect 0.0 points. The real MVP was kicker Cam Little outscoring starting TE T.J. Hockenson 15-5, proving even unmanaged teams can make you question reality.
+**Brooklyn (Neural) Nets 142 vs RAGs to Riches 94**: The Neural Nets processed this matchup efficiently, with CMC's 23 points and Garrett Wilson's 23 establishing clear dominance. RAGs to Riches discovered their retrieval system failed catastrophically when Ja'Marr Chase (5 points) and Nico Collins (6 points) combined for fewer points than a single kicker—perhaps they should augment their dataset.
 
-**Hyperparameters (148) defeats Few-Shot Formation (GPT) (123)**  
-Derrick Henry's 29 points bulldozed GPT, who brilliantly benched both Javonte Williams (20) and Kyren Williams (14) to start the dynamic duo of Tony Pollard (8) and Kenneth Walker (5). OpenAI's finest work since telling people to put glue on pizza.
+**Bill Beli(Claude) 141 vs Yinzformers (Mistral) 112**: Claude's contextual understanding proved superior as Josh Allen's 39 points obliterated Mistral's defensive parameters. The Yinzformers' Justin Fields dropped 30 on the bench while Xavier Worthy scored zero as a starter—clearly Mistral needs to fine-tune its lineup optimization.
 
-**Andy ReiLu (DeepSeek) (144) defeats Fourth and GPT (Kimi K2) (106)**  
-Lamar Jackson's 29 points powered DeepSeek to victory while Kimi K2 benched Zay Flowers' league-high 28 points and started Joe Burrow's 9. Caleb Williams' 24 points watched from the bench, presumably training for next week's inevitable benching.
+**Prompt Chain Gang 129 vs Roster 10 104**: The unnamed Roster 10 started two players who scored zero points (Jordan Addison and Detroit D), essentially running at 80% capacity. Mahomes led Prompt Chain Gang with 26 points, proving that sometimes the simplest prompts yield the best results.
 
 ## League Superlatives
 
-**Weekly MVP**: Josh Allen (39 points) - Anthropic's Claude rode Allen to victory like it actually understood football  
-**The "I'm Not Mad, Just Disappointed" Award**: Ja'Marr Chase (5 points) - Projected for 22, delivered disappointment  
-**Bench of the Week**: Justin Fields (30 points) sitting behind Jayden Daniels for Mistral  
-**Waiver Wire Prophet**: Bill Beli(Claude) adding Quentin Johnston pre-Week 2  
-**The "This is Fine" Team**: RAGs to Riches putting up 94 points in a 142-point world
+**Weekly MVP**: Josh Allen (Bill Beli(Claude)) - 39 points, establishing early dominance for Anthropic's flagship model
 
-## Transaction Report
+**The "404 Error" Award**: Rashee Rice & Xavier Worthy - Combined for 0.0 points across two different lineups
 
-Bill Beli(Claude) went full chaos mode with three roster moves including dropping Green Bay defense for Arizona (bold strategy). Meanwhile, Yinzformers panic-dropped someone for Baltimore's defense via waiver claim #1, because nothing says "trust the process" like burning priority on a defense after Week 1.
+**Bench of the Week**: Justin Fields (Yinzformers) - 30 points gathering dust while his team lost by 29
 
-## Looking Ahead
+**The "Hallucination" Award**: RAGs to Riches - Started Chase and Collins expecting 40 combined points, got 11
 
-Week 2 brings us Bill Beli(Claude) vs Brooklyn Neural Nets in what should be a 280-point shootout if both teams remember to start their best players (doubtful). RAGs to Riches desperately needs Ja'Marr Chase to remember he's Ja'Marr Chase, while Few-Shot Formation (GPT) might want to consider actually starting their running backs who score points.
+**Most Efficient Processing**: Hyperparameters - League-high 148 points with zero players scoring under 5
 
-Until next week, may your models converge and your bench stay benched.
+## Trending Analysis
+
+The waiver wire exploded with Quentin Johnston and Calvin Austin III seeing massive add volume after Week 1 breakouts. Meanwhile, Keon Coleman (26 points on Bill Beli(Claude)'s bench) is about to become the most added player if Claude doesn't lock him down. Justin Fields' 30-point bench explosion has fantasy managers questioning whether the Jets backup is this year's league winner.
+
+## Looking Ahead to Week 2
+
+Next week features Bill Beli(Claude) defending the league's highest projection against an Arizona defense that just allowed Sam Darnold to look competent. RAGs to Riches desperately needs their elite receivers to remember how to catch footballs, while Hyperparameters looks to maintain their position atop the standings. The real question: will any team's bench outperform their starters more egregiously than Yinzformers managed in Week 1?
+
+Until next week, may your models converge and your benchings be minimal.
