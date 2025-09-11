@@ -922,6 +922,133 @@ async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
         return {"error": "Failed to get NFL schedule", "details": str(e)}
 
 
+@mcp.tool()
+async def get_nfl_news(
+    limit: int = 25, player_name: Optional[str] = None, team: Optional[str] = None
+) -> Dict[str, Any]:
+    """Get the latest NFL news from Fantasy Nerds with optional filtering.
+
+    Args:
+        limit: Maximum number of news items to return (default: 25, max: 100).
+        player_name: Filter news for a specific player (case-insensitive partial match).
+        team: Filter news for a specific team (use team abbreviation like 'KC', 'SF').
+
+    Returns comprehensive news data including:
+    - Headline and excerpt of the news article
+    - Publication date and author/source
+    - Related player IDs and teams
+    - Direct link to full article
+    - Formatted date for easy reading
+
+    News is sorted by date with most recent first.
+    Useful for staying updated on injuries, trades, and player status changes.
+
+    Returns:
+        Dict with news items and metadata, or error message if request fails
+    """
+    try:
+        api_key = os.getenv("FFNERD_API_KEY")
+        if not api_key:
+            return {
+                "error": "Fantasy Nerds API key not configured",
+                "details": "FFNERD_API_KEY environment variable is not set",
+            }
+
+        # Fetch news from Fantasy Nerds API
+        url = f"https://api.fantasynerds.com/v1/nfl/news?apikey={api_key}"
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            news_data = response.json()
+
+        # Handle empty or invalid response
+        if not news_data or not isinstance(news_data, list):
+            return {"news": [], "count": 0, "message": "No news available at this time"}
+
+        # Apply filters if provided
+        filtered_news = news_data
+
+        # Filter by player name if provided
+        if player_name:
+            player_name_lower = player_name.lower()
+            filtered_news = [
+                item
+                for item in filtered_news
+                if player_name_lower in item.get("article_headline", "").lower()
+                or player_name_lower in item.get("article_excerpt", "").lower()
+            ]
+
+        # Filter by team if provided
+        if team:
+            team_upper = team.upper()
+            filtered_news = [
+                item
+                for item in filtered_news
+                if team_upper in [t.upper() for t in item.get("teams", [])]
+                or team_upper in item.get("article_headline", "").upper()
+                or team_upper in item.get("article_excerpt", "").upper()
+            ]
+
+        # Apply limit
+        if limit and limit > 0:
+            filtered_news = filtered_news[: min(limit, 100)]
+
+        # Format the response
+        formatted_news = []
+        for item in filtered_news:
+            formatted_item = {
+                "headline": item.get("article_headline", "No headline"),
+                "excerpt": item.get("article_excerpt", ""),
+                "date": item.get("article_date", ""),
+                "author": item.get("article_author", "Unknown"),
+                "player_ids": item.get("playerIds", []),
+                "teams": item.get("teams", []),
+                "link": item.get("article_link", ""),
+            }
+
+            # Add formatted date if available
+            if formatted_item["date"]:
+                try:
+                    from datetime import datetime
+
+                    # Handle the date format from Fantasy Nerds (YYYY-MM-DD HH:MM:SS)
+                    dt = datetime.strptime(formatted_item["date"], "%Y-%m-%d %H:%M:%S")
+                    formatted_item["formatted_date"] = dt.strftime(
+                        "%B %d, %Y at %I:%M %p"
+                    )
+                except ValueError:
+                    formatted_item["formatted_date"] = formatted_item["date"]
+
+            formatted_news.append(formatted_item)
+
+        # Build response metadata
+        metadata = {
+            "total_available": len(news_data),
+            "returned": len(formatted_news),
+            "filters_applied": [],
+        }
+
+        if player_name:
+            metadata["filters_applied"].append(f"player: {player_name}")
+        if team:
+            metadata["filters_applied"].append(f"team: {team}")
+        if limit:
+            metadata["filters_applied"].append(f"limit: {limit}")
+
+        return {"news": formatted_news, "metadata": metadata}
+
+    except httpx.HTTPStatusError as e:
+        logger.error(f"Fantasy Nerds API error: {e}")
+        return {
+            "error": "Fantasy Nerds API request failed",
+            "details": f"HTTP {e.response.status_code}: {e.response.text}",
+        }
+    except Exception as e:
+        logger.error(f"Error fetching NFL news: {e}")
+        return {"error": "Failed to fetch NFL news", "details": str(e)}
+
+
 # @mcp.tool()
 # async def get_draft(draft_id: str) -> Dict[str, Any]:
 #     """Get comprehensive information about a specific fantasy draft.
