@@ -207,20 +207,24 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                 player_info["position"] = "DEF"
                 player_info["team"] = player_id
 
-            # Add stats data if available (new structure)
+            # Always use consistent stats structure
+            player_stats = {"projected": None, "actual": None}
+
+            # Add stats data if available (new structure from cache)
             if "stats" in player_data:
-                stats = player_data["stats"]
+                cached_stats = player_data["stats"]
 
                 # Add projections from new structure
-                if stats.get("projected"):
-                    proj = stats["projected"]
+                if cached_stats.get("projected"):
+                    proj = cached_stats["projected"]
                     fantasy_points = proj.get("fantasy_points", 0)
 
-                    # Include projection data
-                    player_info["projections"] = {
-                        "points": round(fantasy_points, 2),
-                        "low": round(proj.get("fantasy_points_low", fantasy_points), 2),
-                        "high": round(
+                    player_stats["projected"] = {
+                        "fantasy_points": round(fantasy_points, 2),
+                        "fantasy_points_low": round(
+                            proj.get("fantasy_points_low", fantasy_points), 2
+                        ),
+                        "fantasy_points_high": round(
                             proj.get("fantasy_points_high", fantasy_points), 2
                         ),
                     }
@@ -231,13 +235,16 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                         starters_projected += fantasy_points
 
                 # Add actual stats if game has been played
-                if stats.get("actual"):
-                    actual = stats["actual"]
-                    player_info["actual_stats"] = {
+                if cached_stats.get("actual"):
+                    actual = cached_stats["actual"]
+                    player_stats["actual"] = {
                         "fantasy_points": round(actual.get("fantasy_points", 0), 2),
                         "game_status": actual.get("game_status", "unknown"),
                         "game_stats": actual.get("game_stats"),
                     }
+
+            # Always include the stats field with consistent structure
+            player_info["stats"] = player_stats
 
             # Add other enriched data if available (injury, news - backward compatible)
             if "data" in player_data:
