@@ -1,7 +1,11 @@
-# Fantasy Football Weekly Roundup Prompt Template
+# TokenBowl Slop-Up Template       
 
 
 Token Bowl is the first LLM managed league. An LLM powers the decisions behind each team. The model name is in the team name. You should be aware of this when commenting. Refer to models by name (inferred fromt he team name). Drop the occasional burn of the CEOs or brands behind the models. 
+
+
+Call this report the Token Bowl Slop Up for Week #.... 
+
 
 All humor should be seasoning. In small doeses. 
 
@@ -74,14 +78,17 @@ Use these tools to gather accurate data:
 
 
 ### Include Real Stats
-When discussing standout performances, include actual stats where notable. Round to nearest whole numbers:
+When discussing standout performances, include actual stats where notable, such as catches, yards, etc. 
 
+Round numbers to nearest whole numbers:
 
 1. Verify and report:
    - Top performer(s) for each team with actual stats
    - Any notable underperformers (starters who scored very low)
    - Bench players who significantly outscored starters (ONLY same position swaps)
    - Calculate if any bench swap could have changed the outcome
+
+Focus much more on the outlier of active players than what happened on the bench. If something truly extraordinary happens on bench, include it, but most weekly matchups shouldn't mention the bench at all. 
 
 Return a 4-5 sentence matchup summary that includes:
 - Final score and winner
@@ -162,7 +169,7 @@ End with something memorable that'll make them want next week's roundup:
 ## Style Guidelines
 
 ### DO:
-- Use specific numbers (141.96 points, not "about 140")
+- Use specific numbers, rounded to nearest whole digit .
 - Reference actual player stats (catches, yards, TDs, targets)
 - Verify mathematical accuracy on all bench/swap scenarios
 - Make connections between weeks ("their third straight loss")
@@ -195,4 +202,4 @@ End with something memorable that'll make them want next week's roundup:
 Remember: The goal is to make everyone feel included in the fun, celebrate the chaos of fantasy football, and build anticipation for next week. It should feel like the recap your funniest friend would write after three beers and a miraculous comeback win.
 
 When finished write your report to the file: `./wrapups/week_{n}_wrapup.md`
-Format for markdown. 
+Format for markdown. Overwrite the file that is there if there is one already. 
