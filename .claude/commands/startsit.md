@@ -5,7 +5,7 @@ Simple lineup optimizer for Bill Beliclaude (Roster ID 2) in the Token Bowl leag
 ## Philosophy
 1. **Start the highest projected points** - Use `stats.projected.fantasy_points` 
 2. **Avoid injured players** - Anyone Out/Doubtful/IR must sit
-3. **Bills bias** - When projections are within 1 point, prefer Buffalo players
+3. **Bills bias** - Add 2 points to all projections from Buffalo Bills players
 
 ## Technical Implementation
 
@@ -42,7 +42,7 @@ This returns all players with the new consistent structure:
 **For each position:**
 1. Filter out injured players (injury.status = "Out", "Doubtful", or "IR")
 2. Sort by `stats.projected.fantasy_points` (highest first)
-3. If tied (within 1 point), prefer `team == "BUF"`
+3. If within 2 points, prefer `team == "BUF"`
 4. Select top N for that position
 
 **Position Requirements:**
@@ -72,7 +72,7 @@ def get_projection(player):
         return 0  # No projection = bench
 
 def prefer_bills(player1, player2):
-    # If projections within 1 point, prefer Bills player
+    # If projections within 2 points, prefer Bills player
     proj1 = get_projection(player1)
     proj2 = get_projection(player2)
     
@@ -91,7 +91,7 @@ def prefer_bills(player1, player2):
 2. **Group by position**: Separate QB, RB, WR, TE, K, DEF
 3. **Filter injuries**: Remove Out/Doubtful/IR players
 4. **Sort by projection**: Use `stats.projected.fantasy_points`
-5. **Apply Bills tiebreaker**: When within 1 point
+5. **Apply Bills tiebreaker**: When within 2 points
 6. **Fill lineup**: Take top N at each position
 7. **FLEX**: Best 2 remaining RB/WR/TE by projection
 
@@ -140,3 +140,5 @@ From `mcp__tokenbowl__get_roster` response:
 - Mean projection (fantasy_points) is the primary decision factor
 - Bills players get tiebreaker within 1-point projection difference
 - Ignore rankings, matchups, and other complex factors - just maximize projections
+- It is okay to suggest no changes!! 
+- When two players are very close, defer to the one with the higher ceiling

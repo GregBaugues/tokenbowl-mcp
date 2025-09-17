@@ -1,8 +1,7 @@
 # TokenBowl Slop-Up Template       
 
 
-Token Bowl is the first LLM managed league. An LLM powers the decisions behind each team. The model name is in the team name. You should be aware of this when commenting. Refer to models by name (inferred fromt he team name). Drop the occasional burn of the CEOs or brands behind the models. 
-
+Token Bowl is the first LLM managed league. An LLM powers the decisions behind each team. The model name is in the team name. You should be aware of this when commenting. Refer to models by name (inferred from the team name). Drop the occasional burn of the CEOs or brands behind the models. 
 
 Call this report the Token Bowl Slop Up for Week #.... 
 
@@ -111,7 +110,7 @@ Use another subagent as an editor:
 After getting subagent reports, identify league-wide:
 - **Heroes**: Top 3 scorers across all teams (include actual stats when exceptionally remarkable, but not always)
 - **Zeros**: Notable busts (projected high, scored low)
-- **Bench Regrets**: Only talk about the bench if a benched player scored >25 and more than double whoever started in that position. 
+- **Bench Regrets**: Only talk about the bench if a benched player scored >10 points than whoever started in that position
 - **Waiver Wire Wonders**: Recently added players who went off
 
 ### Step 6: Trending & Transactions
@@ -131,18 +130,18 @@ Use `get_nfl_schedule(next_week)` and `get_league_matchups(next_week)` to:
 ## Writing Structure
 
 ### Opening Hook (2-3 sentences)
-Start with the week's most absurd/amazing/tragic moment. Examples:
-- "Week 7 will forever be known as the week [Owner] discovered you can indeed score negative points at defense."
-- "In a performance that would make his mother proud and his opponent weep, [Player] decided Week 3 was the perfect time to remember he's good at football, posting 35 on 12 catches for 178 yards and 2 TDs."
+Start with the week's most absurd/amazing/tragic moment. 
+
+
+### League Overview (Summary)
+- 2-3 sentence summary of the week's matchups. 
+- how did the matchups change the league landscape. 
 
 ### Matchup Recaps (3-4 sentences each)
 For each matchup, include:
 1. **The Score & Story**: Final score with context (blowout/thriller/upset)
 2. **The Hero**: Who won it for them (include actual stats when impressive)
 3. **The Zinger**: One fun observation or gentle roast
-
-Example:
-"**GregBaugues (141) vs CheffyB (112)**: Greg's team showed up like they had somewhere better to be, casually dropping 141 points behind Josh Allen's 38-point explosion (380 yards, 3 passing TDs, 1 rushing TD). CheffyB fought valiantly, but when your QB throws more interceptions than TDs, math becomes your enemy."
 
 ### League Superlatives (Quick Hits)
 - **Weekly MVP**: Highest individual scorer with actual stats
@@ -184,9 +183,6 @@ End with something memorable that'll make them want next week's roundup:
 - Use the same jokes every week
 - Make it longer than necessary (aim for 500-750 words total)
 
-## Example Opening Paragraph:
-
-"Week 1 of Token Bowl delivered everything we could have asked for: Josh Allen remembered he's Josh Allen (38.76 points on 280 yards and 4 total TDs), someone actually started both Zay Flowers AND Mark Andrews (it worked!), and theycallmeswift is already googling 'can you fire yourself as fantasy manager' after putting up a gentleman's 93.88. But the real story? kwhinnery's 147-point explosion that has the rest of the league checking if there's a mercy rule. Spoiler: there isn't."
 
 ## Tools Usage Summary:
 1. `get_league_info()` - Context
@@ -201,5 +197,5 @@ End with something memorable that'll make them want next week's roundup:
 
 Remember: The goal is to make everyone feel included in the fun, celebrate the chaos of fantasy football, and build anticipation for next week. It should feel like the recap your funniest friend would write after three beers and a miraculous comeback win.
 
-When finished write your report to the file: `./wrapups/week_{n}_wrapup.md`
+When finished write your report to the file: `./slopups/week_{n}_slopup.md`
 Format for markdown. Overwrite the file that is there if there is one already. 

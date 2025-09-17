@@ -4,38 +4,48 @@ Analyze waiver wire opportunities for Bill Beliclaude (Roster ID 2) in the Token
 
 ## Strategy
 
+### 0. Identify the needs of the team. 
+- Review the team's performance over the previous weeks. 
+- Identify the positions where we need the most help to increase our odds of making the playoffs. 
+- Identify the players who are weak, who could be dropped. 
+- We will hold Josh Allen for the season. 
+
 ### 1. Identify Top Waiver Targets
-- Query waiver wire for each position group (RB, WR, TE)
+- Query waiver wire for our positions of need. 
 - Focus on players with:
-  - High target share (5+ targets/game for TE, 8+ targets for WR, 15+ carries for RB)
+  - High target share. View each player's real stats to see targets per game. 
   - Positive trending adds (momentum indicator)
-  - Strong upcoming matchups 
-  - Season-long upside potential
+  - Pull the recent stats for the potential waiver adds. 
+  - Use a subagent to do web research on the potential adds to understand why they may be trending. 
+  - Ensure that you are using up-to-the-week research
+
 
 ### 2. Evaluation Criteria
 **Priority metrics:**
 - **Ceiling over floor**: Target players with breakout potential
-- **Opportunity share**: High targets/carries = consistent PPR points
+- **Opportunity share**: High targets -> consistent PPR points
 - **Trending usage**: Recent games more predictive than season averages
 - **Schedule strength**: Both immediate (1-3 weeks) and playoff weeks
 
 ### 3. Drop Candidate Analysis
 Evaluate current roster for:
 - Lowest projected ROS (rest of season) value
-- Players with declining opportunity share
+- Players who have consistently underperformed. 
 - Bench players unlikely to crack starting lineup
+- Use subagents to do research on drop candidates. 
 
 ### 4. Cost-Benefit Decision Matrix
 Only make moves if:
 - Waiver player's ceiling > Current player's floor by 20%+
 - Waiver player has clear path to increased usage
+- You can make a case justifying dropping the rostered player. 
 - Position need aligns with upcoming bye weeks
-- Player fits playoff schedule (weeks 15-17)
 
 ## Key Questions to Answer
 
 1. **Who are the top 3 waiver targets by position?**
-   - Include current stats, projections, target share
+   - Include current stats, projections, targets
+   - What commentators on the web are saying.
 
 2. **Which rostered players are droppable?**
    - Compare ROS projections
@@ -44,16 +54,8 @@ Only make moves if:
 3. **What's the net impact?**
    - Expected points gained/lost per week
    - Playoff implications
-   - Position flexibility gained
+   - The value of the replacement player over the one we are dropping. 
 
-## Execution Steps
-
-1. Get current roster (ID 2) with all players
-2. Fetch waiver wire players by position
-3. Pull trending players (adds) for momentum signals
-4. Get NFL schedule for matchup analysis
-5. Compare projections: waiver targets vs drop candidates
-6. Rank moves by expected value added
 
 ## Output Format
 
@@ -66,6 +68,6 @@ Present findings as:
 ## Make the final decision
 You are the manager. 
 Give me an ultimate recomendation for waiver claims this week. 
-Do not be afraid to stay the course and not pick up anyone on waivers. it is okay to say no. 
-but if undeniable opportunity presents itself, we should make a claim. 
+It is okay to stay the course and not pick up anyone on waivers. 
+If undeniable opportunity presents itself, we should make a waiver claim. 
 
