@@ -316,6 +316,7 @@ def filter_ppr_relevant_stats(stats: Dict[str, Any]) -> Dict[str, Any]:
         "pass_td": "passing_touchdowns",
         "pass_int": "passing_interceptions",
         "pass_2pt": "passing_two_point_conversions",
+        "rush_att": "carries",  # Rushing attempts
         "rush_yd": "rushing_yards",
         "rush_td": "rushing_touchdowns",
         "rush_2pt": "rushing_two_point_conversions",
