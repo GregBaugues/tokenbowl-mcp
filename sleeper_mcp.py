@@ -719,6 +719,158 @@ async def get_trending_players(type: str = "add") -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
+async def get_player_stats_all_weeks(
+    player_id: str, season: Optional[str] = None
+) -> Dict[str, Any]:
+    """Get real stats for all weeks of a season for a specific player.
+
+    Args:
+        player_id: The Sleeper player ID (required).
+                  Example: "4046" for Patrick Mahomes
+        season: The season year as a string (optional).
+               Defaults to current season if not provided.
+
+    Returns comprehensive stats including:
+    - Player information (name, position, team, status)
+    - Week-by-week real game stats (fantasy points and game statistics)
+    - Season totals aggregating all weeks
+    - Games played count
+    - Only includes weeks that have been played (no future weeks)
+
+    Note: This fetches real game stats, not projections.
+    Stats are organized by week with PPR scoring and relevant statistics.
+
+    Returns:
+        Dict containing player info, weekly stats, and season totals
+    """
+    try:
+        # Get player info from cache first
+        player_data = get_player_by_id(player_id)
+        if not player_data:
+            return {
+                "error": f"Player with ID {player_id} not found",
+                "player_id": player_id,
+            }
+
+        # Get current season and week info
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            state_response = await client.get(f"{BASE_URL}/state/nfl")
+            state_response.raise_for_status()
+            state = state_response.json()
+
+            current_season = season or str(state.get("season", datetime.now().year))
+            current_week = state.get("week", 1)
+
+        logger.info(
+            f"Fetching all weeks stats for player {player_id} in season {current_season} (up to week {current_week})"
+        )
+
+        # Prepare response structure
+        result = {
+            "player_id": player_id,
+            "player_info": {
+                "name": player_data.get("full_name", "Unknown"),
+                "position": player_data.get("position"),
+                "team": player_data.get("team"),
+                "status": player_data.get("status"),
+            },
+            "season": int(current_season),
+            "weeks_fetched": current_week,
+            "weekly_stats": {},
+            "totals": {
+                "fantasy_points": 0.0,
+                "games_played": 0,
+            },
+        }
+
+        # Import the filter function from cache_client
+        from cache_client import filter_ppr_relevant_stats
+
+        # Fetch stats for all weeks concurrently
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # Create tasks for all weeks
+            tasks = []
+            for week in range(1, current_week + 1):
+                url = f"{BASE_URL}/stats/nfl/regular/{current_season}/{week}"
+                tasks.append(client.get(url))
+
+            # Execute all requests concurrently
+            responses = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # Process each week's response
+            for week_num, response in enumerate(responses, start=1):
+                if isinstance(response, Exception):
+                    logger.warning(f"Failed to fetch week {week_num}: {response}")
+                    continue
+
+                try:
+                    response.raise_for_status()
+                    week_stats = response.json()
+
+                    # Filter to PPR-relevant stats
+                    filtered_stats = filter_ppr_relevant_stats(week_stats)
+
+                    # Check if player has stats for this week
+                    if player_id in filtered_stats:
+                        player_week_stats = filtered_stats[player_id]
+
+                        # Extract fantasy points
+                        fantasy_points = player_week_stats.get("fantasy_points", 0)
+
+                        # Separate game stats from fantasy points
+                        game_stats = {
+                            k: v
+                            for k, v in player_week_stats.items()
+                            if k != "fantasy_points"
+                        }
+
+                        # Add to weekly stats
+                        result["weekly_stats"][str(week_num)] = {
+                            "fantasy_points": round(fantasy_points, 2),
+                            "game_stats": game_stats if game_stats else None,
+                        }
+
+                        # Update totals
+                        result["totals"]["fantasy_points"] += fantasy_points
+                        result["totals"]["games_played"] += 1
+
+                        # Aggregate game stats in totals
+                        for stat_key, stat_value in game_stats.items():
+                            if stat_key not in result["totals"]:
+                                result["totals"][stat_key] = 0
+                            result["totals"][stat_key] += stat_value
+
+                except Exception as e:
+                    logger.error(f"Error processing week {week_num}: {e}")
+                    continue
+
+        # Round the total fantasy points
+        result["totals"]["fantasy_points"] = round(
+            result["totals"]["fantasy_points"], 2
+        )
+
+        # Round all numeric totals
+        for key, value in result["totals"].items():
+            if isinstance(value, float) and key != "games_played":
+                result["totals"][key] = round(value, 2)
+
+        logger.info(
+            f"Successfully fetched stats for player {player_id}: "
+            f"{result['totals']['games_played']} games played, "
+            f"{result['totals']['fantasy_points']} total fantasy points"
+        )
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error getting all weeks stats for player {player_id}: {e}")
+        return {
+            "error": f"Failed to get stats: {str(e)}",
+            "player_id": player_id,
+        }
+
+
+@mcp.tool()
 async def get_waiver_wire_players(
     position: Optional[str] = None,
     search_term: Optional[str] = None,
