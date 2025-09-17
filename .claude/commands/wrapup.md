@@ -75,6 +75,8 @@ Use these tools to gather accurate data:
    - Bench players and their scores
    - Team owner name and team name
 
+For the highest performing player on each team, use the scouting report subagent to compose a dosier and relay specific details about their performance in your report. 
+
 
 ### Include Real Stats
 When discussing standout performances, include actual stats where notable, such as catches, yards, etc. 
