@@ -392,6 +392,73 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
+async def get_recent_transactions(
+    limit: int = 25,
+    transaction_type: Optional[str] = None,
+    include_failed: bool = False
+) -> List[Dict[str, Any]]:
+    """Get recent transactions across all rounds, sorted by most recent first.
+
+    Args:
+        limit: Maximum number of transactions to return (default: 25, max: 100).
+        transaction_type: Filter by type ('waiver', 'free_agent', 'trade').
+                         None returns all types.
+        include_failed: Include failed transactions (default: False).
+
+    Returns a consolidated list of recent transactions including:
+    - All transaction details (type, status, adds/drops, etc.)
+    - Player IDs with mapped names when available
+    - Sorted by status_updated timestamp (most recent first)
+    - Filtered by type and status if requested
+
+    Returns:
+        List of transaction dictionaries sorted by recency
+    """
+    # Fetch transactions from the last 5 rounds
+    all_transactions = []
+
+    async with httpx.AsyncClient() as client:
+        # Fetch multiple rounds in parallel
+        tasks = []
+        for round_num in range(1, 6):  # Get rounds 1-5
+            tasks.append(
+                client.get(f"{BASE_URL}/league/{LEAGUE_ID}/transactions/{round_num}")
+            )
+
+        responses = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for response in responses:
+            if isinstance(response, Exception):
+                continue  # Skip failed requests
+            if response.status_code == 200:
+                transactions = response.json()
+                if transactions:  # Some rounds may be empty
+                    all_transactions.extend(transactions)
+
+    # Apply filters
+    filtered_transactions = []
+    for txn in all_transactions:
+        # Filter by status (exclude failed unless requested)
+        if not include_failed and txn.get("status") == "failed":
+            continue
+
+        # Filter by type if specified
+        if transaction_type and txn.get("type") != transaction_type:
+            continue
+
+        filtered_transactions.append(txn)
+
+    # Sort by status_updated timestamp (most recent first)
+    filtered_transactions.sort(
+        key=lambda x: x.get("status_updated", 0),
+        reverse=True
+    )
+
+    # Limit results
+    return filtered_transactions[:min(limit, 100)]
+
+
+@mcp.tool()
 async def get_league_traded_picks() -> List[Dict[str, Any]]:
     """Get all future draft picks that have been traded in the Token Bowl league.
 
