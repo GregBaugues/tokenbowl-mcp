@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the Token Bowl MCP server - a Model Context Protocol server for fantasy football leagues using the Sleeper Fantasy Sports API. Built with FastMCP, it defaults to the Token Bowl league (ID: `1266471057523490816`) but can be configured for any league via the `SLEEPER_LEAGUE_ID` environment variable. Provides 20 tools to interact with fantasy football data.
+This is the Token Bowl MCP server - a Model Context Protocol server for fantasy football leagues using the Sleeper Fantasy Sports API. Built with FastMCP, it defaults to the Token Bowl league (ID: `1266471057523490816`) but can be configured for any league via the `SLEEPER_LEAGUE_ID` environment variable. Provides 21 tools to interact with fantasy football data.
 
 **Context**: This is part of the larger `tokenbowl` system - an LLM-powered fantasy football league management system. 
 
@@ -136,7 +136,7 @@ The project is configured for Render deployment via `render.yaml`. When pushing 
 
 ### Core Components
 
-1. **sleeper_mcp.py**: Single-file MCP server implementation (20 tools)
+1. **sleeper_mcp.py**: Single-file MCP server implementation (21 tools)
    - Uses FastMCP framework for tool definitions
    - All tools are async functions decorated with `@mcp.tool()`
    - `LEAGUE_ID` from environment variable `SLEEPER_LEAGUE_ID` (default: `1266471057523490816`)
@@ -174,7 +174,7 @@ The project is configured for Render deployment via `render.yaml`. When pushing 
 
 ## Available Tools
 
-The server exposes 20 Sleeper API endpoints as MCP tools:
+The server exposes 21 Sleeper API endpoints as MCP tools:
 - **League operations**: info, rosters, users, matchups, transactions, traded picks, drafts, playoffs
 - **User operations**: profile, leagues, drafts
 - **Player data**: all NFL players (cached), trending adds/drops, search by name/ID
