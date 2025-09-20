@@ -375,20 +375,60 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
 
     Returns transaction details including:
     - Transaction type (waiver, free_agent, trade)
-    - Players added and dropped with roster IDs
+    - Players added and dropped with full player data from cache
+    - Each player includes name, team, position, and all cached stats/projections
     - FAAB bid amounts (if applicable)
     - Transaction status and timestamps
     - Trade details if applicable
 
     Returns:
-        List of transaction dictionaries for the specified round
+        List of transaction dictionaries for the specified round with enriched player data
     """
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"{BASE_URL}/league/{LEAGUE_ID}/transactions/{round}"
         )
         response.raise_for_status()
-        return response.json()
+        transactions = response.json()
+
+    # Get player data from cache for enrichment
+    from cache_client import get_player_by_id
+
+    # Enrich transactions with player data
+    for txn in transactions:
+        # Enrich "adds" with full player data
+        if txn.get("adds"):
+            enriched_adds = {}
+            for player_id, roster_id in txn["adds"].items():
+                player_data = get_player_by_id(player_id)
+                enriched_adds[player_id] = {
+                    "roster_id": roster_id,
+                    "player_name": player_data.get("full_name")
+                    if player_data
+                    else "Unknown",
+                    "team": player_data.get("team") if player_data else None,
+                    "position": player_data.get("position") if player_data else None,
+                    "player_data": player_data,  # Full cache data
+                }
+            txn["adds"] = enriched_adds
+
+        # Enrich "drops" with full player data
+        if txn.get("drops"):
+            enriched_drops = {}
+            for player_id, roster_id in txn["drops"].items():
+                player_data = get_player_by_id(player_id)
+                enriched_drops[player_id] = {
+                    "roster_id": roster_id,
+                    "player_name": player_data.get("full_name")
+                    if player_data
+                    else "Unknown",
+                    "team": player_data.get("team") if player_data else None,
+                    "position": player_data.get("position") if player_data else None,
+                    "player_data": player_data,  # Full cache data
+                }
+            txn["drops"] = enriched_drops
+
+    return transactions
 
 
 @mcp.tool()
@@ -407,12 +447,12 @@ async def get_recent_transactions(
 
     Returns a consolidated list of recent transactions including:
     - All transaction details (type, status, adds/drops, etc.)
-    - Player IDs with mapped names when available
+    - Players with full cache data including name, team, position, stats/projections
     - Sorted by status_updated timestamp (most recent first)
     - Filtered by type and status if requested
 
     Returns:
-        List of transaction dictionaries sorted by recency
+        List of transaction dictionaries sorted by recency with enriched player data
     """
     # Fetch transactions from the last 5 rounds
     all_transactions = []
@@ -435,7 +475,10 @@ async def get_recent_transactions(
                 if transactions:  # Some rounds may be empty
                     all_transactions.extend(transactions)
 
-    # Apply filters
+    # Get player data from cache for enrichment
+    from cache_client import get_player_by_id
+
+    # Apply filters and enrich with player data
     filtered_transactions = []
     for txn in all_transactions:
         # Filter by status (exclude failed unless requested)
@@ -445,6 +488,38 @@ async def get_recent_transactions(
         # Filter by type if specified
         if transaction_type and txn.get("type") != transaction_type:
             continue
+
+        # Enrich "adds" with full player data
+        if txn.get("adds"):
+            enriched_adds = {}
+            for player_id, roster_id in txn["adds"].items():
+                player_data = get_player_by_id(player_id)
+                enriched_adds[player_id] = {
+                    "roster_id": roster_id,
+                    "player_name": player_data.get("full_name")
+                    if player_data
+                    else "Unknown",
+                    "team": player_data.get("team") if player_data else None,
+                    "position": player_data.get("position") if player_data else None,
+                    "player_data": player_data,  # Full cache data
+                }
+            txn["adds"] = enriched_adds
+
+        # Enrich "drops" with full player data
+        if txn.get("drops"):
+            enriched_drops = {}
+            for player_id, roster_id in txn["drops"].items():
+                player_data = get_player_by_id(player_id)
+                enriched_drops[player_id] = {
+                    "roster_id": roster_id,
+                    "player_name": player_data.get("full_name")
+                    if player_data
+                    else "Unknown",
+                    "team": player_data.get("team") if player_data else None,
+                    "position": player_data.get("position") if player_data else None,
+                    "player_data": player_data,  # Full cache data
+                }
+            txn["drops"] = enriched_drops
 
         filtered_transactions.append(txn)
 
