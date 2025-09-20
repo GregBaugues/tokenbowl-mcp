@@ -156,7 +156,7 @@ The server uses Redis to cache NFL player data (5MB+ dataset) with intelligent f
 
 ## 📚 API Documentation
 
-### League Operations (8 tools)
+### League Operations (9 tools)
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
@@ -165,6 +165,7 @@ The server uses Redis to cache NFL player data (5MB+ dataset) with intelligent f
 | `get_league_users()` | Get all league members | None |
 | `get_league_matchups(week)` | Get matchups for specific week | `week: int` |
 | `get_league_transactions(round)` | Get waiver/trade transactions | `round: int` (default: 1) |
+| `get_recent_transactions(limit, type, include_failed)` | Get recent transactions across all rounds | `limit: int` (default: 25), `transaction_type: str` (optional), `include_failed: bool` (default: False) |
 | `get_league_traded_picks()` | Get all traded draft picks | None |
 | `get_league_drafts()` | Get league draft history | None |
 | `get_league_winners_bracket()` | Get playoff bracket | None |
