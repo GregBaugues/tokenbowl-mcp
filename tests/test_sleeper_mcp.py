@@ -136,6 +136,35 @@ class TestLeagueTools:
             assert "transaction_id" in result[0]
             assert "type" in result[0]
 
+    @pytest.mark.asyncio
+    @pytest.mark.vcr()
+    async def test_get_recent_transactions(self):
+        """Test getting recent transactions across multiple rounds."""
+        # Test default behavior
+        result = await sleeper_mcp.get_recent_transactions.fn()
+
+        assert isinstance(result, list)
+
+        # Check that results are sorted by recency if we have multiple transactions
+        if len(result) > 1:
+            timestamps = [tx.get("status_updated", 0) for tx in result]
+            assert timestamps == sorted(timestamps, reverse=True), "Transactions should be sorted by recency"
+
+        # Test with specific filters
+        waiver_only = await sleeper_mcp.get_recent_transactions.fn(transaction_type="waiver")
+        assert all(tx.get("type") == "waiver" for tx in waiver_only), "Should only return waiver transactions"
+
+        # Test with limit
+        limited = await sleeper_mcp.get_recent_transactions.fn(limit=5)
+        assert len(limited) <= 5, "Should respect limit parameter"
+
+        # Test including failed transactions
+        with_failed = await sleeper_mcp.get_recent_transactions.fn(include_failed=True)
+        failed_count = sum(1 for tx in with_failed if tx.get("status") == "failed")
+        without_failed = await sleeper_mcp.get_recent_transactions.fn(include_failed=False)
+        failed_excluded = sum(1 for tx in without_failed if tx.get("status") == "failed")
+        assert failed_excluded == 0, "Should not include failed transactions by default"
+
 
 class TestUserTools:
     """Test user-related MCP tools."""
