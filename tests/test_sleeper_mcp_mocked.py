@@ -183,7 +183,7 @@ class TestLeagueToolsMocked:
                 "status_updated": 1757100000,  # Middle
                 "adds": {"345": 3},
                 "drops": {"678": 3},
-            }
+            },
         ]
 
         with patch("httpx.AsyncClient") as mock_client:
@@ -211,11 +211,15 @@ class TestLeagueToolsMocked:
                 assert result[1]["transaction_id"] == "1"
 
                 # Test with include_failed=True
-                result = await sleeper_mcp.get_recent_transactions.fn(include_failed=True)
+                result = await sleeper_mcp.get_recent_transactions.fn(
+                    include_failed=True
+                )
                 assert len(result) == 3
 
                 # Test with transaction_type filter
-                result = await sleeper_mcp.get_recent_transactions.fn(transaction_type="waiver")
+                result = await sleeper_mcp.get_recent_transactions.fn(
+                    transaction_type="waiver"
+                )
                 assert len(result) == 1
                 assert result[0]["type"] == "waiver"
 

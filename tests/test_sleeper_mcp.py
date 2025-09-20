@@ -148,11 +148,17 @@ class TestLeagueTools:
         # Check that results are sorted by recency if we have multiple transactions
         if len(result) > 1:
             timestamps = [tx.get("status_updated", 0) for tx in result]
-            assert timestamps == sorted(timestamps, reverse=True), "Transactions should be sorted by recency"
+            assert timestamps == sorted(timestamps, reverse=True), (
+                "Transactions should be sorted by recency"
+            )
 
         # Test with specific filters
-        waiver_only = await sleeper_mcp.get_recent_transactions.fn(transaction_type="waiver")
-        assert all(tx.get("type") == "waiver" for tx in waiver_only), "Should only return waiver transactions"
+        waiver_only = await sleeper_mcp.get_recent_transactions.fn(
+            transaction_type="waiver"
+        )
+        assert all(tx.get("type") == "waiver" for tx in waiver_only), (
+            "Should only return waiver transactions"
+        )
 
         # Test with limit
         limited = await sleeper_mcp.get_recent_transactions.fn(limit=5)
@@ -160,10 +166,20 @@ class TestLeagueTools:
 
         # Test including failed transactions
         with_failed = await sleeper_mcp.get_recent_transactions.fn(include_failed=True)
-        failed_count = sum(1 for tx in with_failed if tx.get("status") == "failed")
-        without_failed = await sleeper_mcp.get_recent_transactions.fn(include_failed=False)
-        failed_excluded = sum(1 for tx in without_failed if tx.get("status") == "failed")
+        without_failed = await sleeper_mcp.get_recent_transactions.fn(
+            include_failed=False
+        )
+
+        # Verify failed transactions are excluded by default
+        failed_excluded = sum(
+            1 for tx in without_failed if tx.get("status") == "failed"
+        )
         assert failed_excluded == 0, "Should not include failed transactions by default"
+
+        # When including failed, we should have at least as many transactions
+        assert len(with_failed) >= len(without_failed), (
+            "Including failed should have at least as many transactions"
+        )
 
 
 class TestUserTools:

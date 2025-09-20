@@ -395,7 +395,7 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
 async def get_recent_transactions(
     limit: int = 25,
     transaction_type: Optional[str] = None,
-    include_failed: bool = False
+    include_failed: bool = False,
 ) -> List[Dict[str, Any]]:
     """Get recent transactions across all rounds, sorted by most recent first.
 
@@ -449,13 +449,10 @@ async def get_recent_transactions(
         filtered_transactions.append(txn)
 
     # Sort by status_updated timestamp (most recent first)
-    filtered_transactions.sort(
-        key=lambda x: x.get("status_updated", 0),
-        reverse=True
-    )
+    filtered_transactions.sort(key=lambda x: x.get("status_updated", 0), reverse=True)
 
     # Limit results
-    return filtered_transactions[:min(limit, 100)]
+    return filtered_transactions[: min(limit, 100)]
 
 
 @mcp.tool()
