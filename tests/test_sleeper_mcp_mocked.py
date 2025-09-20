@@ -195,37 +195,37 @@ class TestLeagueToolsMocked:
             for round_data in [mock_round1, mock_round2, [], [], []]:  # 5 rounds total
                 mock_resp = AsyncMock()
                 mock_resp.status_code = 200
-                mock_resp.json.return_value = round_data
+                # Make json() return the data directly, not a coroutine
+                mock_resp.json = lambda data=round_data: data
                 mock_responses.append(mock_resp)
 
-            # Mock gather to return all responses
-            with patch("asyncio.gather") as mock_gather:
-                mock_gather.return_value = mock_responses
+            # Set up the mock to return responses in order
+            mock_instance.get = AsyncMock(side_effect=mock_responses)
 
-                # Test default behavior
-                result = await sleeper_mcp.get_recent_transactions.fn()
+            # Test default behavior
+            result = await sleeper_mcp.get_recent_transactions.fn()
 
-                assert isinstance(result, list)
-                assert len(result) == 2  # Should exclude failed by default
-                assert result[0]["transaction_id"] == "2"  # Newest first
-                assert result[1]["transaction_id"] == "1"
+            assert isinstance(result, list)
+            assert len(result) == 2  # Should exclude failed by default
+            assert result[0]["transaction_id"] == "2"  # Newest first
+            assert result[1]["transaction_id"] == "1"
 
-                # Test with include_failed=True
-                result = await sleeper_mcp.get_recent_transactions.fn(
-                    include_failed=True
-                )
-                assert len(result) == 3
+            # Test with include_failed=True
+            result = await sleeper_mcp.get_recent_transactions.fn(
+                include_failed=True
+            )
+            assert len(result) == 3
 
-                # Test with transaction_type filter
-                result = await sleeper_mcp.get_recent_transactions.fn(
-                    transaction_type="waiver"
-                )
-                assert len(result) == 1
-                assert result[0]["type"] == "waiver"
+            # Test with transaction_type filter
+            result = await sleeper_mcp.get_recent_transactions.fn(
+                transaction_type="waiver"
+            )
+            assert len(result) == 1
+            assert result[0]["type"] == "waiver"
 
-                # Test with limit
-                result = await sleeper_mcp.get_recent_transactions.fn(limit=1)
-                assert len(result) == 1
+            # Test with limit
+            result = await sleeper_mcp.get_recent_transactions.fn(limit=1)
+            assert len(result) == 1
 
 
 class TestUserToolsMocked:
