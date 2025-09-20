@@ -10,6 +10,11 @@ Analyze waiver wire opportunities for Bill Beliclaude (Roster ID 2) in the Token
 - Identify the players who are weak, who could be dropped. 
 - We will hold Josh Allen for the season. 
 
+### 0.5 Look at recent drops
+- review league transactions
+- use the scouting agent to create a dossier on any player dropped in the last 7 days
+- identify if any of those players should be candidates to be added
+
 ### 1. Identify Top Waiver Targets
 - Query waiver wire for our positions of need. 
 - Focus on players with:

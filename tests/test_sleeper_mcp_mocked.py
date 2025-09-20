@@ -211,9 +211,7 @@ class TestLeagueToolsMocked:
             assert result[1]["transaction_id"] == "1"
 
             # Test with include_failed=True
-            result = await sleeper_mcp.get_recent_transactions.fn(
-                include_failed=True
-            )
+            result = await sleeper_mcp.get_recent_transactions.fn(include_failed=True)
             assert len(result) == 3
 
             # Test with transaction_type filter
