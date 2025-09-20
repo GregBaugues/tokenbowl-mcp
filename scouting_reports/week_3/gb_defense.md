@@ -1,31 +1,35 @@
-# Green Bay Defense Scouting Report - Week 3
+# Green Bay Defense - DEF, GB
 
-**Player Overview**: DEF, GB, Elite Unit
+## Player Overview
+- Position: Defense/Special Teams
+- Team: Green Bay Packers
+- Current Fantasy Ranking: DST5 in PPG (7.5)
 
 ## Season Performance
-- Week 1: 10 points (vs DET - held to 13 pts, 4 sacks, 1 TO)
-- Week 2: 5 points (vs WAS - 4 sacks)
+- Week 1: 10 points vs DET (13 pts allowed, 4 sacks, 1 TO)
+- Week 2: 5 points vs WAS (4 sacks)
 - Season Average: 7.5 PPG
-- Consistency: High floor with elite metrics
+- Consistency Rating: HIGH - elite metrics
 
-## Recent Form
+## Recent Form (Last 2 Games)
 - 8 sacks through 2 games (T-2nd in NFL)
-- Shut down two top offenses (Lions, Commanders)
-- Added Micah Parsons before season
+- Held Lions to 13 points Week 1
+- Dominating rushing defense (2nd in NFL)
 
 ## Data
-- Rankings: 3rd total defense, 2nd rush defense, 5th scoring defense
-- EPA: 1st in EPA allowed per play
-- Pass rush: 7th in PFF Pass Rush Productivity Rate
-- Matchup: vs CLE (T-2nd most INTs thrown)
+- Historical fantasy points: 15 total (2 games)
+- Relevant stats: 8 sacks, 1 TO, 29 pts allowed
+- Week 3 projection: 11.0 pts
+- Matchup difficulty: 2/10 (CLE struggling offense)
 
 ## News & Context
-- Browns 6th-most fantasy points allowed to DSTs
-- Cleveland immobile QB, limited playmakers
-- Browns offense averaging just 45 rush YPG allowed
-- Set-and-forget elite defense (46% Yahoo ownership)
+- Browns 6th-most fantasy pts allowed to DSTs
+- Cleveland T-2nd most INTs thrown
+- GB 1st in EPA allowed per play
+- Browns averaging just 45 rush YPG
 
 ## Fantasy Verdict
-- **START with HIGHEST confidence - DST1 for Week 3**
-- Elite metrics + prime matchup = top fantasy defense
-- Consider season-long hold given consistent performance
+- **DST1 with HIGHEST confidence - Must start**
+- Elite defense vs struggling offense = smash spot
+
+**Matchup: 2/10** | **Projected: 11.0** | **Rec: START** | **Summary: Elite DST1 play vs CLE**

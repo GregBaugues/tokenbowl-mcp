@@ -1,30 +1,35 @@
-# Jahmyr Gibbs Scouting Report - Week 3
+# Jahmyr Gibbs - RB, DET
 
-**Player Overview**: RB, DET, Elite RB1
+## Player Overview
+- Position: RB
+- Team: Detroit Lions
+- Current Fantasy Ranking: RB10 in PPG (17.2)
 
 ## Season Performance
-- Week 1: 15.0 points (9 car/19 yds, 10 rec/31 yds)
-- Week 2: 19.4 points (12 car/94 yds/1 TD, 3 rec/10 yds)
-- Season Average: 17.2 PPG, 100% target catch rate
-- Consistency: High - delivered RB1 numbers both weeks
+- Week 1: 15.0 points (9 car, 19 yds, 10 rec, 31 yds)
+- Week 2: 19.4 points (12 car, 94 yds, 1 TD, 3 rec, 10 yds)
+- Season Average: 17.2 PPG
+- Consistency Rating: HIGH - elite floor and ceiling
 
-## Recent Form
-- Bounced back strong after slow Week 1 rushing (2.1 YPC)
-- Week 2 explosion: 94 rushing yards including 42-yard breakaway
-- Perfect 13/13 on targets through 2 games - elite hands
+## Recent Form (Last 2 Games)
+- Week 2 explosion: 94 rushing yards, 42-yard breakaway
+- Perfect 13/13 on targets - elite pass-catcher
+- 5.4 YPC overall despite slow Week 1 start
 
 ## Data
-- Historical: 34.4 total points, 21 carries, 113 rush yds, 13 rec, 41 rec yds, 1 TD
-- Projections: Not available from Fantasy Nerds
-- Matchup: @ BAL (17th-ranked run defense, 111.5 YPG allowed)
-- Game Environment: Monday Night Football, projected shootout
+- Historical fantasy points: 34.4 total (2 games)
+- Relevant stats: 21 car, 113 yds, 1 TD, 13 rec, 41 yds
+- Week 3 projection: 19.7 pts (Low: 16.2, High: 21.5)
+- Matchup difficulty: 5/10 (BAL 17th vs run, allows 111.5 YPG)
 
 ## News & Context
-- Lions-Ravens expected to be high-scoring primetime affair
-- Ravens vulnerable: allowed 6.1 YPC to Judkins debut
-- Gibbs led league with 16 rushing TDs in 2024
-- Splits backfield but maintains elite efficiency despite Montgomery presence
+- Monday Night Football vs Ravens - potential shootout
+- Ravens allowed 6.1 YPC to Judkins in debut
+- Lions projected for only 22.75 points (below average)
+- Averages 23.6 PPR when Lions score 30+ (14.3 when under)
 
 ## Fantasy Verdict
-- **START with HIGH confidence** - Locked-in RB1
-- Prime-time shootout favors multiple scoring opportunities despite timeshare
+- **RB1 with HIGH confidence - Must start**
+- Elite talent in primetime with shootout potential
+
+**Matchup: 5/10** | **Projected: 19.7** | **Rec: START** | **Summary: Elite RB1 in MNF shootout**

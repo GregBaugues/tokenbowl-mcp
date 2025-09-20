@@ -1,31 +1,35 @@
-# Chris Olave Scouting Report - Week 3
+# Chris Olave - WR, NO
 
-**Player Overview**: WR, NO, Volume leader with QB issues
+## Player Overview
+- Position: WR
+- Team: New Orleans Saints
+- Current Fantasy Ranking: WR45 in PPG (11.9)
 
 ## Season Performance
-- Week 1: 12.4 points (7 rec/54 yds on 13 targets)
-- Week 2: 11.4 points (6 rec/54 yds on 10 targets)
+- Week 1: 12.4 points (7 rec, 54 yds on 13 targets)
+- Week 2: 11.4 points (6 rec, 54 yds on 10 targets)
 - Season Average: 11.9 PPG
-- Consistency: Safe floor, no ceiling
+- Consistency Rating: MODERATE - safe floor, no ceiling
 
-## Recent Form
-- 23 targets through 2 games (team leader)
-- Fewest yards of any player with 20+ targets
-- Spencer Rattler limiting upside significantly
+## Recent Form (Last 2 Games)
+- Team-leading 23 targets through 2 games
+- Only 108 yards - lowest of any 20+ target WR
+- Spencer Rattler limiting upside (0-2 as starter)
 
 ## Data
-- Historical: 23.8 total points, 13 rec/108 yds on 23 targets, 0 TDs
-- Target share: Elite volume, poor efficiency
-- Matchup: @ SEA (2nd-fewest yards to WRs allowed)
-- SEA defense: Lowest passer rating, completion % when targeted
+- Historical fantasy points: 23.8 total (2 games)
+- Relevant stats: 13 rec, 108 yds, 0 TD on 23 targets (56.5%)
+- Week 3 projection: 14.3 pts (Low: 9.8, High: 18.8)
+- Matchup difficulty: 9/10 (SEA allows fewest pts to WRs)
 
 ## News & Context
-- Facing elite SEA secondary (Woolen, Witherspoon, Jobe)
-- Rattler's limitations capping Olave's production
-- ESPN lists as "matchup to avoid" Week 3
-- 1.43 YPRR despite high target volume
+- Faces elite SEA secondary (Woolen, Witherspoon, Jobe)
+- SEA allows 2nd-fewest yards to WRs
+- Rattler struggling: 52% completion, 0-2 record
+- Saints 7-point road underdogs
 
 ## Fantasy Verdict
-- **SIT with HIGH confidence**
-- Brutal matchup + QB play = avoid despite volume
-- Keep on bench, don't drop - better days ahead
+- **SIT with HIGH confidence** - Confidence: HIGH
+- Elite target share negated by brutal matchup + QB
+
+**Matchup: 9/10** | **Projected: 14.3** | **Rec: SIT** | **Summary: Avoid despite volume - brutal matchup**
