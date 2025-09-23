@@ -437,7 +437,7 @@ async def get_recent_transactions(
     transaction_type: Optional[str] = None,
     include_failed: bool = False,
 ) -> List[Dict[str, Any]]:
-    """Get recent transactions across all rounds, sorted by most recent first.
+    """Get recent transactions from the last 7 days, sorted by most recent first.
 
     Args:
         limit: Maximum number of transactions to return (default: 25, max: 100).
@@ -446,6 +446,7 @@ async def get_recent_transactions(
         include_failed: Include failed transactions (default: False).
 
     Returns a consolidated list of recent transactions including:
+    - Only transactions from the last 7 days
     - All transaction details (type, status, adds/drops, etc.)
     - Players with full cache data including name, team, position, stats/projections
     - Sorted by status_updated timestamp (most recent first)
@@ -454,6 +455,12 @@ async def get_recent_transactions(
     Returns:
         List of transaction dictionaries sorted by recency with enriched player data
     """
+    # Calculate timestamp for 7 days ago (milliseconds)
+    from datetime import datetime, timedelta
+
+    seven_days_ago = datetime.now() - timedelta(days=7)
+    seven_days_ago_ms = int(seven_days_ago.timestamp() * 1000)
+
     # Fetch transactions from the last 5 rounds
     all_transactions = []
 
@@ -473,7 +480,11 @@ async def get_recent_transactions(
             if response.status_code == 200:
                 transactions = response.json()
                 if transactions:  # Some rounds may be empty
-                    all_transactions.extend(transactions)
+                    # Filter for transactions from last 7 days
+                    for txn in transactions:
+                        status_updated = txn.get("status_updated", 0)
+                        if status_updated >= seven_days_ago_ms:
+                            all_transactions.append(txn)
 
     # Get player data from cache for enrichment
     from cache_client import get_player_by_id
