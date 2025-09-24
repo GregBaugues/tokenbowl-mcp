@@ -1,35 +1,31 @@
-# DJ Moore - WR, CHI
+# DJ Moore - WR, Chicago Bears
+**Week 3 Scouting Report**
 
 ## Player Overview
-- Position: WR
-- Team: Chicago Bears
-- Current Fantasy Ranking: WR58 in PPG (9.1)
+- Position: WR | Team: CHI | Ranking: WR45
 
 ## Season Performance
-- Week 1: 8.6 points (3 rec, 68 yds, 3 rush/8 yds, 1 fumble lost)
-- Week 2: 9.6 points (5 rec, 46 yds on 6 targets)
-- Season Average: 9.1 PPG
-- Consistency Rating: MODERATE - steady floor
+- Week 1: 8.6 pts (3 rec, 68 yds, 8 rush yds, 1 fumble)
+- Week 2: 9.6 pts (5 rec, 46 yds)
+- Season Avg: 9.1 PPG | Consistency: MODERATE
 
-## Recent Form (Last 2 Games)
-- Declining target share: Only 11 targets through 2 games
-- Rome Odunze emerging as primary (20 targets)
-- First-read share dropped to 19% (vs Odunze 33%)
+## Recent Form
+- Relegated to WR2 role behind Rome Odunze (20 targets vs 11)
+- Steady floor but limited ceiling without target priority
+- 8-114-0 line on 11 targets through 2 games
 
 ## Data
-- Historical fantasy points: 18.2 total (2 games)
-- Relevant stats: 8 rec, 114 yds, 0 TD on 11 targets
-- Week 3 projection: 14.1 pts (Low: 12.6, High: 20.1)
-- Matchup difficulty: 3/10 (DAL ranked 30th vs pass)
+**Historical Points:** W1: 8.6, W2: 9.6
+**Key Stats:** 8 rec on 11 targets (72.7%), 114 yds, 0 TD
+**Week 3 Projection:** 14.1 pts (Low: 12.6, High: 20.1)
+**Matchup:** vs DAL - Cowboys allowing 283 pass yds/game (worst in NFC)
 
 ## News & Context
-- Playing through abdomen/groin (full practice Wed)
-- Rome Odunze has taken over as Bears' WR1
-- Dallas allows most yards and 3rd-most TDs to WRs
-- Moore's role diminished but matchup is elite
+- DAL defense torched by NYG for 450 pass yds Week 2
+- Bears at home, high-scoring game expected (50.5 O/U)
+- Caleb Williams improving weekly, DAL weak vs WRs
+- No significant injury concerns
 
 ## Fantasy Verdict
-- **WR3 with upside in great matchup** - Confidence: MEDIUM
-- Reduced role concerning but DAL defense exploitable
-
-**Matchup: 3/10** | **Projected: 14.1** | **Rec: FLEX/START** | **Summary: Great matchup despite reduced role**
+- **START as WR3** - Elite matchup offsets target concerns (Medium confidence)
+- Monitor target distribution vs Odunze moving forward
