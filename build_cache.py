@@ -387,9 +387,39 @@ def enrich_and_filter_players(
 ) -> Dict:
     """Enrich Sleeper players with Fantasy Nerds data and current week stats.
     Only includes active players on NFL teams (excludes free agents and retired players).
-    Creates a consistent stats structure with both projected and actual data."""
+    Creates a consistent stats structure with both projected and actual data.
+    Filters to only include specified fields to reduce context size."""
     enriched = {}
     fantasy_positions = {"QB", "RB", "WR", "TE", "K", "DEF"}
+
+    # Define the fields to keep
+    fields_to_keep = {
+        "team",
+        "practice_description",
+        "search_first_name",
+        "active",
+        "injury_start_date",
+        "first_name",
+        "player_id",
+        "status",
+        "news_updated",
+        "team_changed_at",
+        "last_name",
+        "search_full_name",
+        "search_last_name",
+        "full_name",
+        "depth_chart_order",
+        "injury_status",
+        "depth_chart_position",
+        "age",
+        "injury_body_part",
+        "team_abbr",
+        "position",
+        "injury_notes",
+        "fantasy_positions",
+        "hashtag",
+        "count",
+    }
 
     for sleeper_id, player in sleeper_players.items():
         position = player.get("position", "")
@@ -407,8 +437,14 @@ def enrich_and_filter_players(
         if not player.get("team"):
             continue
 
+        # Build filtered player object with only specified fields
+        filtered_player = {}
+        for field in fields_to_keep:
+            if field in player:
+                filtered_player[field] = player[field]
+
         # Create the new stats structure
-        player["stats"] = {"projected": None, "actual": None}
+        filtered_player["stats"] = {"projected": None, "actual": None}
 
         # Add Fantasy Nerds projections data
         if sleeper_id in mapping:
@@ -429,7 +465,7 @@ def enrich_and_filter_players(
                             proj.get("proj_pts_high", fantasy_points)
                         )
 
-                        player["stats"]["projected"] = {
+                        filtered_player["stats"]["projected"] = {
                             "fantasy_points": fantasy_points,
                             "fantasy_points_low": fantasy_points_low,
                             "fantasy_points_high": fantasy_points_high,
@@ -440,7 +476,7 @@ def enrich_and_filter_players(
                 # Keep other FFNerd data (injury, news) in the old location for now
                 # This maintains backward compatibility
                 if player_ffnerd_data:
-                    player["data"] = {
+                    filtered_player["data"] = {
                         "injury": player_ffnerd_data.get("injury"),
                         "news": player_ffnerd_data.get("news"),
                     }
@@ -461,14 +497,14 @@ def enrich_and_filter_players(
             # TODO: Could enhance this by checking game schedule
             game_status = "final" if fantasy_points else "not_started"
 
-            player["stats"]["actual"] = {
+            filtered_player["stats"]["actual"] = {
                 "fantasy_points": fantasy_points,
                 "game_stats": game_stats if game_stats else None,
                 "game_status": game_status,
             }
 
         # ALWAYS include the player, even without Fantasy Nerds data
-        enriched[sleeper_id] = player
+        enriched[sleeper_id] = filtered_player
 
     return enriched
 
