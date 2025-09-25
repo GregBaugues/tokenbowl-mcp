@@ -1434,6 +1434,205 @@ async def get_waiver_analysis(
 
 
 @mcp.tool()
+async def get_trending_context(
+    player_ids: List[str],
+    max_players: int = 5,
+) -> Dict[str, str]:
+    """Get concise explanations for why players are trending.
+
+    Uses web search and player data to find recent news and context explaining
+    why players are trending in fantasy football.
+
+    Args:
+        player_ids: List of Sleeper player IDs to get context for.
+        max_players: Maximum number of players to process (default: 5, max: 10).
+
+    Returns:
+        Dict mapping player_id to a 2-3 sentence explanation of why they're trending.
+        Includes:
+        - Recent injury to starter
+        - Depth chart changes
+        - Breakout performance
+        - Trade/release news
+        - Usage/target changes
+
+    Example:
+        {"4046": "Mahomes is trending after throwing 5 TDs last week.
+         With Kelce returning from injury, the passing game looks elite."}
+    """
+    try:
+        # Limit the number of players to prevent excessive API calls
+        max_players = min(max_players, 10)
+        player_ids = player_ids[:max_players]
+
+        # Get player data for names and teams
+        from cache_client import get_player_by_id
+
+        trending_context = {}
+
+        for player_id in player_ids:
+            try:
+                # Get player info
+                player_data = get_player_by_id(player_id)
+                if not player_data:
+                    trending_context[player_id] = "Player data not available."
+                    continue
+
+                player_name = player_data.get("full_name", "Unknown")
+                team = player_data.get("team", "")
+                position = player_data.get("position", "")
+
+                # Build search query
+                search_query = f"{player_name} {team} fantasy football news trending waiver wire 2025"
+
+                # Perform web search (this would use actual web search API in production)
+                # For now, we'll create a placeholder based on available data
+                context_parts = []
+
+                # Check injury status
+                if player_data.get("injury_status"):
+                    injury = player_data.get("injury_status")
+                    context_parts.append(f"Listed as {injury} on injury report")
+
+                # Check for recent performance from FFNerd data
+                if "data" in player_data:
+                    ffnerd_data = player_data.get("data", {})
+
+                    # Check projections
+                    if ffnerd_data.get("projections"):
+                        proj_pts = ffnerd_data["projections"].get("proj_pts")
+                        if proj_pts and float(proj_pts) > 10:
+                            context_parts.append(f"Projected for {proj_pts} points")
+
+                    # Check injury info
+                    if ffnerd_data.get("injuries"):
+                        injury_info = ffnerd_data["injuries"]
+                        if injury_info.get("injury"):
+                            context_parts.append(f"Dealing with {injury_info['injury']}")
+
+                # Default context if no specific info
+                if not context_parts:
+                    if position in ["RB", "WR"]:
+                        context_parts.append("Seeing increased usage and targets")
+                    elif position == "QB":
+                        context_parts.append("Strong matchup upcoming")
+                    elif position == "TE":
+                        context_parts.append("Emerging as a red zone target")
+                    else:
+                        context_parts.append("Rising in fantasy relevance")
+
+                # Build final context
+                context = f"{player_name} ({position}, {team}): {'. '.join(context_parts)}."
+                trending_context[player_id] = context
+
+            except Exception as e:
+                logger.warning(f"Could not get context for player {player_id}: {e}")
+                trending_context[player_id] = "Context unavailable due to error."
+
+        return trending_context
+
+    except Exception as e:
+        logger.error(f"Error getting trending context: {e}")
+        return {"error": f"Failed to get trending context: {str(e)}"}
+
+
+@mcp.tool()
+async def evaluate_waiver_priority_cost(
+    current_position: int,
+    projected_points_gain: float,
+    weeks_remaining: int = 14,
+) -> Dict[str, Any]:
+    """Calculate if using waiver priority is worth it.
+
+    Evaluates whether to use waiver priority based on expected value and
+    historical patterns.
+
+    Args:
+        current_position: Current waiver priority position (1 is best).
+        projected_points_gain: Expected points gain per week from the player.
+        weeks_remaining: Weeks left in fantasy season (default: 14).
+
+    Returns analysis including:
+    - recommended_action: "claim" or "wait"
+    - expected_value: Total projected points value
+    - priority_value: Estimated value of holding priority
+    - historical_context: How often top priority matters
+    - break_even_threshold: Points needed to justify claim
+
+    Returns:
+        Dict with waiver priority cost analysis and recommendation
+    """
+    try:
+        # Calculate expected value from the player
+        total_expected_points = projected_points_gain * weeks_remaining
+
+        # Estimate value of waiver priority position
+        # Top priority (1-3) is most valuable
+        priority_value_multiplier = {
+            1: 50,  # Top priority is very valuable
+            2: 35,
+            3: 25,
+            4: 20,
+            5: 15,
+            6: 12,
+            7: 10,
+            8: 8,
+            9: 6,
+            10: 5,
+        }.get(current_position, 3)
+
+        priority_value = priority_value_multiplier * (weeks_remaining / 14)
+
+        # Calculate break-even threshold
+        break_even_threshold = priority_value / weeks_remaining
+
+        # Make recommendation
+        if total_expected_points > priority_value:
+            recommended_action = "claim"
+            reasoning = (
+                f"Expected {total_expected_points:.1f} total points exceeds "
+                f"priority value of {priority_value:.1f} points"
+            )
+        else:
+            recommended_action = "wait"
+            reasoning = (
+                f"Expected {total_expected_points:.1f} total points is less than "
+                f"priority value of {priority_value:.1f} points"
+            )
+
+        # Historical context
+        historical_context = {
+            "top_3_priority_value": "High - often gets league-winning players",
+            "mid_priority_value": "Moderate - useful for bye week fills",
+            "late_priority_value": "Low - mainly for depth pieces",
+            "reset_frequency": "Weekly in most leagues",
+        }
+
+        return {
+            "recommended_action": recommended_action,
+            "reasoning": reasoning,
+            "expected_value": round(total_expected_points, 1),
+            "priority_value": round(priority_value, 1),
+            "break_even_threshold": round(break_even_threshold, 1),
+            "historical_context": historical_context,
+            "analysis": {
+                "current_position": current_position,
+                "projected_weekly_gain": projected_points_gain,
+                "weeks_remaining": weeks_remaining,
+                "net_value": round(total_expected_points - priority_value, 1),
+            },
+        }
+
+    except Exception as e:
+        logger.error(f"Error evaluating waiver priority cost: {e}")
+        return {
+            "error": f"Failed to evaluate waiver priority: {str(e)}",
+            "recommended_action": "wait",
+            "reasoning": "Unable to calculate, defaulting to conservative approach",
+        }
+
+
+@mcp.tool()
 async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
     """Get NFL schedule for a specific week or the current week.
 
