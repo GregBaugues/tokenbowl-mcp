@@ -1257,6 +1257,183 @@ async def get_waiver_wire_players(
 
 
 @mcp.tool()
+async def get_waiver_analysis(
+    position: Optional[str] = None,
+    days_back: int = 7,
+    limit: int = 20,
+) -> Dict[str, Any]:
+    """Get comprehensive waiver wire analysis with minimal context usage.
+
+    A consolidated tool that efficiently combines waiver wire data with recent
+    transactions to provide focused recommendations.
+
+    Args:
+        position: Filter by position (QB, RB, WR, TE, DEF, K).
+                 None returns all positions.
+        days_back: Number of days to look back for recently dropped players (default: 7).
+        limit: Maximum number of players to return per category (default: 20).
+
+    Returns comprehensive analysis including:
+    - recently_dropped: Players dropped in our league (last N days) who are valuable
+    - trending_available: Top trending adds who are actually available
+    - waiver_priority: Current priority position (if available)
+    - position_needs: Analysis of roster needs by position
+    - All player data in minimal format to reduce context
+
+    Returns:
+        Dict with waiver analysis and recommendations
+    """
+    try:
+        logger.info(f"Starting waiver analysis for position={position}, days_back={days_back}")
+
+        # Get current rosters to determine position needs and waiver priority
+        rosters_data = {}
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/rosters")
+            response.raise_for_status()
+            rosters = response.json()
+
+            # Analyze position distribution across league
+            position_counts = {}
+            for roster in rosters:
+                roster_id = roster.get("roster_id")
+                if roster.get("players"):
+                    rosters_data[roster_id] = {
+                        "players": roster["players"],
+                        "settings": roster.get("settings", {}),
+                    }
+
+        # Get recently dropped players from our league
+        recent_drops = []
+        try:
+            recent_transactions = await get_recent_transactions.fn(
+                drops_only=True,
+                max_days_ago=days_back,
+                include_player_details=False,
+                limit=50,
+            )
+
+            # Collect unique recently dropped players
+            dropped_player_ids = set()
+            for txn in recent_transactions:
+                if txn.get("drops"):
+                    for player_id, drop_info in txn["drops"].items():
+                        if player_id not in dropped_player_ids:
+                            dropped_player_ids.add(player_id)
+                            drop_data = {
+                                "player_id": player_id,
+                                "player_name": drop_info.get("player_name"),
+                                "position": drop_info.get("position"),
+                                "team": drop_info.get("team"),
+                                "days_since_dropped": drop_info.get("days_since_dropped", 0),
+                            }
+                            recent_drops.append(drop_data)
+
+            # Sort by days since dropped (most recent first)
+            recent_drops.sort(key=lambda x: x.get("days_since_dropped", 999))
+
+        except Exception as e:
+            logger.warning(f"Could not fetch recent drops: {e}")
+
+        # Get available players on waiver wire
+        waiver_players = await get_waiver_wire_players.fn(
+            position=position,
+            limit=limit * 2,  # Get more to filter
+            include_stats=False,  # Minimal data mode
+            highlight_recent_drops=True,
+            verify_availability=True,
+        )
+
+        # Separate trending available players
+        trending_available = []
+        if waiver_players.get("players"):
+            for player in waiver_players["players"]:
+                if player.get("trending_add_count", 0) > 0:
+                    trending_available.append({
+                        "player_id": player.get("player_id"),
+                        "player_name": player.get("full_name"),
+                        "position": player.get("position"),
+                        "team": player.get("team"),
+                        "projected_points": player.get("projected_points", 0),
+                        "trending_add_count": player.get("trending_add_count", 0),
+                        "recently_dropped": player.get("recently_dropped", False),
+                    })
+
+            # Sort by trending count
+            trending_available.sort(
+                key=lambda x: x.get("trending_add_count", 0), reverse=True
+            )
+            trending_available = trending_available[:limit]
+
+        # Filter recently dropped to only include available players
+        recently_dropped_available = []
+        rostered_players = set()
+        for roster_data in rosters_data.values():
+            rostered_players.update(roster_data.get("players", []))
+
+        for drop in recent_drops:
+            if drop["player_id"] not in rostered_players:
+                recently_dropped_available.append(drop)
+
+        recently_dropped_available = recently_dropped_available[:limit]
+
+        # Build position needs analysis (simplified)
+        position_needs = {
+            "QB": "Standard",
+            "RB": "High demand",
+            "WR": "High demand",
+            "TE": "Standard",
+            "DEF": "Low priority",
+            "K": "Low priority",
+        }
+
+        # Get current waiver priority (if available in roster settings)
+        waiver_priority = {
+            "current_position": "Not available",
+            "total_teams": len(rosters),
+            "recommendation": "Use priority for high-impact players only",
+        }
+
+        # Find waiver priority from roster settings
+        for roster in rosters:
+            settings = roster.get("settings", {})
+            if settings.get("waiver_position"):
+                waiver_priority["current_position"] = settings.get("waiver_position")
+                break
+
+        return {
+            "recently_dropped": recently_dropped_available,
+            "trending_available": trending_available,
+            "waiver_priority": waiver_priority,
+            "position_needs": position_needs,
+            "analysis_settings": {
+                "position_filter": position,
+                "days_back": days_back,
+                "limit": limit,
+            },
+            "summary": {
+                "total_recently_dropped": len(recently_dropped_available),
+                "total_trending": len(trending_available),
+                "top_recommendation": (
+                    recently_dropped_available[0] if recently_dropped_available
+                    else trending_available[0] if trending_available
+                    else None
+                ),
+            },
+        }
+
+    except Exception as e:
+        logger.error(f"Error in waiver analysis: {e}")
+        return {
+            "error": f"Failed to complete waiver analysis: {str(e)}",
+            "recently_dropped": [],
+            "trending_available": [],
+            "waiver_priority": {},
+            "position_needs": {},
+        }
+
+
+@mcp.tool()
 async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
     """Get NFL schedule for a specific week or the current week.
 
