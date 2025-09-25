@@ -436,6 +436,10 @@ async def get_recent_transactions(
     limit: int = 20,
     transaction_type: Optional[str] = None,
     include_failed: bool = False,
+    drops_only: bool = False,
+    min_days_ago: Optional[int] = None,
+    max_days_ago: Optional[int] = None,
+    include_player_details: bool = False,
 ) -> List[Dict[str, Any]]:
     """Get the most recent transactions, sorted by most recent first.
 
@@ -444,13 +448,18 @@ async def get_recent_transactions(
         transaction_type: Filter by type ('waiver', 'free_agent', 'trade').
                          None returns all types.
         include_failed: Include failed transactions (default: False).
+        drops_only: Return only transactions with drops (default: False).
+        min_days_ago: Minimum days ago for transactions (default: None).
+        max_days_ago: Maximum days ago for transactions (default: None).
+        include_player_details: Include full player details (default: False, minimal data).
 
     Returns a consolidated list of recent transactions including:
     - The most recent transactions (up to 20)
     - All transaction details (type, status, adds/drops, etc.)
-    - Players with basic info only (name, team, position) to reduce context
+    - Players with basic info only (name, team, position) by default
+    - Days since transaction for drops when drops_only=True
     - Sorted by status_updated timestamp (most recent first)
-    - Filtered by type and status if requested
+    - Filtered by type, status, and date range if requested
 
     Returns:
         List of transaction dictionaries sorted by recency with enriched player data
@@ -482,6 +491,9 @@ async def get_recent_transactions(
     # Get player data from cache for enrichment
     from cache_client import get_player_by_id
 
+    # Get current timestamp for date calculations
+    current_time = datetime.now()
+
     # Apply filters and enrich with player data
     filtered_transactions = []
     for txn in all_transactions:
@@ -493,36 +505,65 @@ async def get_recent_transactions(
         if transaction_type and txn.get("type") != transaction_type:
             continue
 
-        # Enrich "adds" with full player data
+        # Filter for drops only if requested
+        if drops_only and not txn.get("drops"):
+            continue
+
+        # Calculate days since transaction if we have a timestamp
+        days_since = None
+        if txn.get("status_updated"):
+            # Convert milliseconds to datetime
+            txn_time = datetime.fromtimestamp(txn["status_updated"] / 1000)
+            days_since = (current_time - txn_time).days
+
+            # Apply date range filters
+            if min_days_ago is not None and days_since < min_days_ago:
+                continue
+            if max_days_ago is not None and days_since > max_days_ago:
+                continue
+
+            # Add days_since to transaction
+            txn["days_since_transaction"] = days_since
+
+        # Enrich "adds" with player data
         if txn.get("adds"):
             enriched_adds = {}
             for player_id, roster_id in txn["adds"].items():
                 player_data = get_player_by_id(player_id)
-                enriched_adds[player_id] = {
+                enriched_add = {
                     "roster_id": roster_id,
                     "player_name": player_data.get("full_name")
                     if player_data
                     else "Unknown",
                     "team": player_data.get("team") if player_data else None,
                     "position": player_data.get("position") if player_data else None,
-                    # Removed player_data to reduce context size
                 }
+                # Include full details if requested
+                if include_player_details and player_data:
+                    enriched_add["player_data"] = player_data
+                enriched_adds[player_id] = enriched_add
             txn["adds"] = enriched_adds
 
-        # Enrich "drops" with full player data
+        # Enrich "drops" with player data
         if txn.get("drops"):
             enriched_drops = {}
             for player_id, roster_id in txn["drops"].items():
                 player_data = get_player_by_id(player_id)
-                enriched_drops[player_id] = {
+                enriched_drop = {
                     "roster_id": roster_id,
                     "player_name": player_data.get("full_name")
                     if player_data
                     else "Unknown",
                     "team": player_data.get("team") if player_data else None,
                     "position": player_data.get("position") if player_data else None,
-                    # Removed player_data to reduce context size
                 }
+                # Include full details if requested
+                if include_player_details and player_data:
+                    enriched_drop["player_data"] = player_data
+                # Add days since drop for drops_only mode
+                if drops_only and days_since is not None:
+                    enriched_drop["days_since_dropped"] = days_since
+                enriched_drops[player_id] = enriched_drop
             txn["drops"] = enriched_drops
 
         filtered_transactions.append(txn)
