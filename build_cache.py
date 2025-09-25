@@ -172,6 +172,19 @@ def fetch_fantasy_nerds_data() -> tuple[Dict, Dict, List]:
     return rankings, injuries, news
 
 
+def fetch_fantasy_nerds_ros() -> Dict:
+    """Fetch Rest of Season (ROS) projections from Fantasy Nerds."""
+    api_key = os.getenv("FFNERD_API_KEY")
+
+    print("Fetching Fantasy Nerds ROS projections...")
+    with httpx.Client(timeout=30.0) as client:
+        ros_resp = client.get(
+            f"https://api.fantasynerds.com/v1/nfl/ros?apikey={api_key}"
+        )
+        ros_resp.raise_for_status()
+        return ros_resp.json()
+
+
 def fetch_fantasy_nerds_players() -> List[Dict]:
     """Fetch Fantasy Nerds player list for ID mapping."""
     api_key = os.getenv("FFNERD_API_KEY")
@@ -324,7 +337,9 @@ def create_player_mappings(
     return sleeper_to_ffnerd
 
 
-def organize_ffnerd_data(rankings: Dict, injuries: Dict, news: List) -> Dict[str, Dict]:
+def organize_ffnerd_data(
+    rankings: Dict, injuries: Dict, news: List, ros: Dict
+) -> Dict[str, Dict]:
     """Organize Fantasy Nerds data by player ID."""
     ffnerd_data = {}
 
@@ -336,6 +351,7 @@ def organize_ffnerd_data(rankings: Dict, injuries: Dict, news: List) -> Dict[str
                 if player_id not in ffnerd_data:
                     ffnerd_data[player_id] = {
                         "projections": None,
+                        "ros_projections": None,
                         "injury": None,
                         "news": [],
                     }
@@ -350,6 +366,59 @@ def organize_ffnerd_data(rankings: Dict, injuries: Dict, news: List) -> Dict[str
                     "proj_pts_high": ranking.get("proj_pts_high"),
                 }
 
+    # Process ROS projections
+    if "projections" in ros:
+        for position, players in ros["projections"].items():
+            for player in players:
+                player_id = str(player.get("playerId"))
+                if player_id not in ffnerd_data:
+                    ffnerd_data[player_id] = {
+                        "projections": None,
+                        "ros_projections": None,
+                        "injury": None,
+                        "news": [],
+                    }
+
+                # Build ROS projection data based on position
+                ros_data = {
+                    "season": ros.get("season"),
+                    "position": player.get("position"),
+                    "team": player.get("team"),
+                    "proj_pts": player.get("proj_pts"),
+                }
+
+                # Add position-specific stats
+                if position == "QB":
+                    ros_data.update(
+                        {
+                            "passing_attempts": player.get("passing_attempts"),
+                            "passing_completions": player.get("passing_completions"),
+                            "passing_yards": player.get("passing_yards"),
+                            "passing_touchdowns": player.get("passing_touchdowns"),
+                            "passing_interceptions": player.get(
+                                "passing_interceptions"
+                            ),
+                            "rushing_attempts": player.get("rushing_attempts"),
+                            "rushing_yards": player.get("rushing_yards"),
+                            "rushing_touchdowns": player.get("rushing_touchdowns"),
+                        }
+                    )
+                elif position in ["RB", "WR", "TE"]:
+                    ros_data.update(
+                        {
+                            "rushing_attempts": player.get("rushing_attempts"),
+                            "rushing_yards": player.get("rushing_yards"),
+                            "rushing_touchdowns": player.get("rushing_touchdowns"),
+                            "receptions": player.get("receptions"),
+                            "receiving_yards": player.get("receiving_yards"),
+                            "receiving_touchdowns": player.get("receiving_touchdowns"),
+                            "targets": player.get("targets"),
+                            "fumbles": player.get("fumbles"),
+                        }
+                    )
+
+                ffnerd_data[player_id]["ros_projections"] = ros_data
+
     # Process injuries
     if "teams" in injuries:
         for team, team_injuries in injuries["teams"].items():
@@ -361,6 +430,7 @@ def organize_ffnerd_data(rankings: Dict, injuries: Dict, news: List) -> Dict[str
                 if player_id not in ffnerd_data:
                     ffnerd_data[player_id] = {
                         "projections": None,
+                        "ros_projections": None,
                         "injury": None,
                         "news": [],
                     }
@@ -496,6 +566,49 @@ def enrich_and_filter_players(
                     except (ValueError, TypeError):
                         pass
 
+                # Add ROS projections to the stats structure
+                if player_ffnerd_data and player_ffnerd_data.get("ros_projections"):
+                    ros = player_ffnerd_data["ros_projections"]
+                    try:
+                        # Convert string values to floats
+                        ros_fantasy_points = float(ros.get("proj_pts", 0))
+
+                        filtered_player["stats"]["ros_projected"] = {
+                            "fantasy_points": ros_fantasy_points,
+                            "season": ros.get("season"),
+                        }
+
+                        # Add position-specific ROS stats
+                        if position == "QB":
+                            filtered_player["stats"]["ros_projected"].update(
+                                {
+                                    "passing_yards": float(ros.get("passing_yards", 0)),
+                                    "passing_touchdowns": float(
+                                        ros.get("passing_touchdowns", 0)
+                                    ),
+                                    "rushing_yards": float(ros.get("rushing_yards", 0)),
+                                    "rushing_touchdowns": float(
+                                        ros.get("rushing_touchdowns", 0)
+                                    ),
+                                }
+                            )
+                        elif position in ["RB", "WR", "TE"]:
+                            filtered_player["stats"]["ros_projected"].update(
+                                {
+                                    "rushing_yards": float(ros.get("rushing_yards", 0)),
+                                    "receiving_yards": float(
+                                        ros.get("receiving_yards", 0)
+                                    ),
+                                    "receptions": float(ros.get("receptions", 0)),
+                                    "total_touchdowns": float(
+                                        ros.get("rushing_touchdowns", 0)
+                                    )
+                                    + float(ros.get("receiving_touchdowns", 0)),
+                                }
+                            )
+                    except (ValueError, TypeError):
+                        pass
+
                 # Keep other FFNerd data (injury, news) in the old location for now
                 # This maintains backward compatibility
                 if player_ffnerd_data:
@@ -610,6 +723,7 @@ def cache_players():
         sleeper_players = fetch_sleeper_players()
         ffnerd_players = fetch_fantasy_nerds_players()
         rankings, injuries, news = fetch_fantasy_nerds_data()
+        ros = fetch_fantasy_nerds_ros()  # Fetch ROS projections
 
         # Get current NFL week and fetch stats
         current_week, season = fetch_current_nfl_week()
@@ -622,9 +736,9 @@ def cache_players():
         # Create ID mappings
         mapping = create_player_mappings(sleeper_players, ffnerd_players)
 
-        # Organize Fantasy Nerds data
+        # Organize Fantasy Nerds data (now including ROS)
         print("Organizing Fantasy Nerds data...")
-        ffnerd_data = organize_ffnerd_data(rankings, injuries, news)
+        ffnerd_data = organize_ffnerd_data(rankings, injuries, news, ros)
 
         # Enrich and filter to fantasy-relevant players only
         print("Enriching and filtering players...")
@@ -638,11 +752,15 @@ def cache_players():
         has_proj = sum(
             1 for p in players.values() if p.get("stats", {}).get("projected")
         )
+        has_ros = sum(
+            1 for p in players.values() if p.get("stats", {}).get("ros_projected")
+        )
         has_injury = sum(1 for p in players.values() if p.get("data", {}).get("injury"))
         has_news = sum(1 for p in players.values() if p.get("data", {}).get("news"))
         has_stats = sum(1 for p in players.values() if p.get("stats", {}).get("actual"))
 
-        print(f"  - With projections: {has_proj}")
+        print(f"  - With weekly projections: {has_proj}")
+        print(f"  - With ROS projections: {has_ros}")
         print(f"  - With injury data: {has_injury}")
         print(f"  - With news: {has_news}")
         print(f"  - With current week stats: {has_stats}")
@@ -686,6 +804,7 @@ def cache_players():
         metadata = {
             "total_players": len(players),
             "players_with_projections": has_proj,
+            "players_with_ros_projections": has_ros,
             "players_with_injuries": has_injury,
             "players_with_news": has_news,
             "players_with_stats": has_stats,
