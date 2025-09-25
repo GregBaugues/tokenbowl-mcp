@@ -247,11 +247,15 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                         if "passing_yards" in ros:
                             player_stats["ros_projected"].update(
                                 {
-                                    "passing_yards": round(ros.get("passing_yards", 0), 0),
+                                    "passing_yards": round(
+                                        ros.get("passing_yards", 0), 0
+                                    ),
                                     "passing_touchdowns": round(
                                         ros.get("passing_touchdowns", 0), 1
                                     ),
-                                    "rushing_yards": round(ros.get("rushing_yards", 0), 0),
+                                    "rushing_yards": round(
+                                        ros.get("rushing_yards", 0), 0
+                                    ),
                                     "rushing_touchdowns": round(
                                         ros.get("rushing_touchdowns", 0), 1
                                     ),
@@ -264,7 +268,9 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                         ):
                             player_stats["ros_projected"].update(
                                 {
-                                    "rushing_yards": round(ros.get("rushing_yards", 0), 0),
+                                    "rushing_yards": round(
+                                        ros.get("rushing_yards", 0), 0
+                                    ),
                                     "receiving_yards": round(
                                         ros.get("receiving_yards", 0), 0
                                     ),
@@ -1402,12 +1408,22 @@ async def get_waiver_analysis(
                             player_cache_data = all_players.get(player_id, {})
                             if player_cache_data:
                                 # Add weekly projected points
-                                if "stats" in player_cache_data and player_cache_data["stats"].get("projected"):
-                                    drop_data["projected_points"] = player_cache_data["stats"]["projected"].get("fantasy_points", 0)
+                                if "stats" in player_cache_data and player_cache_data[
+                                    "stats"
+                                ].get("projected"):
+                                    drop_data["projected_points"] = player_cache_data[
+                                        "stats"
+                                    ]["projected"].get("fantasy_points", 0)
 
                                 # Add ROS projected points
-                                if "stats" in player_cache_data and player_cache_data["stats"].get("ros_projected"):
-                                    drop_data["ros_projected_points"] = player_cache_data["stats"]["ros_projected"].get("fantasy_points", 0)
+                                if "stats" in player_cache_data and player_cache_data[
+                                    "stats"
+                                ].get("ros_projected"):
+                                    drop_data["ros_projected_points"] = (
+                                        player_cache_data["stats"]["ros_projected"].get(
+                                            "fantasy_points", 0
+                                        )
+                                    )
 
                             recent_drops.append(drop_data)
 
@@ -1438,7 +1454,9 @@ async def get_waiver_analysis(
                             "position": player.get("position"),
                             "team": player.get("team"),
                             "projected_points": player.get("projected_points", 0),
-                            "ros_projected_points": player.get("ros_projected_points", 0),
+                            "ros_projected_points": player.get(
+                                "ros_projected_points", 0
+                            ),
                             "trending_add_count": player.get("trending_add_count", 0),
                             "recently_dropped": player.get("recently_dropped", False),
                         }

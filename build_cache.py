@@ -582,15 +582,11 @@ def enrich_and_filter_players(
                         if position == "QB":
                             filtered_player["stats"]["ros_projected"].update(
                                 {
-                                    "passing_yards": float(
-                                        ros.get("passing_yards", 0)
-                                    ),
+                                    "passing_yards": float(ros.get("passing_yards", 0)),
                                     "passing_touchdowns": float(
                                         ros.get("passing_touchdowns", 0)
                                     ),
-                                    "rushing_yards": float(
-                                        ros.get("rushing_yards", 0)
-                                    ),
+                                    "rushing_yards": float(ros.get("rushing_yards", 0)),
                                     "rushing_touchdowns": float(
                                         ros.get("rushing_touchdowns", 0)
                                     ),
@@ -599,9 +595,7 @@ def enrich_and_filter_players(
                         elif position in ["RB", "WR", "TE"]:
                             filtered_player["stats"]["ros_projected"].update(
                                 {
-                                    "rushing_yards": float(
-                                        ros.get("rushing_yards", 0)
-                                    ),
+                                    "rushing_yards": float(ros.get("rushing_yards", 0)),
                                     "receiving_yards": float(
                                         ros.get("receiving_yards", 0)
                                     ),
