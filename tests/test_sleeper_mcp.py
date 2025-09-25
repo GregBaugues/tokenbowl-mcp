@@ -415,6 +415,7 @@ def test_get_recent_transactions_new_params():
 
     # Check that function has the new parameters
     import inspect
+
     sig = inspect.signature(tool.fn)
     params = sig.parameters
 
@@ -425,8 +426,8 @@ def test_get_recent_transactions_new_params():
     assert "include_player_details" in params
 
     # Check default values
-    assert params["drops_only"].default == False
-    assert params["include_player_details"].default == False
+    assert not params["drops_only"].default
+    assert not params["include_player_details"].default
 
 
 def test_get_waiver_wire_players_new_params():
@@ -436,6 +437,7 @@ def test_get_waiver_wire_players_new_params():
 
     # Check that function has the new parameters
     import inspect
+
     sig = inspect.signature(tool.fn)
     params = sig.parameters
 
@@ -445,9 +447,9 @@ def test_get_waiver_wire_players_new_params():
     assert "verify_availability" in params
 
     # Check default values
-    assert params["include_stats"].default == False
-    assert params["highlight_recent_drops"].default == True
-    assert params["verify_availability"].default == True
+    assert not params["include_stats"].default
+    assert params["highlight_recent_drops"].default
+    assert params["verify_availability"].default
 
 
 def test_get_waiver_analysis_exists():
@@ -461,6 +463,7 @@ def test_get_waiver_analysis_exists():
 
     # Check parameters
     import inspect
+
     sig = inspect.signature(tool.fn)
     params = sig.parameters
 
@@ -484,6 +487,7 @@ def test_get_trending_context_exists():
 
     # Check parameters
     import inspect
+
     sig = inspect.signature(tool.fn)
     params = sig.parameters
 
@@ -505,6 +509,7 @@ def test_evaluate_waiver_priority_cost_exists():
 
     # Check parameters
     import inspect
+
     sig = inspect.signature(tool.fn)
     params = sig.parameters
 
@@ -522,29 +527,26 @@ def test_evaluate_waiver_priority_cost_logic():
     # Simulate the calculation
 
     # Test case 1: High priority (1), low value player
-    current_position = 1
     projected_points_gain = 2.0
     weeks_remaining = 14
 
     total_expected = projected_points_gain * weeks_remaining  # 28
-    priority_value = 50 * (weeks_remaining / 14)  # 50
+    priority_value = 50 * (weeks_remaining / 14)  # 50 (for position 1)
 
     # Should recommend "wait" since 28 < 50
     assert total_expected < priority_value
 
     # Test case 2: Low priority (10), high value player
-    current_position = 10
     projected_points_gain = 5.0
     weeks_remaining = 14
 
     total_expected = projected_points_gain * weeks_remaining  # 70
-    priority_value = 5 * (weeks_remaining / 14)  # 5
+    priority_value = 5 * (weeks_remaining / 14)  # 5  (for position 10)
 
     # Should recommend "claim" since 70 > 5
     assert total_expected > priority_value
 
     # Test case 3: Break-even threshold
-    current_position = 5
     weeks_remaining = 10
     priority_value = 15 * (weeks_remaining / 14)  # ~10.7
     break_even = priority_value / weeks_remaining  # ~1.07

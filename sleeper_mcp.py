@@ -1284,7 +1284,9 @@ async def get_waiver_analysis(
         Dict with waiver analysis and recommendations
     """
     try:
-        logger.info(f"Starting waiver analysis for position={position}, days_back={days_back}")
+        logger.info(
+            f"Starting waiver analysis for position={position}, days_back={days_back}"
+        )
 
         # Get current rosters to determine position needs and waiver priority
         rosters_data = {}
@@ -1294,7 +1296,6 @@ async def get_waiver_analysis(
             rosters = response.json()
 
             # Analyze position distribution across league
-            position_counts = {}
             for roster in rosters:
                 roster_id = roster.get("roster_id")
                 if roster.get("players"):
@@ -1325,7 +1326,9 @@ async def get_waiver_analysis(
                                 "player_name": drop_info.get("player_name"),
                                 "position": drop_info.get("position"),
                                 "team": drop_info.get("team"),
-                                "days_since_dropped": drop_info.get("days_since_dropped", 0),
+                                "days_since_dropped": drop_info.get(
+                                    "days_since_dropped", 0
+                                ),
                             }
                             recent_drops.append(drop_data)
 
@@ -1349,15 +1352,17 @@ async def get_waiver_analysis(
         if waiver_players.get("players"):
             for player in waiver_players["players"]:
                 if player.get("trending_add_count", 0) > 0:
-                    trending_available.append({
-                        "player_id": player.get("player_id"),
-                        "player_name": player.get("full_name"),
-                        "position": player.get("position"),
-                        "team": player.get("team"),
-                        "projected_points": player.get("projected_points", 0),
-                        "trending_add_count": player.get("trending_add_count", 0),
-                        "recently_dropped": player.get("recently_dropped", False),
-                    })
+                    trending_available.append(
+                        {
+                            "player_id": player.get("player_id"),
+                            "player_name": player.get("full_name"),
+                            "position": player.get("position"),
+                            "team": player.get("team"),
+                            "projected_points": player.get("projected_points", 0),
+                            "trending_add_count": player.get("trending_add_count", 0),
+                            "recently_dropped": player.get("recently_dropped", False),
+                        }
+                    )
 
             # Sort by trending count
             trending_available.sort(
@@ -1415,8 +1420,10 @@ async def get_waiver_analysis(
                 "total_recently_dropped": len(recently_dropped_available),
                 "total_trending": len(trending_available),
                 "top_recommendation": (
-                    recently_dropped_available[0] if recently_dropped_available
-                    else trending_available[0] if trending_available
+                    recently_dropped_available[0]
+                    if recently_dropped_available
+                    else trending_available[0]
+                    if trending_available
                     else None
                 ),
             },
@@ -1482,8 +1489,8 @@ async def get_trending_context(
                 team = player_data.get("team", "")
                 position = player_data.get("position", "")
 
-                # Build search query
-                search_query = f"{player_name} {team} fantasy football news trending waiver wire 2025"
+                # Build search query (would be used with web search API in production)
+                # search_query = f"{player_name} {team} fantasy football news trending waiver wire 2025"
 
                 # Perform web search (this would use actual web search API in production)
                 # For now, we'll create a placeholder based on available data
@@ -1508,7 +1515,9 @@ async def get_trending_context(
                     if ffnerd_data.get("injuries"):
                         injury_info = ffnerd_data["injuries"]
                         if injury_info.get("injury"):
-                            context_parts.append(f"Dealing with {injury_info['injury']}")
+                            context_parts.append(
+                                f"Dealing with {injury_info['injury']}"
+                            )
 
                 # Default context if no specific info
                 if not context_parts:
@@ -1522,7 +1531,9 @@ async def get_trending_context(
                         context_parts.append("Rising in fantasy relevance")
 
                 # Build final context
-                context = f"{player_name} ({position}, {team}): {'. '.join(context_parts)}."
+                context = (
+                    f"{player_name} ({position}, {team}): {'. '.join(context_parts)}."
+                )
                 trending_context[player_id] = context
 
             except Exception as e:
