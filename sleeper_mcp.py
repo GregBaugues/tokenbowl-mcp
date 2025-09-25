@@ -408,7 +408,7 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
                     else "Unknown",
                     "team": player_data.get("team") if player_data else None,
                     "position": player_data.get("position") if player_data else None,
-                    "player_data": player_data,  # Full cache data
+                    # Removed player_data to reduce context size
                 }
             txn["adds"] = enriched_adds
 
@@ -424,7 +424,7 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
                     else "Unknown",
                     "team": player_data.get("team") if player_data else None,
                     "position": player_data.get("position") if player_data else None,
-                    "player_data": player_data,  # Full cache data
+                    # Removed player_data to reduce context size
                 }
             txn["drops"] = enriched_drops
 
@@ -433,41 +433,38 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
 
 @mcp.tool()
 async def get_recent_transactions(
-    limit: int = 25,
+    limit: int = 20,
     transaction_type: Optional[str] = None,
     include_failed: bool = False,
 ) -> List[Dict[str, Any]]:
-    """Get recent transactions from the last 7 days, sorted by most recent first.
+    """Get the most recent transactions, sorted by most recent first.
 
     Args:
-        limit: Maximum number of transactions to return (default: 25, max: 100).
+        limit: Maximum number of transactions to return (default: 20, max: 20).
         transaction_type: Filter by type ('waiver', 'free_agent', 'trade').
                          None returns all types.
         include_failed: Include failed transactions (default: False).
 
     Returns a consolidated list of recent transactions including:
-    - Only transactions from the last 7 days
+    - The most recent transactions (up to 20)
     - All transaction details (type, status, adds/drops, etc.)
-    - Players with full cache data including name, team, position, stats/projections
+    - Players with basic info only (name, team, position) to reduce context
     - Sorted by status_updated timestamp (most recent first)
     - Filtered by type and status if requested
 
     Returns:
         List of transaction dictionaries sorted by recency with enriched player data
     """
-    # Calculate timestamp for 7 days ago (milliseconds)
-    from datetime import datetime, timedelta
+    # Enforce maximum limit of 20 transactions
+    limit = min(limit, 20)
 
-    seven_days_ago = datetime.now() - timedelta(days=7)
-    seven_days_ago_ms = int(seven_days_ago.timestamp() * 1000)
-
-    # Fetch transactions from the last 5 rounds
+    # Fetch transactions from the last 10 rounds to ensure we have enough
     all_transactions = []
 
     async with httpx.AsyncClient() as client:
         # Fetch multiple rounds in parallel
         tasks = []
-        for round_num in range(1, 6):  # Get rounds 1-5
+        for round_num in range(1, 11):  # Get rounds 1-10
             tasks.append(
                 client.get(f"{BASE_URL}/league/{LEAGUE_ID}/transactions/{round_num}")
             )
@@ -480,11 +477,7 @@ async def get_recent_transactions(
             if response.status_code == 200:
                 transactions = response.json()
                 if transactions:  # Some rounds may be empty
-                    # Filter for transactions from last 7 days
-                    for txn in transactions:
-                        status_updated = txn.get("status_updated", 0)
-                        if status_updated >= seven_days_ago_ms:
-                            all_transactions.append(txn)
+                    all_transactions.extend(transactions)
 
     # Get player data from cache for enrichment
     from cache_client import get_player_by_id
@@ -512,7 +505,7 @@ async def get_recent_transactions(
                     else "Unknown",
                     "team": player_data.get("team") if player_data else None,
                     "position": player_data.get("position") if player_data else None,
-                    "player_data": player_data,  # Full cache data
+                    # Removed player_data to reduce context size
                 }
             txn["adds"] = enriched_adds
 
@@ -528,7 +521,7 @@ async def get_recent_transactions(
                     else "Unknown",
                     "team": player_data.get("team") if player_data else None,
                     "position": player_data.get("position") if player_data else None,
-                    "player_data": player_data,  # Full cache data
+                    # Removed player_data to reduce context size
                 }
             txn["drops"] = enriched_drops
 
@@ -537,8 +530,8 @@ async def get_recent_transactions(
     # Sort by status_updated timestamp (most recent first)
     filtered_transactions.sort(key=lambda x: x.get("status_updated", 0), reverse=True)
 
-    # Limit results
-    return filtered_transactions[: min(limit, 100)]
+    # Return up to the limit (max 20 transactions)
+    return filtered_transactions[:limit]
 
 
 @mcp.tool()
