@@ -1177,7 +1177,18 @@ async def get_waiver_wire_players(
                 }
 
                 # Add projected points if available
-                if "data" in player_data and player_data["data"].get("projections"):
+                # Check new location first (stats.projected.fantasy_points)
+                if "stats" in player_data and player_data["stats"].get("projected"):
+                    try:
+                        fantasy_points = player_data["stats"]["projected"].get(
+                            "fantasy_points"
+                        )
+                        if fantasy_points is not None:
+                            minimal_data["projected_points"] = float(fantasy_points)
+                    except (ValueError, TypeError):
+                        pass
+                # Fall back to old location for backward compatibility
+                elif "data" in player_data and player_data["data"].get("projections"):
                     try:
                         proj_pts = player_data["data"]["projections"].get("proj_pts")
                         if proj_pts:

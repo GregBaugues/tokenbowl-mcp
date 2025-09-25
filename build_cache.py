@@ -236,12 +236,23 @@ def create_player_mappings(
     unmatched_players = []
 
     for sleeper_id, sleeper_player in sleeper_players.items():
-        if not sleeper_player.get("full_name"):
-            continue
-
-        full_name = normalize_name(sleeper_player["full_name"])
-        team = sleeper_player.get("team", "")
         position = sleeper_player.get("position", "")
+        team = sleeper_player.get("team", "")
+
+        # Special handling for defenses which have null full_name
+        if position == "DEF":
+            # Construct defense name from first_name and last_name
+            first_name = sleeper_player.get("first_name", "")
+            last_name = sleeper_player.get("last_name", "")
+            if first_name and last_name:
+                full_name = normalize_name(f"{first_name} {last_name}")
+            else:
+                continue
+        else:
+            # Regular player handling
+            if not sleeper_player.get("full_name"):
+                continue
+            full_name = normalize_name(sleeper_player["full_name"])
 
         # Try exact match first
         key = (full_name, team, position)
@@ -296,10 +307,15 @@ def create_player_mappings(
                 continue
 
         # Track unmatched fantasy-relevant players (for debugging)
-        if position in ["QB", "RB", "WR", "TE", "K"] and team:
-            unmatched_players.append(
-                f"{sleeper_player.get('full_name')} ({position}, {team})"
-            )
+        if position in ["QB", "RB", "WR", "TE", "K", "DEF"] and team:
+            player_name = sleeper_player.get("full_name")
+            if position == "DEF" and not player_name:
+                # For defenses, construct the name
+                first_name = sleeper_player.get("first_name", "")
+                last_name = sleeper_player.get("last_name", "")
+                player_name = f"{first_name} {last_name}"
+            if player_name:
+                unmatched_players.append(f"{player_name} ({position}, {team})")
 
     print(f"Created {len(sleeper_to_ffnerd)} player ID mappings")
     if unmatched_players and len(unmatched_players) < 20:
@@ -443,6 +459,13 @@ def enrich_and_filter_players(
             if field in player:
                 filtered_player[field] = player[field]
 
+        # Synthesize full_name for defenses if it's null
+        if position == "DEF" and not filtered_player.get("full_name"):
+            first_name = player.get("first_name", "")
+            last_name = player.get("last_name", "")
+            if first_name and last_name:
+                filtered_player["full_name"] = f"{first_name} {last_name}"
+
         # Create the new stats structure
         filtered_player["stats"] = {"projected": None, "actual": None}
 
@@ -521,12 +544,33 @@ def build_name_lookup_table(players: Dict) -> Dict[str, str]:
     name_to_id = {}
 
     for sleeper_id, player in players.items():
-        if not player.get("full_name"):
-            continue
+        position = player.get("position", "")
 
-        # Add full name
-        full_name = normalize_name(player["full_name"])
-        name_to_id[full_name] = sleeper_id
+        # Handle defenses specially (they have null full_name)
+        if position == "DEF":
+            first_name = player.get("first_name", "")
+            last_name = player.get("last_name", "")
+            team = player.get("team", "")
+
+            if first_name and last_name:
+                # Add full defense name
+                full_name = normalize_name(f"{first_name} {last_name}")
+                name_to_id[full_name] = sleeper_id
+
+                # Also add just the team nickname for easier searching
+                name_to_id[normalize_name(last_name)] = sleeper_id
+
+                # Add team abbreviation as well
+                if team:
+                    name_to_id[normalize_name(team)] = sleeper_id
+        else:
+            # Regular player handling
+            if not player.get("full_name"):
+                continue
+
+            # Add full name
+            full_name = normalize_name(player["full_name"])
+            name_to_id[full_name] = sleeper_id
 
         # Add first + last name
         if player.get("first_name") and player.get("last_name"):
