@@ -1059,6 +1059,9 @@ async def get_waiver_wire_players(
     position: Optional[str] = None,
     search_term: Optional[str] = None,
     limit: int = 50,
+    include_stats: bool = False,
+    highlight_recent_drops: bool = True,
+    verify_availability: bool = True,
 ) -> Dict[str, Any]:
     """Get NFL players available on the waiver wire (not on any team roster).
 
@@ -1075,11 +1078,19 @@ async def get_waiver_wire_players(
         limit: Maximum number of players to return (default: 50, max: 200).
               Players are sorted by relevance (active players first).
 
+        include_stats: Include full stats and projections (default: False, minimal data).
+
+        highlight_recent_drops: Mark players dropped in last 7 days (default: True).
+
+        verify_availability: Double-check roster status (default: True).
+
     Returns waiver wire data including:
     - Total available players count
     - Filtered results based on criteria
     - Player details (name, position, team, status)
+    - Projected points (if available)
     - Trending add counts from last 24 hours (always included)
+    - Recently dropped players marked (if highlight_recent_drops=True)
     - Cache freshness information
 
     Note: Cache refreshes daily. Recent adds/drops may not be reflected
@@ -1089,17 +1100,36 @@ async def get_waiver_wire_players(
         Dict with available players and metadata
     """
     try:
-        # Get all current rosters to find rostered players
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/rosters")
-            response.raise_for_status()
-            rosters = response.json()
-
-        # Collect all rostered player IDs
+        # Get all current rosters to find rostered players (if verify_availability is True)
         rostered_players = set()
-        for roster in rosters:
-            if roster.get("players"):
-                rostered_players.update(roster["players"])
+        if verify_availability:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/rosters")
+                response.raise_for_status()
+                rosters = response.json()
+
+            # Collect all rostered player IDs
+            for roster in rosters:
+                if roster.get("players"):
+                    rostered_players.update(roster["players"])
+
+        # Get recent drops if highlighting is requested
+        recent_drops = set()
+        if highlight_recent_drops:
+            try:
+                # Get transactions from last 7 days
+                recent_txns = await get_recent_transactions.fn(
+                    drops_only=True,
+                    max_days_ago=7,
+                    include_player_details=False,
+                    limit=50,
+                )
+                # Extract player IDs from drops
+                for txn in recent_txns:
+                    if txn.get("drops"):
+                        recent_drops.update(txn["drops"].keys())
+            except Exception as e:
+                logger.warning(f"Could not fetch recent drops: {e}")
 
         # Get all NFL players from cache (sync function, don't await)
         all_players = get_players_from_cache(active_only=False)
@@ -1117,8 +1147,8 @@ async def get_waiver_wire_players(
         # Filter to find available players
         available_players = []
         for player_id, player_data in all_players.items():
-            # Skip if player is rostered
-            if player_id in rostered_players:
+            # Skip if player is rostered (only if verify_availability is True)
+            if verify_availability and player_id in rostered_players:
                 continue
 
             # Skip if player doesn't match position filter
@@ -1134,23 +1164,62 @@ async def get_waiver_wire_players(
                 if search_term.lower() not in player_name:
                     continue
 
-            # Pass through the full player data from cache
-            # Just add trending count if available
-            if player_id in trending_data:
-                player_data["trending_add_count"] = trending_data[player_id]
+            # Create minimal or full player data based on include_stats
+            if not include_stats:
+                # Minimal data mode - only essential fields
+                minimal_data = {
+                    "player_id": player_id,
+                    "full_name": player_data.get("full_name"),
+                    "position": player_data.get("position"),
+                    "team": player_data.get("team"),
+                    "status": player_data.get("status"),
+                    "injury_status": player_data.get("injury_status"),
+                }
 
-            available_players.append(player_data)
+                # Add projected points if available
+                if "data" in player_data and player_data["data"].get("projections"):
+                    try:
+                        proj_pts = player_data["data"]["projections"].get("proj_pts")
+                        if proj_pts:
+                            minimal_data["projected_points"] = float(proj_pts)
+                    except (ValueError, TypeError):
+                        pass
+
+                player_entry = minimal_data
+            else:
+                # Full data mode - pass through all player data
+                player_entry = player_data
+
+            # Add trending count if available
+            if player_id in trending_data:
+                player_entry["trending_add_count"] = trending_data[player_id]
+
+            # Mark if recently dropped
+            if player_id in recent_drops:
+                player_entry["recently_dropped"] = True
+
+            available_players.append(player_entry)
 
         # Sort players by relevance
-        # Priority: 1) Active status, 2) Trending adds, 3) Projected points, 4) Name
+        # Priority: 1) Recently dropped, 2) Active status, 3) Trending adds, 4) Projected points, 5) Name
         def sort_key(player):
-            # Active players first
+            # Recently dropped players first
+            recently_dropped = 0 if player.get("recently_dropped") else 1
+            # Active players next
             status_priority = 0 if player.get("status") == "Active" else 1
             # Then by trending adds (negative for descending)
             trending = -player.get("trending_add_count", 0)
             # Then by projected points (negative for descending)
             proj_points = 0
-            if "data" in player and player["data"].get("projections"):
+            # Handle both minimal and full data structures
+            if "projected_points" in player:
+                # Minimal data mode
+                try:
+                    proj_points = -float(player.get("projected_points", 0))
+                except (ValueError, TypeError):
+                    pass
+            elif "data" in player and player.get("data", {}).get("projections"):
+                # Full data mode
                 try:
                     proj_points = -float(
                         player["data"]["projections"].get("proj_pts", 0)
@@ -1159,7 +1228,7 @@ async def get_waiver_wire_players(
                     pass
             # Then alphabetically
             name = player.get("full_name", "") or ""
-            return (status_priority, trending, proj_points, name)
+            return (recently_dropped, status_priority, trending, proj_points, name)
 
         available_players.sort(key=sort_key)
 
