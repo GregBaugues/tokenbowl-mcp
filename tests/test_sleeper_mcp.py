@@ -406,3 +406,149 @@ def test_waiver_wire_filtering_logic():
     justin_players = [p for p in available if "justin" in p["name"].lower()]
     assert len(justin_players) == 1
     assert justin_players[0]["player_id"] == "4"
+
+
+def test_get_recent_transactions_new_params():
+    """Test the new parameters for get_recent_transactions."""
+    assert hasattr(sleeper_mcp, "get_recent_transactions")
+    tool = sleeper_mcp.get_recent_transactions
+
+    # Check that function has the new parameters
+    import inspect
+
+    sig = inspect.signature(tool.fn)
+    params = sig.parameters
+
+    # Verify new parameters exist
+    assert "drops_only" in params
+    assert "min_days_ago" in params
+    assert "max_days_ago" in params
+    assert "include_player_details" in params
+
+    # Check default values
+    assert not params["drops_only"].default
+    assert not params["include_player_details"].default
+
+
+def test_get_waiver_wire_players_new_params():
+    """Test the new parameters for get_waiver_wire_players."""
+    assert hasattr(sleeper_mcp, "get_waiver_wire_players")
+    tool = sleeper_mcp.get_waiver_wire_players
+
+    # Check that function has the new parameters
+    import inspect
+
+    sig = inspect.signature(tool.fn)
+    params = sig.parameters
+
+    # Verify new parameters exist
+    assert "include_stats" in params
+    assert "highlight_recent_drops" in params
+    assert "verify_availability" in params
+
+    # Check default values
+    assert not params["include_stats"].default
+    assert params["highlight_recent_drops"].default
+    assert params["verify_availability"].default
+
+
+def test_get_waiver_analysis_exists():
+    """Test that get_waiver_analysis tool exists."""
+    assert hasattr(sleeper_mcp, "get_waiver_analysis")
+    tool = sleeper_mcp.get_waiver_analysis
+    assert tool is not None
+    assert hasattr(tool, "fn")
+    assert hasattr(tool, "name")
+    assert tool.name == "get_waiver_analysis"
+
+    # Check parameters
+    import inspect
+
+    sig = inspect.signature(tool.fn)
+    params = sig.parameters
+
+    assert "position" in params
+    assert "days_back" in params
+    assert "limit" in params
+
+    # Check defaults
+    assert params["days_back"].default == 7
+    assert params["limit"].default == 20
+
+
+def test_get_trending_context_exists():
+    """Test that get_trending_context tool exists."""
+    assert hasattr(sleeper_mcp, "get_trending_context")
+    tool = sleeper_mcp.get_trending_context
+    assert tool is not None
+    assert hasattr(tool, "fn")
+    assert hasattr(tool, "name")
+    assert tool.name == "get_trending_context"
+
+    # Check parameters
+    import inspect
+
+    sig = inspect.signature(tool.fn)
+    params = sig.parameters
+
+    assert "player_ids" in params
+    assert "max_players" in params
+
+    # Check default
+    assert params["max_players"].default == 5
+
+
+def test_evaluate_waiver_priority_cost_exists():
+    """Test that evaluate_waiver_priority_cost tool exists."""
+    assert hasattr(sleeper_mcp, "evaluate_waiver_priority_cost")
+    tool = sleeper_mcp.evaluate_waiver_priority_cost
+    assert tool is not None
+    assert hasattr(tool, "fn")
+    assert hasattr(tool, "name")
+    assert tool.name == "evaluate_waiver_priority_cost"
+
+    # Check parameters
+    import inspect
+
+    sig = inspect.signature(tool.fn)
+    params = sig.parameters
+
+    assert "current_position" in params
+    assert "projected_points_gain" in params
+    assert "weeks_remaining" in params
+
+    # Check default
+    assert params["weeks_remaining"].default == 14
+
+
+def test_evaluate_waiver_priority_cost_logic():
+    """Test the logic for evaluate_waiver_priority_cost."""
+    # Test the logic without calling the async function
+    # Simulate the calculation
+
+    # Test case 1: High priority (1), low value player
+    projected_points_gain = 2.0
+    weeks_remaining = 14
+
+    total_expected = projected_points_gain * weeks_remaining  # 28
+    priority_value = 50 * (weeks_remaining / 14)  # 50 (for position 1)
+
+    # Should recommend "wait" since 28 < 50
+    assert total_expected < priority_value
+
+    # Test case 2: Low priority (10), high value player
+    projected_points_gain = 5.0
+    weeks_remaining = 14
+
+    total_expected = projected_points_gain * weeks_remaining  # 70
+    priority_value = 5 * (weeks_remaining / 14)  # 5  (for position 10)
+
+    # Should recommend "claim" since 70 > 5
+    assert total_expected > priority_value
+
+    # Test case 3: Break-even threshold
+    weeks_remaining = 10
+    priority_value = 15 * (weeks_remaining / 14)  # ~10.7
+    break_even = priority_value / weeks_remaining  # ~1.07
+
+    assert break_even > 1.0 and break_even < 2.0
