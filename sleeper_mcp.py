@@ -208,7 +208,7 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                 player_info["team"] = player_id
 
             # Always use consistent stats structure
-            player_stats = {"projected": None, "actual": None}
+            player_stats = {"projected": None, "actual": None, "ros_projected": None}
 
             # Add stats data if available (new structure from cache)
             if "stats" in player_data:
@@ -233,6 +233,47 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                     total_projected += fantasy_points
                     if player_id in starters_ids:
                         starters_projected += fantasy_points
+
+                # Add ROS projections from new structure
+                if cached_stats.get("ros_projected"):
+                    ros = cached_stats["ros_projected"]
+                    player_stats["ros_projected"] = {
+                        "fantasy_points": round(ros.get("fantasy_points", 0), 2),
+                        "season": ros.get("season"),
+                    }
+
+                    # Add position-specific ROS stats if available
+                    if player_data.get("position") == "QB":
+                        if "passing_yards" in ros:
+                            player_stats["ros_projected"].update(
+                                {
+                                    "passing_yards": round(ros.get("passing_yards", 0), 0),
+                                    "passing_touchdowns": round(
+                                        ros.get("passing_touchdowns", 0), 1
+                                    ),
+                                    "rushing_yards": round(ros.get("rushing_yards", 0), 0),
+                                    "rushing_touchdowns": round(
+                                        ros.get("rushing_touchdowns", 0), 1
+                                    ),
+                                }
+                            )
+                    elif player_data.get("position") in ["RB", "WR", "TE"]:
+                        if any(
+                            k in ros
+                            for k in ["rushing_yards", "receiving_yards", "receptions"]
+                        ):
+                            player_stats["ros_projected"].update(
+                                {
+                                    "rushing_yards": round(ros.get("rushing_yards", 0), 0),
+                                    "receiving_yards": round(
+                                        ros.get("receiving_yards", 0), 0
+                                    ),
+                                    "receptions": round(ros.get("receptions", 0), 1),
+                                    "total_touchdowns": round(
+                                        ros.get("total_touchdowns", 0), 1
+                                    ),
+                                }
+                            )
 
                 # Add actual stats if game has been played
                 if cached_stats.get("actual"):
@@ -1196,6 +1237,17 @@ async def get_waiver_wire_players(
                     except (ValueError, TypeError):
                         pass
 
+                # Add ROS projected points if available
+                if "stats" in player_data and player_data["stats"].get("ros_projected"):
+                    try:
+                        ros_points = player_data["stats"]["ros_projected"].get(
+                            "fantasy_points"
+                        )
+                        if ros_points is not None:
+                            minimal_data["ros_projected_points"] = float(ros_points)
+                    except (ValueError, TypeError):
+                        pass
+
                 player_entry = minimal_data
             else:
                 # Full data mode - pass through all player data
@@ -1327,6 +1379,10 @@ async def get_waiver_analysis(
 
             # Collect unique recently dropped players
             dropped_player_ids = set()
+
+            # Get player data from cache to enrich drops with projections
+            all_players = get_players_from_cache(active_only=False)
+
             for txn in recent_transactions:
                 if txn.get("drops"):
                     for player_id, drop_info in txn["drops"].items():
@@ -1341,6 +1397,18 @@ async def get_waiver_analysis(
                                     "days_since_dropped", 0
                                 ),
                             }
+
+                            # Add projections if available in cache
+                            player_cache_data = all_players.get(player_id, {})
+                            if player_cache_data:
+                                # Add weekly projected points
+                                if "stats" in player_cache_data and player_cache_data["stats"].get("projected"):
+                                    drop_data["projected_points"] = player_cache_data["stats"]["projected"].get("fantasy_points", 0)
+
+                                # Add ROS projected points
+                                if "stats" in player_cache_data and player_cache_data["stats"].get("ros_projected"):
+                                    drop_data["ros_projected_points"] = player_cache_data["stats"]["ros_projected"].get("fantasy_points", 0)
+
                             recent_drops.append(drop_data)
 
             # Sort by days since dropped (most recent first)
@@ -1370,6 +1438,7 @@ async def get_waiver_analysis(
                             "position": player.get("position"),
                             "team": player.get("team"),
                             "projected_points": player.get("projected_points", 0),
+                            "ros_projected_points": player.get("ros_projected_points", 0),
                             "trending_add_count": player.get("trending_add_count", 0),
                             "recently_dropped": player.get("recently_dropped", False),
                         }
