@@ -8,17 +8,17 @@ import json
 import gzip
 import redis
 import os
+import logging
 from typing import Dict, Any, Optional, Set
 from datetime import datetime
 from build_cache import cache_players
 from dotenv import load_dotenv
-import logfire
 
 # Load environment variables
 load_dotenv()
 
-# Configure logging with Logfire
-logger = logfire.get_logger(__name__)
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 def get_redis_client() -> redis.Redis:

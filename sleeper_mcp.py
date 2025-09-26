@@ -28,12 +28,16 @@ logfire.configure(
     console=False,  # Disable console to avoid duplication
 )
 
-# Get a proper Logfire logger that respects log levels
-logger = logfire.get_logger(__name__)
-
-# Set log level based on environment (DEBUG for development, INFO for production)
+# Configure logging with proper level handling
 DEBUG_MODE = os.environ.get("DEBUG", "").lower() in ("true", "1", "yes")
-logger.setLevel(logging.DEBUG if DEBUG_MODE else logging.INFO)
+logging.basicConfig(
+    level=logging.DEBUG if DEBUG_MODE else logging.INFO,
+    handlers=[logfire.LogfireLoggingHandler()],
+    format="%(name)s - %(levelname)s - %(message)s",
+)
+
+# Get logger instance
+logger = logging.getLogger(__name__)
 
 # Auto-instrument httpx for HTTP request tracing
 logfire.instrument_httpx()
@@ -75,12 +79,7 @@ def log_mcp_tool(func):
         ) as span:
             try:
                 # Log the tool invocation
-                logger.info(
-                    f"MCP Tool Called: {tool_name}",
-                    tool_name=tool_name,
-                    parameters=params,
-                    _tags=["mcp_tool", "invocation", tool_name],
-                )
+                logger.info(f"MCP Tool Called: {tool_name} with params: {params}")
 
                 # Execute the actual function
                 result = await func(*args, **kwargs)
@@ -90,11 +89,7 @@ def log_mcp_tool(func):
                     span.set_attribute("success", False)
                     span.set_attribute("error_message", result["error"])
                     logger.warning(
-                        f"MCP Tool Error Response: {tool_name}",
-                        tool_name=tool_name,
-                        error=result["error"],
-                        parameters=params,
-                        _tags=["mcp_tool", "error_response", tool_name],
+                        f"MCP Tool Error Response: {tool_name} - {result['error']}"
                     )
                 else:
                     span.set_attribute("success", True)
@@ -110,12 +105,7 @@ def log_mcp_tool(func):
 
                     span.set_attribute("response_type", response_summary)
 
-                    logger.info(
-                        f"MCP Tool Success: {tool_name}",
-                        tool_name=tool_name,
-                        response_summary=response_summary,
-                        _tags=["mcp_tool", "success", tool_name],
-                    )
+                    logger.info(f"MCP Tool Success: {tool_name} - {response_summary}")
 
                 return result
 
@@ -125,13 +115,8 @@ def log_mcp_tool(func):
                 span.set_attribute("error_message", str(e))
 
                 logger.error(
-                    f"MCP Tool Exception: {tool_name}",
-                    tool_name=tool_name,
-                    parameters=params,
-                    error_type=type(e).__name__,
-                    error_message=str(e),
+                    f"MCP Tool Exception: {tool_name} - {type(e).__name__}: {str(e)}",
                     exc_info=True,
-                    _tags=["mcp_tool", "exception", tool_name],
                 )
 
                 # Re-raise the exception to maintain original behavior
