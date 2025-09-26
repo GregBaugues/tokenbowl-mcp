@@ -175,7 +175,8 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
 
     Args:
         roster_id: The roster ID (1-10) for the team you want to view.
-              Note: Roster ID 2 is Bill Beliclaude.
+              Can be an integer or string (will be converted).
+              Valid range: 1-10. Roster ID 2 is Bill Beliclaude.
 
     Returns a comprehensive roster including:
     - Team information (owner, record, points)
@@ -188,6 +189,28 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
         Dict with roster info and enriched player data
     """
     try:
+        # Type conversion and validation
+        try:
+            roster_id = int(roster_id)
+        except (TypeError, ValueError):
+            logger.error(
+                f"Failed to convert roster_id to int: {roster_id} ({type(roster_id).__name__})"
+            )
+            return {
+                "error": f"Invalid roster_id parameter: expected integer, got {type(roster_id).__name__}",
+                "value_received": str(roster_id)[:100],  # Truncate for safety
+                "expected": "integer between 1 and 10",
+            }
+
+        # Range validation
+        if not 1 <= roster_id <= 10:
+            logger.error(f"Roster ID out of range: {roster_id}")
+            return {
+                "error": "Roster ID must be between 1 and 10",
+                "value_received": roster_id,
+                "valid_range": "1-10",
+            }
+
         # Get all rosters to find the specific one
         async with httpx.AsyncClient() as client:
             response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/rosters")
@@ -423,12 +446,8 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
 
     except Exception as e:
         logger.error(
-            "Failed to get roster",
-            roster_id=roster_id,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Failed to get roster: {roster_id} - {type(e).__name__}: {str(e)}",
             exc_info=True,
-            _tags=["mcp_tool", "get_roster", "error"],
         )
         return {"error": f"Failed to get roster: {str(e)}"}
 
@@ -462,6 +481,7 @@ async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
 
     Args:
         week: The NFL week number (1-18 for regular season + playoffs).
+              Can be an integer or string (will be converted).
               Week 1-14 are typically regular season,
               Week 15-17/18 are typically playoffs.
 
@@ -474,6 +494,30 @@ async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
     Returns:
         List of matchup dictionaries for the specified week
     """
+    # Type conversion and validation
+    try:
+        week = int(week)
+    except (TypeError, ValueError):
+        logger.error(f"Failed to convert week to int: {week} ({type(week).__name__})")
+        return [
+            {
+                "error": f"Invalid week parameter: expected integer, got {type(week).__name__}",
+                "value_received": str(week)[:100],
+                "expected": "integer between 1 and 18",
+            }
+        ]
+
+    # Range validation
+    if not 1 <= week <= 18:
+        logger.error(f"Week number out of range: {week}")
+        return [
+            {
+                "error": "Week must be between 1 and 18",
+                "value_received": week,
+                "valid_range": "1-18",
+            }
+        ]
+
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/matchups/{week}")
         response.raise_for_status()
@@ -504,6 +548,8 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
 
     Args:
         round: The transaction round/week number (default: 1).
+               Can be an integer or string (will be converted).
+               Must be positive (1 or greater).
                Transactions are grouped by processing rounds.
                Higher rounds represent more recent transactions.
 
@@ -518,6 +564,32 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
     Returns:
         List of transaction dictionaries for the specified round with enriched player data
     """
+    # Type conversion and validation
+    try:
+        round = int(round)
+    except (TypeError, ValueError):
+        logger.error(
+            f"Failed to convert round to int: {round} ({type(round).__name__})"
+        )
+        return [
+            {
+                "error": f"Invalid round parameter: expected integer, got {type(round).__name__}",
+                "value_received": str(round)[:100],
+                "expected": "positive integer",
+            }
+        ]
+
+    # Ensure round is positive
+    if round < 1:
+        logger.error(f"Round number must be positive: {round}")
+        return [
+            {
+                "error": "Round must be 1 or greater",
+                "value_received": round,
+                "valid_range": "1+",
+            }
+        ]
+
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"{BASE_URL}/league/{LEAGUE_ID}/transactions/{round}"
@@ -580,7 +652,8 @@ async def get_recent_transactions(
 
     Args:
         limit: Maximum number of transactions to return (default: 20, max: 20).
-        transaction_type: Filter by type ('waiver', 'free_agent', 'trade').
+               Can be an integer or string (will be converted).
+        transaction_type: Filter by type. Valid values: 'waiver', 'free_agent', 'trade'.
                          None returns all types.
         include_failed: Include failed transactions (default: False).
         drops_only: Return only transactions with drops (default: False).
@@ -599,8 +672,76 @@ async def get_recent_transactions(
     Returns:
         List of transaction dictionaries sorted by recency with enriched player data
     """
+    # Type conversion and validation for limit
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError):
+        logger.error(
+            f"Failed to convert limit to int: {limit} ({type(limit).__name__})"
+        )
+        return [
+            {
+                "error": f"Invalid limit parameter: expected integer, got {type(limit).__name__}",
+                "value_received": str(limit)[:100],
+                "expected": "integer between 1 and 20",
+            }
+        ]
+
     # Enforce maximum limit of 20 transactions
+    if limit < 1:
+        logger.error(f"Limit must be positive: {limit}")
+        return [
+            {
+                "error": "Limit must be at least 1",
+                "value_received": limit,
+                "valid_range": "1-20",
+            }
+        ]
     limit = min(limit, 20)
+
+    # Validate transaction_type
+    if transaction_type is not None:
+        valid_types = ["waiver", "free_agent", "trade"]
+        if transaction_type not in valid_types:
+            logger.error(f"Invalid transaction type: {transaction_type}")
+            return [
+                {
+                    "error": "Invalid transaction_type parameter",
+                    "value_received": str(transaction_type)[:100],
+                    "valid_values": valid_types,
+                }
+            ]
+
+    # Validate days ago parameters
+    if min_days_ago is not None:
+        try:
+            min_days_ago = int(min_days_ago)
+            if min_days_ago < 0:
+                raise ValueError("Must be non-negative")
+        except (TypeError, ValueError):
+            logger.error(f"Invalid min_days_ago: {min_days_ago}")
+            return [
+                {
+                    "error": "Invalid min_days_ago parameter",
+                    "value_received": str(min_days_ago)[:100],
+                    "expected": "non-negative integer",
+                }
+            ]
+
+    if max_days_ago is not None:
+        try:
+            max_days_ago = int(max_days_ago)
+            if max_days_ago < 0:
+                raise ValueError("Must be non-negative")
+        except (TypeError, ValueError):
+            logger.error(f"Invalid max_days_ago: {max_days_ago}")
+            return [
+                {
+                    "error": "Invalid max_days_ago parameter",
+                    "value_received": str(max_days_ago)[:100],
+                    "expected": "non-negative integer",
+                }
+            ]
 
     # Fetch transactions from the last 10 rounds to ensure we have enough
     all_transactions = []
@@ -784,8 +925,8 @@ async def get_user(username_or_id: str) -> Dict[str, Any]:
     """Get detailed information about a Sleeper user by username or user ID.
 
     Args:
-        username_or_id: Either the unique username (string) or user_id (numeric string)
-                       of the Sleeper user to look up.
+        username_or_id: Either the unique username or user_id of the Sleeper user.
+                       Cannot be empty. Will be converted to string.
 
     Returns user profile including:
     - User ID (unique numeric identifier)
@@ -799,6 +940,23 @@ async def get_user(username_or_id: str) -> Dict[str, Any]:
     Returns:
         Dict containing user profile information
     """
+    # Validate username_or_id is provided and not empty
+    if not username_or_id:
+        logger.error("username_or_id parameter is required")
+        return {
+            "error": "username_or_id parameter is required",
+            "expected": "non-empty string (username or user ID)",
+        }
+
+    # Convert to string and validate
+    username_or_id = str(username_or_id).strip()
+    if not username_or_id:
+        logger.error("username_or_id cannot be empty")
+        return {
+            "error": "username_or_id cannot be empty",
+            "expected": "non-empty string (username or user ID)",
+        }
+
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/user/{username_or_id}")
         response.raise_for_status()
@@ -903,6 +1061,7 @@ async def search_players_by_name(name: str) -> List[Dict[str, Any]]:
 
     Args:
         name: Player name to search for (minimum 2 characters).
+              Will be converted to string and trimmed.
 
               Format examples:
               - Last name only: "mahomes", "jefferson", "hill"
@@ -926,8 +1085,27 @@ async def search_players_by_name(name: str) -> List[Dict[str, Any]]:
         List of player dictionaries with unified data (max 10 results)
     """
     try:
-        if not name or len(name) < 2:
-            return []  # Return empty list instead of error dict
+        # Validate name parameter
+        if not name:
+            logger.error("Name parameter is required for search")
+            return [
+                {
+                    "error": "Name parameter is required",
+                    "expected": "string with at least 2 characters",
+                }
+            ]
+
+        # Convert to string and validate length
+        name = str(name).strip()
+        if len(name) < 2:
+            logger.error(f"Search query too short: {name}")
+            return [
+                {
+                    "error": "Search query must be at least 2 characters",
+                    "value_received": name,
+                    "minimum_length": 2,
+                }
+            ]
 
         # Run sync function in executor
         loop = asyncio.get_event_loop()
@@ -963,8 +1141,8 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
     """Get unified player data by Sleeper ID.
 
     Args:
-        player_id: The Sleeper player ID (numeric string).
-                  Example: "4046" for Patrick Mahomes
+        player_id: The Sleeper player ID. Will be converted to string.
+                  Cannot be empty. Example: "4046" for Patrick Mahomes
 
     Returns complete unified player information:
     - All Sleeper data fields (name, age, position, team, etc.)
@@ -975,8 +1153,22 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
         Dict with unified player data or error if not found
     """
     try:
+        # Validate player_id is provided
         if not player_id:
-            return None  # Return None instead of error dict
+            logger.error("player_id parameter is required")
+            return {
+                "error": "player_id parameter is required",
+                "expected": "non-empty string (numeric player ID)",
+            }
+
+        # Convert to string and validate
+        player_id = str(player_id).strip()
+        if not player_id:
+            logger.error("player_id cannot be empty")
+            return {
+                "error": "player_id cannot be empty",
+                "expected": "non-empty string (numeric player ID)",
+            }
 
         # Spot refresh stats for this specific player
         logger.info(f"Spot refreshing stats for player {player_id}")
@@ -1016,6 +1208,7 @@ async def get_trending_players(type: str = "add") -> List[Dict[str, Any]]:
 
     Args:
         type: Transaction type to track (default: "add")
+              Must be exactly "add" or "drop" (case-sensitive).
               - "add": Players being picked up from waivers/free agency
               - "drop": Players being dropped to waivers
 
@@ -1029,6 +1222,18 @@ async def get_trending_players(type: str = "add") -> List[Dict[str, Any]]:
     Returns:
         List of dictionaries with enriched player data and add/drop counts
     """
+    # Validate type parameter
+    valid_types = ["add", "drop"]
+    if type not in valid_types:
+        logger.error(f"Invalid trending type: {type}")
+        return [
+            {
+                "error": "Invalid type parameter",
+                "value_received": str(type)[:100],
+                "valid_values": valid_types,
+            }
+        ]
+
     # Always use 24 hour lookback and return 25 players
     params = {"lookback_hours": 24, "limit": 25}
 
@@ -1066,10 +1271,10 @@ async def get_player_stats_all_weeks(
     """Get real stats for all weeks of a season for a specific player.
 
     Args:
-        player_id: The Sleeper player ID (required).
-                  Example: "4046" for Patrick Mahomes
-        season: The season year as a string (optional).
-               Defaults to current season if not provided.
+        player_id: The Sleeper player ID (required). Will be converted to string.
+                  Cannot be empty. Example: "4046" for Patrick Mahomes
+        season: The season year (optional). Can be integer or string.
+               Valid range: 2009-2030. Defaults to current season if not provided.
 
     Returns comprehensive stats including:
     - Player information (name, position, team, status)
@@ -1085,6 +1290,39 @@ async def get_player_stats_all_weeks(
         Dict containing player info, weekly stats, and season totals
     """
     try:
+        # Validate player_id is provided
+        if not player_id:
+            logger.error("player_id parameter is required")
+            return {
+                "error": "player_id parameter is required",
+                "expected": "non-empty string (numeric player ID)",
+            }
+
+        # Convert to string and validate
+        player_id = str(player_id).strip()
+        if not player_id:
+            logger.error("player_id cannot be empty")
+            return {
+                "error": "player_id cannot be empty",
+                "expected": "non-empty string (numeric player ID)",
+            }
+
+        # Validate season if provided
+        if season is not None:
+            season = str(season).strip()
+            # Check if season is a valid year format
+            try:
+                year = int(season)
+                if year < 2009 or year > 2030:  # Reasonable bounds for NFL seasons
+                    raise ValueError("Year out of range")
+            except ValueError:
+                logger.error(f"Invalid season format: {season}")
+                return {
+                    "error": "Invalid season parameter",
+                    "value_received": str(season)[:100],
+                    "expected": "year string (e.g., '2025')",
+                }
+
         # Get player info from cache first
         player_data = get_player_by_id(player_id)
         if not player_data:
@@ -1250,13 +1488,14 @@ async def get_waiver_wire_players(
     currently rostered players in the Token Bowl league.
 
     Args:
-        position: Filter by position (QB, RB, WR, TE, DEF, K).
-                 None returns all positions.
+        position: Filter by position. Valid values: QB, RB, WR, TE, DEF, K.
+                 Case-insensitive (will be uppercased). None returns all positions.
 
         search_term: Search for players by name (case-insensitive).
                     Partial matches are supported.
 
         limit: Maximum number of players to return (default: 50, max: 200).
+              Can be integer or string (will be converted).
               Players are sorted by relevance (active players first).
 
         include_stats: Include full stats and projections (default: False, minimal data).
@@ -1281,6 +1520,38 @@ async def get_waiver_wire_players(
         Dict with available players and metadata
     """
     try:
+        # Validate parameters
+        if position is not None:
+            valid_positions = ["QB", "RB", "WR", "TE", "DEF", "K"]
+            position = str(position).upper()
+            if position not in valid_positions:
+                logger.error(f"Invalid position: {position}")
+                return {
+                    "error": "Invalid position parameter",
+                    "value_received": str(position)[:100],
+                    "valid_values": valid_positions,
+                }
+
+        # Validate limit
+        try:
+            limit = int(limit)
+            if limit < 1:
+                raise ValueError("Must be positive")
+            limit = min(limit, 200)  # Cap at 200
+        except (TypeError, ValueError):
+            logger.error(f"Invalid limit: {limit}")
+            return {
+                "error": "Invalid limit parameter",
+                "value_received": str(limit)[:100],
+                "expected": "integer between 1 and 200",
+            }
+
+        # Validate search_term if provided
+        if search_term is not None:
+            search_term = str(search_term).strip()
+            if not search_term:
+                search_term = None  # Treat empty string as None
+
         # Get all current rosters to find rostered players (if verify_availability is True)
         rostered_players = set()
         if verify_availability:
@@ -1491,10 +1762,12 @@ async def get_waiver_analysis(
     transactions to provide focused recommendations.
 
     Args:
-        position: Filter by position (QB, RB, WR, TE, DEF, K).
-                 None returns all positions.
+        position: Filter by position. Valid values: QB, RB, WR, TE, DEF, K.
+                 Case-insensitive (will be uppercased). None returns all positions.
         days_back: Number of days to look back for recently dropped players (default: 7).
+                  Can be integer or string. Valid range: 1-30.
         limit: Maximum number of players to return per category (default: 20).
+              Can be integer or string. Maximum: 50.
 
     Returns comprehensive analysis including:
     - recently_dropped: Players dropped in our league (last N days) who are valuable
@@ -1507,6 +1780,44 @@ async def get_waiver_analysis(
         Dict with waiver analysis and recommendations
     """
     try:
+        # Validate parameters
+        if position is not None:
+            valid_positions = ["QB", "RB", "WR", "TE", "DEF", "K"]
+            position = str(position).upper()
+            if position not in valid_positions:
+                logger.error(f"Invalid position: {position}")
+                return {
+                    "error": "Invalid position parameter",
+                    "value_received": str(position)[:100],
+                    "valid_values": valid_positions,
+                }
+
+        # Validate days_back
+        try:
+            days_back = int(days_back)
+            if days_back < 1 or days_back > 30:
+                raise ValueError("Out of range")
+        except (TypeError, ValueError):
+            logger.error(f"Invalid days_back: {days_back}")
+            return {
+                "error": "Invalid days_back parameter",
+                "value_received": str(days_back)[:100],
+                "expected": "integer between 1 and 30",
+            }
+
+        # Validate limit
+        try:
+            limit = int(limit)
+            if limit < 1:
+                raise ValueError("Must be positive")
+            limit = min(limit, 50)  # Cap at 50 for this analysis
+        except (TypeError, ValueError):
+            logger.error(f"Invalid limit: {limit}")
+            return {
+                "error": "Invalid limit parameter",
+                "value_received": str(limit)[:100],
+                "expected": "integer between 1 and 50",
+            }
         logger.info(
             f"Starting waiver analysis for position={position}, days_back={days_back}"
         )
@@ -1717,7 +2028,9 @@ async def get_trending_context(
 
     Args:
         player_ids: List of Sleeper player IDs to get context for.
+                   Must be a list (not a string). Cannot be empty.
         max_players: Maximum number of players to process (default: 5, max: 10).
+                    Can be integer or string (will be converted).
 
     Returns:
         Dict mapping player_id to a 2-3 sentence explanation of why they're trending.
@@ -1733,6 +2046,33 @@ async def get_trending_context(
          With Kelce returning from injury, the passing game looks elite."}
     """
     try:
+        # Validate player_ids
+        if not player_ids:
+            logger.error("player_ids parameter is required")
+            return {
+                "error": "player_ids parameter is required",
+                "expected": "non-empty list of player IDs",
+            }
+
+        if not isinstance(player_ids, list):
+            logger.error(f"player_ids must be a list, got {type(player_ids).__name__}")
+            return {
+                "error": f"Invalid player_ids parameter: expected list, got {type(player_ids).__name__}"
+            }
+
+        # Validate max_players
+        try:
+            max_players = int(max_players)
+            if max_players < 1:
+                raise ValueError("Must be positive")
+            max_players = min(max_players, 10)  # Cap at 10
+        except (TypeError, ValueError):
+            logger.error(f"Invalid max_players: {max_players}")
+            return {
+                "error": "Invalid max_players parameter",
+                "value_received": str(max_players)[:100],
+                "expected": "integer between 1 and 10",
+            }
         # Limit the number of players to prevent excessive API calls
         max_players = min(max_players, 10)
         player_ids = player_ids[:max_players]
@@ -1839,8 +2179,11 @@ async def evaluate_waiver_priority_cost(
 
     Args:
         current_position: Current waiver priority position (1 is best).
+                         Can be integer or string. Valid range: 1-10.
         projected_points_gain: Expected points gain per week from the player.
+                              Can be float or string. Must be non-negative.
         weeks_remaining: Weeks left in fantasy season (default: 14).
+                        Can be integer or string. Valid range: 1-18.
 
     Returns analysis including:
     - recommended_action: "claim" or "wait"
@@ -1853,6 +2196,45 @@ async def evaluate_waiver_priority_cost(
         Dict with waiver priority cost analysis and recommendation
     """
     try:
+        # Validate current_position
+        try:
+            current_position = int(current_position)
+            if current_position < 1 or current_position > 10:
+                raise ValueError("Out of range")
+        except (TypeError, ValueError):
+            logger.error(f"Invalid current_position: {current_position}")
+            return {
+                "error": "Invalid current_position parameter",
+                "value_received": str(current_position)[:100],
+                "expected": "integer between 1 and 10",
+            }
+
+        # Validate projected_points_gain
+        try:
+            projected_points_gain = float(projected_points_gain)
+            if projected_points_gain < 0:
+                raise ValueError("Must be non-negative")
+        except (TypeError, ValueError):
+            logger.error(f"Invalid projected_points_gain: {projected_points_gain}")
+            return {
+                "error": "Invalid projected_points_gain parameter",
+                "value_received": str(projected_points_gain)[:100],
+                "expected": "non-negative number",
+            }
+
+        # Validate weeks_remaining
+        try:
+            weeks_remaining = int(weeks_remaining)
+            if weeks_remaining < 1 or weeks_remaining > 18:
+                raise ValueError("Out of range")
+        except (TypeError, ValueError):
+            logger.error(f"Invalid weeks_remaining: {weeks_remaining}")
+            return {
+                "error": "Invalid weeks_remaining parameter",
+                "value_received": str(weeks_remaining)[:100],
+                "expected": "integer between 1 and 18",
+            }
+
         # Calculate expected value from the player
         total_expected_points = projected_points_gain * weeks_remaining
 
@@ -1938,7 +2320,8 @@ async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
 
     Args:
         week: NFL week number (1-18 for regular season + playoffs).
-              If not provided, returns schedule for the current week.
+              Can be integer or string (will be converted).
+              If not provided or None, returns schedule for the current week.
 
     Returns schedule information including:
     - Season year and current week
@@ -1954,6 +2337,20 @@ async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
         Dict with week schedule and game information
     """
     try:
+        # Validate week if provided
+        if week is not None:
+            try:
+                week = int(week)
+                if week < 1 or week > 18:
+                    raise ValueError("Out of range")
+            except (TypeError, ValueError):
+                logger.error(f"Invalid week: {week}")
+                return {
+                    "error": "Invalid week parameter",
+                    "value_received": str(week)[:100],
+                    "expected": "integer between 1 and 18, or None for current week",
+                }
+
         # Get Fantasy Nerds API key
         api_key = os.environ.get("FFNERD_API_KEY")
         if not api_key:
@@ -2126,12 +2523,33 @@ async def search(query: str) -> Dict[str, List[Dict[str, Any]]]:
     - Team rosters and matchups
 
     Args:
-        query: Natural language search query (e.g., "Patrick Mahomes", "waiver RB", "trending")
+        query: Natural language search query. Cannot be empty.
+              Will be converted to string and trimmed.
+              Examples: "Patrick Mahomes", "waiver RB", "trending"
 
     Returns:
         Dictionary with 'results' key containing list of matching items.
         Each result includes id, title, and url for proper citation.
     """
+    # Validate query is provided and not empty
+    if not query:
+        logger.error("Query parameter is required for search")
+        return {
+            "results": [],
+            "error": "Query parameter is required",
+            "expected": "non-empty search string",
+        }
+
+    # Convert to string and validate
+    query = str(query).strip()
+    if not query:
+        logger.error("Search query cannot be empty")
+        return {
+            "results": [],
+            "error": "Search query cannot be empty",
+            "expected": "non-empty search string",
+        }
+
     results = []
     query_lower = query.lower()
 
@@ -2256,12 +2674,32 @@ async def fetch(id: str) -> Dict[str, Any]:
     - Matchup details
 
     Args:
-        id: Resource identifier with type prefix (e.g., "player_4046", "roster_2")
+        id: Resource identifier with type prefix. Cannot be empty.
+           Must contain underscore. Will be converted to string.
+           Format: <type>_<id> (e.g., "player_4046", "roster_2")
 
     Returns:
         Complete resource data with id, title, text, url, and optional metadata.
     """
     try:
+        # Validate id is provided and not empty
+        if not id:
+            logger.error("ID parameter is required for fetch")
+            return {
+                "error": "ID parameter is required",
+                "expected": "resource identifier with type prefix (e.g., 'player_4046', 'roster_2')",
+            }
+
+        # Convert to string and validate format
+        id = str(id).strip()
+        if not id or "_" not in id:
+            logger.error(f"Invalid ID format: {id}")
+            return {
+                "error": "Invalid ID format",
+                "value_received": str(id)[:100],
+                "expected": "format: <type>_<id> (e.g., 'player_4046', 'roster_2')",
+            }
+
         # Parse the ID to determine resource type
         if "_" in id:
             resource_type, resource_id = id.split("_", 1)
@@ -2369,12 +2807,8 @@ async def fetch(id: str) -> Dict[str, Any]:
 
     except Exception as e:
         logger.error(
-            "Failed to fetch resource",
-            resource_id=id,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Failed to fetch resource: {id} - {type(e).__name__}: {str(e)}",
             exc_info=True,
-            _tags=["mcp_tool", "fetch", "error"],
         )
         return {
             "id": id,
@@ -2383,6 +2817,94 @@ async def fetch(id: str) -> Dict[str, Any]:
             "url": "",
             "metadata": {"error": str(e)},
         }
+
+
+# ============================================================================
+# Health Monitoring Tool
+# ============================================================================
+
+
+@mcp.tool()
+@log_mcp_tool
+async def health_check() -> Dict[str, Any]:
+    """Check the health status of the MCP server and its dependencies.
+
+    Performs health checks on:
+    - Server status and uptime
+    - Redis cache connectivity
+    - Sleeper API connectivity
+    - Fantasy Nerds API connectivity (if configured)
+
+    Returns:
+        Dict with health status for each component and overall health
+    """
+    from datetime import datetime
+
+    health_status = {
+        "status": "healthy",
+        "timestamp": datetime.now(ZoneInfo("America/Los_Angeles")).isoformat(),
+        "components": {},
+        "server_info": {
+            "league_id": LEAGUE_ID,
+            "debug_mode": DEBUG_MODE,
+        },
+    }
+
+    # Check Redis cache
+    try:
+        from cache_client import get_players_from_cache
+
+        players = get_players_from_cache(active_only=True)
+        health_status["components"]["redis_cache"] = {
+            "status": "healthy" if players else "degraded",
+            "cached_players": len(players) if players else 0,
+        }
+    except Exception as e:
+        health_status["components"]["redis_cache"] = {
+            "status": "unhealthy",
+            "error": str(e),
+        }
+        health_status["status"] = "degraded"
+
+    # Check Sleeper API
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(f"{BASE_URL}/state/nfl")
+            response.raise_for_status()
+            state = response.json()
+            health_status["components"]["sleeper_api"] = {
+                "status": "healthy",
+                "current_season": state.get("season"),
+                "current_week": state.get("week"),
+            }
+    except Exception as e:
+        health_status["components"]["sleeper_api"] = {
+            "status": "unhealthy",
+            "error": str(e),
+        }
+        health_status["status"] = "unhealthy"
+
+    # Check Fantasy Nerds API (if configured)
+    api_key = os.environ.get("FFNERD_API_KEY")
+    if api_key:
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(
+                    "https://api.fantasynerds.com/v1/nfl/current-week",
+                    headers={"x-api-key": api_key},
+                )
+                response.raise_for_status()
+                health_status["components"]["fantasy_nerds_api"] = {"status": "healthy"}
+        except Exception as e:
+            health_status["components"]["fantasy_nerds_api"] = {
+                "status": "unhealthy",
+                "error": str(e),
+            }
+            # Don't degrade overall status for optional API
+    else:
+        health_status["components"]["fantasy_nerds_api"] = {"status": "not_configured"}
+
+    return health_status
 
 
 # Unified player tools removed - consolidated into main player tools above
