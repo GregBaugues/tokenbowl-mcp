@@ -3,8 +3,7 @@
 import pytest
 import sys
 import os
-from unittest.mock import AsyncMock, patch, MagicMock
-import httpx
+from unittest.mock import AsyncMock, patch
 
 # Import the module to test
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,20 +14,27 @@ class TestValidParameters:
     """Test that MCP tools work correctly with valid parameters."""
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
+    @patch("httpx.AsyncClient")
     async def test_get_roster_with_valid_id(self, mock_client):
         """Test get_roster works with valid roster_id."""
         # Mock the HTTP responses
         mock_response = AsyncMock()
-        mock_response.json = AsyncMock(return_value=[
-            {"roster_id": 2, "owner_id": "123", "players": ["4046"], "settings": {"wins": 5, "losses": 3}}
-        ])
+        mock_response.json = AsyncMock(
+            return_value=[
+                {
+                    "roster_id": 2,
+                    "owner_id": "123",
+                    "players": ["4046"],
+                    "settings": {"wins": 5, "losses": 3},
+                }
+            ]
+        )
         mock_response.raise_for_status = AsyncMock()
 
         mock_users_response = AsyncMock()
-        mock_users_response.json = AsyncMock(return_value=[
-            {"user_id": "123", "display_name": "Test User"}
-        ])
+        mock_users_response.json = AsyncMock(
+            return_value=[{"user_id": "123", "display_name": "Test User"}]
+        )
         mock_users_response.raise_for_status = AsyncMock()
 
         # Setup the mock client
@@ -40,8 +46,10 @@ class TestValidParameters:
         mock_client.return_value = mock_instance
 
         # Mock the cache function
-        with patch('sleeper_mcp.get_players_from_cache') as mock_cache:
-            mock_cache.return_value = {"4046": {"first_name": "Patrick", "last_name": "Mahomes"}}
+        with patch("sleeper_mcp.get_players_from_cache") as mock_cache:
+            mock_cache.return_value = {
+                "4046": {"first_name": "Patrick", "last_name": "Mahomes"}
+            }
 
             # Test with valid integer
             result = await sleeper_mcp.get_roster.fn(2)
@@ -54,14 +62,14 @@ class TestValidParameters:
             assert result["roster"]["roster_id"] == 2
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
+    @patch("httpx.AsyncClient")
     async def test_get_league_matchups_with_valid_week(self, mock_client):
         """Test get_league_matchups works with valid week."""
         # Mock the HTTP response
         mock_response = AsyncMock()
-        mock_response.json = AsyncMock(return_value=[
-            {"matchup_id": 1, "roster_id": 1, "points": 100.5}
-        ])
+        mock_response.json = AsyncMock(
+            return_value=[{"matchup_id": 1, "roster_id": 1, "points": 100.5}]
+        )
         mock_response.raise_for_status = AsyncMock()
 
         mock_instance = AsyncMock()
@@ -71,7 +79,7 @@ class TestValidParameters:
         mock_client.return_value = mock_instance
 
         # Mock spot refresh
-        with patch('sleeper_mcp.spot_refresh_player_stats'):
+        with patch("sleeper_mcp.spot_refresh_player_stats"):
             # Test with valid week
             result = await sleeper_mcp.get_league_matchups.fn(5)
             assert isinstance(result, list)
@@ -84,14 +92,14 @@ class TestValidParameters:
             assert "error" not in result[0] if result else True
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
+    @patch("httpx.AsyncClient")
     async def test_get_league_transactions_with_valid_round(self, mock_client):
         """Test get_league_transactions works with valid round."""
         # Mock the HTTP response
         mock_response = AsyncMock()
-        mock_response.json = AsyncMock(return_value=[
-            {"type": "waiver", "status": "complete", "adds": {"4046": 1}}
-        ])
+        mock_response.json = AsyncMock(
+            return_value=[{"type": "waiver", "status": "complete", "adds": {"4046": 1}}]
+        )
         mock_response.raise_for_status = AsyncMock()
 
         mock_instance = AsyncMock()
@@ -114,10 +122,14 @@ class TestValidParameters:
     async def test_search_players_with_valid_name(self):
         """Test search_players_by_name works with valid name."""
         # Mock the search function
-        with patch('sleeper_mcp.search_players_unified') as mock_search:
-            with patch('sleeper_mcp.spot_refresh_player_stats'):
+        with patch("sleeper_mcp.search_players_unified") as mock_search:
+            with patch("sleeper_mcp.spot_refresh_player_stats"):
                 mock_search.return_value = [
-                    {"player_id": "4046", "first_name": "Patrick", "last_name": "Mahomes"}
+                    {
+                        "player_id": "4046",
+                        "first_name": "Patrick",
+                        "last_name": "Mahomes",
+                    }
                 ]
 
                 # Test with valid name
@@ -133,16 +145,18 @@ class TestValidParameters:
                 assert "error" not in result[0] if result else True
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
+    @patch("httpx.AsyncClient")
     async def test_get_user_with_valid_username(self, mock_client):
         """Test get_user works with valid username."""
         # Mock the HTTP response
         mock_response = AsyncMock()
-        mock_response.json = AsyncMock(return_value={
-            "user_id": "123456",
-            "username": "testuser",
-            "display_name": "Test User"
-        })
+        mock_response.json = AsyncMock(
+            return_value={
+                "user_id": "123456",
+                "username": "testuser",
+                "display_name": "Test User",
+            }
+        )
         mock_response.raise_for_status = AsyncMock()
 
         mock_instance = AsyncMock()
@@ -163,12 +177,12 @@ class TestValidParameters:
     @pytest.mark.asyncio
     async def test_get_trending_players_with_valid_type(self):
         """Test get_trending_players works with valid type."""
-        with patch('httpx.AsyncClient') as mock_client:
+        with patch("httpx.AsyncClient") as mock_client:
             # Mock the HTTP response
             mock_response = AsyncMock()
-            mock_response.json = AsyncMock(return_value=[
-                {"player_id": "4046", "count": 1000}
-            ])
+            mock_response.json = AsyncMock(
+                return_value=[{"player_id": "4046", "count": 1000}]
+            )
             mock_response.raise_for_status = AsyncMock()
 
             mock_instance = AsyncMock()
@@ -177,8 +191,11 @@ class TestValidParameters:
             mock_instance.__aexit__.return_value = None
             mock_client.return_value = mock_instance
 
-            with patch('sleeper_mcp.get_player_by_id') as mock_player:
-                mock_player.return_value = {"player_id": "4046", "first_name": "Patrick"}
+            with patch("sleeper_mcp.get_player_by_id") as mock_player:
+                mock_player.return_value = {
+                    "player_id": "4046",
+                    "first_name": "Patrick",
+                }
 
                 # Test with valid 'add' type
                 result = await sleeper_mcp.get_trending_players.fn(type="add")
@@ -195,9 +212,7 @@ class TestValidParameters:
         """Test evaluate_waiver_priority_cost works with valid parameters."""
         # Test with all valid parameters
         result = await sleeper_mcp.evaluate_waiver_priority_cost.fn(
-            current_position=1,
-            projected_points_gain=5.5,
-            weeks_remaining=10
+            current_position=1, projected_points_gain=5.5, weeks_remaining=10
         )
         assert "error" not in result
         assert "recommended_action" in result
@@ -205,9 +220,7 @@ class TestValidParameters:
 
         # Test with string parameters that convert to valid values
         result = await sleeper_mcp.evaluate_waiver_priority_cost.fn(
-            current_position="3",
-            projected_points_gain="7.5",
-            weeks_remaining="12"
+            current_position="3", projected_points_gain="7.5", weeks_remaining="12"
         )
         assert "error" not in result
         assert "recommended_action" in result
@@ -215,9 +228,11 @@ class TestValidParameters:
     @pytest.mark.asyncio
     async def test_search_with_valid_query(self):
         """Test search works with valid query."""
-        with patch('sleeper_mcp.search_players_unified') as mock_search:
-            with patch('sleeper_mcp.get_trending_players.fn') as mock_trending:
-                mock_search.return_value = [{"player_id": "4046", "first_name": "Patrick"}]
+        with patch("sleeper_mcp.search_players_unified") as mock_search:
+            with patch("sleeper_mcp.get_trending_players.fn") as mock_trending:
+                mock_search.return_value = [
+                    {"player_id": "4046", "first_name": "Patrick"}
+                ]
                 mock_trending.return_value = []
 
                 # Test with valid search query
@@ -233,14 +248,16 @@ class TestValidParameters:
     @pytest.mark.asyncio
     async def test_health_check(self):
         """Test health_check tool works correctly."""
-        with patch('sleeper_mcp.get_players_from_cache') as mock_cache:
-            with patch('httpx.AsyncClient') as mock_client:
+        with patch("sleeper_mcp.get_players_from_cache") as mock_cache:
+            with patch("httpx.AsyncClient") as mock_client:
                 # Mock cache response
                 mock_cache.return_value = {"4046": {"player_id": "4046"}}
 
                 # Mock HTTP response for Sleeper API
                 mock_response = AsyncMock()
-                mock_response.json = AsyncMock(return_value={"season": "2024", "week": 10})
+                mock_response.json = AsyncMock(
+                    return_value={"season": "2024", "week": 10}
+                )
                 mock_response.raise_for_status = AsyncMock()
 
                 mock_instance = AsyncMock()
