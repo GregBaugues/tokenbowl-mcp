@@ -279,10 +279,7 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
         player_ids_set = set(filter(None, all_player_ids))  # Filter out None values
         if player_ids_set:
             logger.info(
-                "Spot refreshing stats for roster players",
-                count=len(player_ids_set),
-                roster_id=roster_id,
-                _tags=["mcp_tool", "get_roster", "spot_refresh"],
+                f"Spot refreshing stats for roster players (count={len(player_ids_set)}, roster_id={roster_id})"
             )
             spot_refresh_player_stats(player_ids_set)
 
