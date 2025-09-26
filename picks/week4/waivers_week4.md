@@ -1,108 +1,108 @@
-# Week 4 Waiver Wire Analysis
-## Bill Beliclaude (2-1)
-**Date**: September 26, 2025
-**Waiver Priority**: 8 of 10
+# Week 4 Waiver Wire Analysis - Bill Beliclaude
 
-### Current Roster Analysis
+## Current Situation
+- **Record**: 2-1
+- **Waiver Priority**: 4th (improved from 8th!)
+- **Critical Need**: RB depth (only 1 backup RB)
+- **Date**: September 26, 2025
 
-**Critical Needs:**
-- **QB Backup**: ZERO depth behind Josh Allen - CRITICAL vulnerability
-- **RB Depth**: Only 3 RBs (Cook, Gibbs, Allgeier) - need lottery tickets
+## Roster Needs Assessment
 
-**Overstocked:**
-- **WR**: 7 total (can drop 1-2 for other needs)
+### Position Breakdown
+- **RB (CRITICAL)**: 3 total (Cook, Gibbs, Allgeier) - Need 1-2 more for depth
+- **WR (Sufficient)**: 7 total - Well covered with MHJ, DJ Moore, Shakir on bench
+- **QB (Set)**: Josh Allen - No backup needed (bye week 12)
+- **TE (Adequate)**: 2 total (Ferguson, Strange)
+- **K/DEF**: No backups needed
 
----
+## Priority Waiver Targets
 
-## Priority Adds (Ranked)
+### 1. **TreVeyon Henderson (RB, NE) - TOP PRIORITY**
+- **Status**: Dropped TODAY by roster 10
+- **Projections**: 10.5 pts/week, 97.7 ROS
+- **Context**: Seeing increased usage and targets in New England offense
+- **Rationale**: Best available RB, fills critical need, opponent's mistake
+- **Priority Analysis**: Worth using waiver claim (37.4 net points value)
 
-### 1. **James Conner, RB, ARI** ⭐⭐⭐⭐⭐
-- **Status**: IR (Foot) - Dropped just 2 days ago
-- **Pre-Injury Stats**: 11.1 PPG through 3 weeks (14.4, 12.2, 6.7)
-- **Action**: CLAIM WITH WAIVER PRIORITY
-- **Drop**: Brenton Strange
-- **Cost-Benefit**: Worth burning #8 priority (56 point expected value vs 8 point priority cost)
+### 2. **Keon Coleman (WR, BUF)**
+- **Status**: Dropped 6 days ago
+- **Projections**: 10.7 pts/week, 103.7 ROS
+- **Context**: Seeing increased usage, Josh Allen connection
+- **Rationale**: Upgrade over bench WRs, stack with Allen, high ceiling
 
-### 2. **Caleb Williams, QB, CHI** ⭐⭐⭐⭐
-- **Trending**: 57,492 adds
-- **Rationale**: Critical QB2 need, 18.2 projected points, ROS 237.3 points
-- **Action**: Add if clears waivers
-- **Drop**: Tyler Allgeier
-- **Cost-Benefit**: Insurance policy for Josh Allen
+### 3. **Chris Rodriguez (RB, WAS)**
+- **Status**: Trending (256k adds!)
+- **Projections**: 6.8 pts/week, 62.5 ROS
+- **Context**: Increased usage with Croskey-Merritt injured (questionable)
+- **Rationale**: RB depth with immediate opportunity
 
-### 3. **Kareem Hunt, RB, KC** ⭐⭐⭐
-- **Trending**: 58,900 adds (#1 overall trending player)
-- **Week 3 Performance**: 11.4 points (10 carries, 34 yards, TD)
-- **Action**: Add if available after priority claims
-- **Drop**: Matt Prater (stream kickers)
-- **Cost-Benefit**: Now KC's RB1 with Pacheco injured
+### 4. **Kareem Hunt (RB, KC)**
+- **Status**: Trending (59k adds)
+- **Projections**: 8.9 pts/week, 78.0 ROS
+- **Context**: Increased usage in KC offense as lead back
+- **Rationale**: Proven veteran with TD upside
 
-### 4. **TreVeyon Henderson, RB, NE** ⭐⭐⭐
-- **Recently Dropped**: Today
-- **Projections**: 10.5 weekly, 97.7 ROS
-- **Action**: Monitor, add if others unavailable
-- **Drop**: Consider if room after priority moves
+### 5. **Tyquan Thornton (WR, KC)**
+- **Status**: Most trending add (263k!)
+- **Projections**: 8.6 pts/week, 58.8 ROS
+- **Context**: Seeing increased targets in KC
+- **Rationale**: Lower priority given WR depth
 
-### 5. **Keon Coleman, WR, BUF** ⭐⭐
-- **Recently Dropped**: 6 days ago
-- **Rationale**: Josh Allen stack, 10.7 projected, 103.7 ROS
-- **Action**: PASS - already overstocked at WR
+## Drop Candidates
 
----
+### Primary Drop: **Brenton Strange (TE)**
+- **Projections**: 8.4 pts/week
+- **Rationale**: Jake Ferguson is locked in starter, TE streaming viable if needed
+- **Risk**: Low - can stream TE if Ferguson injured
 
-## Drop Candidates (Ranked by Dispensability)
-
-1. **Brenton Strange** - Backup TE, 8.4 proj, no path to starts with Ferguson healthy
-2. **Tyler Allgeier** - Low-ceiling RB3, 6.4 proj, touchdown-dependent
-3. **Matt Prater** - Kicker, can stream weekly based on matchups
-
----
+### Hold All Others
+- **Tyler Allgeier**: Must hold as only backup RB
+- **WR Bench**: All project 11+ weekly points
+- **Josh Allen/James Cook**: Season-long holds
 
 ## Final Recommendation
 
-### **EXECUTE THIS WAIVER CLAIM:**
+### **MAKE THE CLAIM**
 
-**Waiver Priority Claim #1:**
-- **ADD: James Conner, RB**
-- **DROP: Brenton Strange**
-- **Priority: 1st claim**
+**Waiver Claim #1 (USE PRIORITY - 4th)**
+- **ADD**: TreVeyon Henderson (RB, NE)
+- **DROP**: Brenton Strange (TE)
+- **Justification**:
+  - Addresses critical RB depth need
+  - 97.7 ROS projection vs 62.0 for Strange
+  - Net gain of 35.7 ROS points
+  - Priority value analysis confirms worth using (37.4 net value)
+  - Dropped TODAY - likely an overreaction
 
-**If Conner is claimed, pivot to:**
-- **ADD: Kareem Hunt, RB**
-- **DROP: Brenton Strange**
-- **Priority: 2nd claim**
+### Backup Plans (if Henderson claimed)
+**Waiver Claim #2:**
+- **ADD**: Chris Rodriguez (RB, WAS)
+- **DROP**: Brenton Strange (TE)
+- Immediate opportunity with starter injured
 
-### **Free Agent Adds (After Waivers Clear):**
-1. Add Caleb Williams for QB depth (drop Tyler Allgeier)
-2. Monitor TreVeyon Henderson availability
+**Waiver Claim #3:**
+- **ADD**: Kareem Hunt (RB, KC)
+- **DROP**: Brenton Strange (TE)
+- Lead back role in high-powered offense
 
----
+## Key Insights
+1. **Recently Dropped Gems**: Henderson was mistakenly dropped TODAY - classic overreaction. Our opponents make mistakes!
+2. **Position Scarcity**: RB depth critical with only Allgeier backing up Cook/Gibbs
+3. **Waiver Priority**: At 4th (improved from 8th!), worth using for 4+ point weekly upgrade at position of need
+4. **WR Depth**: Can pass on trending WRs given our 7 rostered receivers
+5. **Trending Context**: Rodriguez and Hunt both seeing increased usage due to injuries/opportunity
 
-## Justification
+## Decision: CLAIM HENDERSON
 
-**Why Use Waiver Priority Now:**
-- James Conner is a proven RB1 dropped due to temporary IR
-- Our #8 priority has minimal value - perfect time to use it
-- Expected 56-point value far exceeds 8-point priority cost (7x return)
-- Elite RBs rarely hit waivers
+This move addresses our biggest roster weakness and capitalizes on an opponent's mistake. The 37.4 point net value easily justifies using our waiver priority.
 
-**Why These Moves:**
-- Addresses QB vulnerability (zero backup)
-- Adds RB depth with legitimate upside
-- Drops our least valuable assets
-- Conner could be difference between playoffs and missing
+### Why Now?
+- Henderson projects as RB24 rest of season (97.7 pts)
+- Clear path to touches in New England
+- RB scarcity on waivers makes this a rare opportunity
+- Our improved waiver position (4th) gives us good chance to land him
 
-**Risk Assessment:**
-- Conner's foot injury is concerning but upside worth the risk
-- Hunt provides immediate startable depth as KC's RB1
-- QB depth critical with 14 weeks remaining
-
----
-
-## Summary
-
-**Action: CLAIM JAMES CONNER WITH #8 WAIVER PRIORITY**
-
-This is a no-brainer. Elite RB1s don't hit waivers. Even with injury risk, Conner averaged 11.1 PPG when healthy. With our low waiver priority (#8), this is exactly when to strike. Dropping Strange costs nothing while potentially adding a league-winner.
-
-Secondary priority: Secure QB insurance with Caleb Williams to protect against disaster with Allen.
+### Risk Assessment
+- **Low Risk**: Dropping Strange doesn't hurt with Ferguson healthy
+- **High Reward**: Henderson could be flex-worthy or bye week savior
+- **Alternative**: If we don't get RB depth now, we're vulnerable to injury/bye weeks
