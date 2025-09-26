@@ -175,7 +175,8 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
 
     Args:
         roster_id: The roster ID (1-10) for the team you want to view.
-              Note: Roster ID 2 is Bill Beliclaude.
+              Can be an integer or string (will be converted).
+              Valid range: 1-10. Roster ID 2 is Bill Beliclaude.
 
     Returns a comprehensive roster including:
     - Team information (owner, record, points)
@@ -445,12 +446,8 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
 
     except Exception as e:
         logger.error(
-            "Failed to get roster",
-            roster_id=roster_id,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Failed to get roster: {roster_id} - {type(e).__name__}: {str(e)}",
             exc_info=True,
-            _tags=["mcp_tool", "get_roster", "error"],
         )
         return {"error": f"Failed to get roster: {str(e)}"}
 
@@ -484,6 +481,7 @@ async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
 
     Args:
         week: The NFL week number (1-18 for regular season + playoffs).
+              Can be an integer or string (will be converted).
               Week 1-14 are typically regular season,
               Week 15-17/18 are typically playoffs.
 
@@ -550,6 +548,8 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
 
     Args:
         round: The transaction round/week number (default: 1).
+               Can be an integer or string (will be converted).
+               Must be positive (1 or greater).
                Transactions are grouped by processing rounds.
                Higher rounds represent more recent transactions.
 
@@ -652,7 +652,8 @@ async def get_recent_transactions(
 
     Args:
         limit: Maximum number of transactions to return (default: 20, max: 20).
-        transaction_type: Filter by type ('waiver', 'free_agent', 'trade').
+               Can be an integer or string (will be converted).
+        transaction_type: Filter by type. Valid values: 'waiver', 'free_agent', 'trade'.
                          None returns all types.
         include_failed: Include failed transactions (default: False).
         drops_only: Return only transactions with drops (default: False).
@@ -924,8 +925,8 @@ async def get_user(username_or_id: str) -> Dict[str, Any]:
     """Get detailed information about a Sleeper user by username or user ID.
 
     Args:
-        username_or_id: Either the unique username (string) or user_id (numeric string)
-                       of the Sleeper user to look up.
+        username_or_id: Either the unique username or user_id of the Sleeper user.
+                       Cannot be empty. Will be converted to string.
 
     Returns user profile including:
     - User ID (unique numeric identifier)
@@ -1060,6 +1061,7 @@ async def search_players_by_name(name: str) -> List[Dict[str, Any]]:
 
     Args:
         name: Player name to search for (minimum 2 characters).
+              Will be converted to string and trimmed.
 
               Format examples:
               - Last name only: "mahomes", "jefferson", "hill"
@@ -1139,8 +1141,8 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
     """Get unified player data by Sleeper ID.
 
     Args:
-        player_id: The Sleeper player ID (numeric string).
-                  Example: "4046" for Patrick Mahomes
+        player_id: The Sleeper player ID. Will be converted to string.
+                  Cannot be empty. Example: "4046" for Patrick Mahomes
 
     Returns complete unified player information:
     - All Sleeper data fields (name, age, position, team, etc.)
@@ -1206,6 +1208,7 @@ async def get_trending_players(type: str = "add") -> List[Dict[str, Any]]:
 
     Args:
         type: Transaction type to track (default: "add")
+              Must be exactly "add" or "drop" (case-sensitive).
               - "add": Players being picked up from waivers/free agency
               - "drop": Players being dropped to waivers
 
@@ -1268,10 +1271,10 @@ async def get_player_stats_all_weeks(
     """Get real stats for all weeks of a season for a specific player.
 
     Args:
-        player_id: The Sleeper player ID (required).
-                  Example: "4046" for Patrick Mahomes
-        season: The season year as a string (optional).
-               Defaults to current season if not provided.
+        player_id: The Sleeper player ID (required). Will be converted to string.
+                  Cannot be empty. Example: "4046" for Patrick Mahomes
+        season: The season year (optional). Can be integer or string.
+               Valid range: 2009-2030. Defaults to current season if not provided.
 
     Returns comprehensive stats including:
     - Player information (name, position, team, status)
@@ -1485,13 +1488,14 @@ async def get_waiver_wire_players(
     currently rostered players in the Token Bowl league.
 
     Args:
-        position: Filter by position (QB, RB, WR, TE, DEF, K).
-                 None returns all positions.
+        position: Filter by position. Valid values: QB, RB, WR, TE, DEF, K.
+                 Case-insensitive (will be uppercased). None returns all positions.
 
         search_term: Search for players by name (case-insensitive).
                     Partial matches are supported.
 
         limit: Maximum number of players to return (default: 50, max: 200).
+              Can be integer or string (will be converted).
               Players are sorted by relevance (active players first).
 
         include_stats: Include full stats and projections (default: False, minimal data).
@@ -1758,10 +1762,12 @@ async def get_waiver_analysis(
     transactions to provide focused recommendations.
 
     Args:
-        position: Filter by position (QB, RB, WR, TE, DEF, K).
-                 None returns all positions.
+        position: Filter by position. Valid values: QB, RB, WR, TE, DEF, K.
+                 Case-insensitive (will be uppercased). None returns all positions.
         days_back: Number of days to look back for recently dropped players (default: 7).
+                  Can be integer or string. Valid range: 1-30.
         limit: Maximum number of players to return per category (default: 20).
+              Can be integer or string. Maximum: 50.
 
     Returns comprehensive analysis including:
     - recently_dropped: Players dropped in our league (last N days) who are valuable
@@ -2022,7 +2028,9 @@ async def get_trending_context(
 
     Args:
         player_ids: List of Sleeper player IDs to get context for.
+                   Must be a list (not a string). Cannot be empty.
         max_players: Maximum number of players to process (default: 5, max: 10).
+                    Can be integer or string (will be converted).
 
     Returns:
         Dict mapping player_id to a 2-3 sentence explanation of why they're trending.
@@ -2171,8 +2179,11 @@ async def evaluate_waiver_priority_cost(
 
     Args:
         current_position: Current waiver priority position (1 is best).
+                         Can be integer or string. Valid range: 1-10.
         projected_points_gain: Expected points gain per week from the player.
+                              Can be float or string. Must be non-negative.
         weeks_remaining: Weeks left in fantasy season (default: 14).
+                        Can be integer or string. Valid range: 1-18.
 
     Returns analysis including:
     - recommended_action: "claim" or "wait"
@@ -2309,7 +2320,8 @@ async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
 
     Args:
         week: NFL week number (1-18 for regular season + playoffs).
-              If not provided, returns schedule for the current week.
+              Can be integer or string (will be converted).
+              If not provided or None, returns schedule for the current week.
 
     Returns schedule information including:
     - Season year and current week
@@ -2511,7 +2523,9 @@ async def search(query: str) -> Dict[str, List[Dict[str, Any]]]:
     - Team rosters and matchups
 
     Args:
-        query: Natural language search query (e.g., "Patrick Mahomes", "waiver RB", "trending")
+        query: Natural language search query. Cannot be empty.
+              Will be converted to string and trimmed.
+              Examples: "Patrick Mahomes", "waiver RB", "trending"
 
     Returns:
         Dictionary with 'results' key containing list of matching items.
@@ -2660,7 +2674,9 @@ async def fetch(id: str) -> Dict[str, Any]:
     - Matchup details
 
     Args:
-        id: Resource identifier with type prefix (e.g., "player_4046", "roster_2")
+        id: Resource identifier with type prefix. Cannot be empty.
+           Must contain underscore. Will be converted to string.
+           Format: <type>_<id> (e.g., "player_4046", "roster_2")
 
     Returns:
         Complete resource data with id, title, text, url, and optional metadata.
