@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
+from functools import wraps
 from cache_client import (
     get_players_from_cache,
     search_players as search_players_unified,
@@ -22,14 +23,20 @@ import logfire
 load_dotenv()
 
 # Initialize Logfire (reads LOGFIRE_TOKEN from env)
-logfire.configure()
+logfire.configure(
+    send_to_logfire="always",
+    console=False,  # Disable console to avoid duplication
+)
 
-# Configure logging to use Logfire as the handler
+# Configure logging with proper level handling
+DEBUG_MODE = os.environ.get("DEBUG", "").lower() in ("true", "1", "yes")
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG if DEBUG_MODE else logging.INFO,
     handlers=[logfire.LogfireLoggingHandler()],
     format="%(name)s - %(levelname)s - %(message)s",
 )
+
+# Get logger instance
 logger = logging.getLogger(__name__)
 
 # Auto-instrument httpx for HTTP request tracing
@@ -48,7 +55,78 @@ BASE_URL = "https://api.sleeper.app/v1"
 # Get league ID from environment variable with fallback to Token Bowl
 
 
+def log_mcp_tool(func):
+    """Decorator to automatically log MCP tool calls with parameters and responses."""
+
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        tool_name = func.__name__
+
+        # Prepare parameters for logging (serialize to JSON-safe format)
+        params = {}
+        if args:
+            params["args"] = [str(arg)[:200] for arg in args]  # Limit arg length
+        if kwargs:
+            params["kwargs"] = {
+                k: str(v)[:200] if v is not None else None for k, v in kwargs.items()
+            }
+
+        with logfire.span(
+            f"mcp_tool.{tool_name}",
+            tool_name=tool_name,
+            parameters=params,
+            _tags=["mcp_tool", tool_name],
+        ) as span:
+            try:
+                # Log the tool invocation
+                logger.info(f"MCP Tool Called: {tool_name} with params: {params}")
+
+                # Execute the actual function
+                result = await func(*args, **kwargs)
+
+                # Check if result indicates an error
+                if isinstance(result, dict) and "error" in result:
+                    span.set_attribute("success", False)
+                    span.set_attribute("error_message", result["error"])
+                    logger.warning(
+                        f"MCP Tool Error Response: {tool_name} - {result['error']}"
+                    )
+                else:
+                    span.set_attribute("success", True)
+
+                    # Log response summary (avoid logging huge responses)
+                    response_summary = None
+                    if isinstance(result, list):
+                        response_summary = f"List with {len(result)} items"
+                    elif isinstance(result, dict):
+                        response_summary = f"Dict with keys: {list(result.keys())[:10]}"
+                    else:
+                        response_summary = str(type(result))
+
+                    span.set_attribute("response_type", response_summary)
+
+                    logger.info(f"MCP Tool Success: {tool_name} - {response_summary}")
+
+                return result
+
+            except Exception as e:
+                span.set_attribute("success", False)
+                span.set_attribute("error_type", type(e).__name__)
+                span.set_attribute("error_message", str(e))
+
+                logger.error(
+                    f"MCP Tool Exception: {tool_name} - {type(e).__name__}: {str(e)}",
+                    exc_info=True,
+                )
+
+                # Re-raise the exception to maintain original behavior
+                raise
+
+    return wrapper
+
+
 @mcp.tool()
+@log_mcp_tool
 async def get_league_info() -> Dict[str, Any]:
     """Get comprehensive information about the Token Bowl fantasy football league.
 
@@ -70,6 +148,7 @@ async def get_league_info() -> Dict[str, Any]:
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_league_rosters() -> List[Dict[str, Any]]:
     """Get all team rosters in the Token Bowl league with player assignments.
 
@@ -90,12 +169,13 @@ async def get_league_rosters() -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_roster(roster_id: int) -> Dict[str, Any]:
     """Get detailed roster information with full player data for a specific team.
 
     Args:
         roster_id: The roster ID (1-10) for the team you want to view.
-                  Note: Roster ID 2 is Bill Beliclaude.
+              Note: Roster ID 2 is Bill Beliclaude.
 
     Returns a comprehensive roster including:
     - Team information (owner, record, points)
@@ -124,18 +204,18 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
         if not roster:
             return {"error": f"Roster ID {roster_id} not found"}
 
-        # Get all player data from cache (sync function, don't await)
+            # Get all player data from cache (sync function, don't await)
         all_players = get_players_from_cache(active_only=False)
         if not all_players:
             return {"error": "Failed to load player data from cache"}
 
-        # Get league users to find owner name
+            # Get league users to find owner name
         async with httpx.AsyncClient() as client:
             response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/users")
             response.raise_for_status()
             users = response.json()
 
-        # Find owner info
+            # Find owner info
         owner_info = None
         for user in users:
             if user.get("user_id") == roster.get("owner_id"):
@@ -149,7 +229,7 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                 }
                 break
 
-        # Initialize roster structure with current datetime in EDT
+            # Initialize roster structure with current datetime in EDT
         edt_time = datetime.now(ZoneInfo("America/New_York"))
         formatted_datetime = edt_time.strftime("%A, %B %d, %Y at %I:%M %p EDT")
 
@@ -176,11 +256,14 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
         player_ids_set = set(filter(None, all_player_ids))  # Filter out None values
         if player_ids_set:
             logger.info(
-                f"Spot refreshing stats for {len(player_ids_set)} roster players"
+                "Spot refreshing stats for roster players",
+                count=len(player_ids_set),
+                roster_id=roster_id,
+                _tags=["mcp_tool", "get_roster", "spot_refresh"],
             )
             spot_refresh_player_stats(player_ids_set)
 
-        # Track totals for meta information
+            # Track totals for meta information
         total_projected = 0.0
         starters_projected = 0.0
 
@@ -189,7 +272,7 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
             if not player_id:
                 continue
 
-            # Get player data directly from cache
+                # Get player data directly from cache
             player_data = all_players.get(player_id, {})
 
             # Build simplified player info with all cached data
@@ -207,7 +290,7 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                 player_info["position"] = "DEF"
                 player_info["team"] = player_id
 
-            # Always use consistent stats structure
+                # Always use consistent stats structure
             player_stats = {"projected": None, "actual": None, "ros_projected": None}
 
             # Add stats data if available (new structure from cache)
@@ -230,67 +313,61 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                     }
 
                     # Add to totals
-                    total_projected += fantasy_points
-                    if player_id in starters_ids:
-                        starters_projected += fantasy_points
+                total_projected += fantasy_points
+                if player_id in starters_ids:
+                    starters_projected += fantasy_points
 
                 # Add ROS projections from new structure
-                if cached_stats.get("ros_projected"):
-                    ros = cached_stats["ros_projected"]
-                    player_stats["ros_projected"] = {
-                        "fantasy_points": round(ros.get("fantasy_points", 0), 2),
-                        "season": ros.get("season"),
-                    }
+            if cached_stats.get("ros_projected"):
+                ros = cached_stats["ros_projected"]
+                player_stats["ros_projected"] = {
+                    "fantasy_points": round(ros.get("fantasy_points", 0), 2),
+                    "season": ros.get("season"),
+                }
 
-                    # Add position-specific ROS stats if available
-                    if player_data.get("position") == "QB":
-                        if "passing_yards" in ros:
-                            player_stats["ros_projected"].update(
-                                {
-                                    "passing_yards": round(
-                                        ros.get("passing_yards", 0), 0
-                                    ),
-                                    "passing_touchdowns": round(
-                                        ros.get("passing_touchdowns", 0), 1
-                                    ),
-                                    "rushing_yards": round(
-                                        ros.get("rushing_yards", 0), 0
-                                    ),
-                                    "rushing_touchdowns": round(
-                                        ros.get("rushing_touchdowns", 0), 1
-                                    ),
-                                }
-                            )
-                    elif player_data.get("position") in ["RB", "WR", "TE"]:
-                        if any(
-                            k in ros
-                            for k in ["rushing_yards", "receiving_yards", "receptions"]
-                        ):
-                            player_stats["ros_projected"].update(
-                                {
-                                    "rushing_yards": round(
-                                        ros.get("rushing_yards", 0), 0
-                                    ),
-                                    "receiving_yards": round(
-                                        ros.get("receiving_yards", 0), 0
-                                    ),
-                                    "receptions": round(ros.get("receptions", 0), 1),
-                                    "total_touchdowns": round(
-                                        ros.get("total_touchdowns", 0), 1
-                                    ),
-                                }
-                            )
+                # Add position-specific ROS stats if available
+                if player_data.get("position") == "QB":
+                    if "passing_yards" in ros:
+                        player_stats["ros_projected"].update(
+                            {
+                                "passing_yards": round(ros.get("passing_yards", 0), 0),
+                                "passing_touchdowns": round(
+                                    ros.get("passing_touchdowns", 0), 1
+                                ),
+                                "rushing_yards": round(ros.get("rushing_yards", 0), 0),
+                                "rushing_touchdowns": round(
+                                    ros.get("rushing_touchdowns", 0), 1
+                                ),
+                            }
+                        )
+                elif player_data.get("position") in ["RB", "WR", "TE"]:
+                    if any(
+                        k in ros
+                        for k in ["rushing_yards", "receiving_yards", "receptions"]
+                    ):
+                        player_stats["ros_projected"].update(
+                            {
+                                "rushing_yards": round(ros.get("rushing_yards", 0), 0),
+                                "receiving_yards": round(
+                                    ros.get("receiving_yards", 0), 0
+                                ),
+                                "receptions": round(ros.get("receptions", 0), 1),
+                                "total_touchdowns": round(
+                                    ros.get("total_touchdowns", 0), 1
+                                ),
+                            }
+                        )
 
                 # Add actual stats if game has been played
-                if cached_stats.get("actual"):
-                    actual = cached_stats["actual"]
-                    player_stats["actual"] = {
-                        "fantasy_points": round(actual.get("fantasy_points", 0), 2),
-                        "game_status": actual.get("game_status", "unknown"),
-                        "game_stats": actual.get("game_stats"),
-                    }
+            if cached_stats.get("actual"):
+                actual = cached_stats["actual"]
+                player_stats["actual"] = {
+                    "fantasy_points": round(actual.get("fantasy_points", 0), 2),
+                    "game_status": actual.get("game_status", "unknown"),
+                    "game_stats": actual.get("game_stats"),
+                }
 
-            # Always include the stats field with consistent structure
+                # Always include the stats field with consistent structure
             player_info["stats"] = player_stats
 
             # Add other enriched data if available (injury, news - backward compatible)
@@ -311,7 +388,7 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                     # Include latest 3 news items
                     player_info["news"] = enriched["news"][:3]
 
-            # Categorize player by roster position
+                # Categorize player by roster position
             if player_id in reserve_ids:
                 enriched_roster["reserve"].append(player_info)
             elif player_id in taxi_ids:
@@ -321,10 +398,10 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
             else:
                 enriched_roster["bench"].append(player_info)
 
-        # Season and week can be fetched separately if needed
-        # For now, leaving them as None since they're not in the new structure
+            # Season and week can be fetched separately if needed
+            # For now, leaving them as None since they're not in the new structure
 
-        # Add comprehensive meta information
+            # Add comprehensive meta information
         enriched_roster["meta"] = {
             "total_players": len(all_player_ids),
             "starters_count": len(enriched_roster["starters"]),
@@ -345,11 +422,19 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
         return enriched_roster
 
     except Exception as e:
-        logger.error(f"Error getting roster {roster_id}: {e}")
+        logger.error(
+            "Failed to get roster",
+            roster_id=roster_id,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True,
+            _tags=["mcp_tool", "get_roster", "error"],
+        )
         return {"error": f"Failed to get roster: {str(e)}"}
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_league_users() -> List[Dict[str, Any]]:
     """Get all users (team owners) participating in the Token Bowl league.
 
@@ -371,6 +456,7 @@ async def get_league_users() -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
     """Get head-to-head matchups for a specific week in the Token Bowl league.
 
@@ -412,6 +498,7 @@ async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
     """Get waiver wire and trade transactions for the Token Bowl league.
 
@@ -479,6 +566,7 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_recent_transactions(
     limit: int = 20,
     transaction_type: Optional[str] = None,
@@ -623,6 +711,7 @@ async def get_recent_transactions(
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_league_traded_picks() -> List[Dict[str, Any]]:
     """Get all future draft picks that have been traded in the Token Bowl league.
 
@@ -644,6 +733,7 @@ async def get_league_traded_picks() -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_league_drafts() -> List[Dict[str, Any]]:
     """Get all draft information for the Token Bowl league.
 
@@ -666,6 +756,7 @@ async def get_league_drafts() -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_league_winners_bracket() -> List[Dict[str, Any]]:
     """Get the playoff winners bracket for the Token Bowl league championship.
 
@@ -688,6 +779,7 @@ async def get_league_winners_bracket() -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_user(username_or_id: str) -> Dict[str, Any]:
     """Get detailed information about a Sleeper user by username or user ID.
 
@@ -805,6 +897,7 @@ async def get_user(username_or_id: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
+@log_mcp_tool
 async def search_players_by_name(name: str) -> List[Dict[str, Any]]:
     """Search for players by name with unified Sleeper + Fantasy Nerds data.
 
@@ -853,11 +946,19 @@ async def search_players_by_name(name: str) -> List[Dict[str, Any]]:
 
         return result if result else []
     except Exception as e:
-        logger.error(f"Error searching for player {name}: {e}")
+        logger.error(
+            "Failed to search for player",
+            player_name=name,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True,
+            _tags=["mcp_tool", "search_players_by_name", "error"],
+        )
         return []  # Return empty list on error
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
     """Get unified player data by Sleeper ID.
 
@@ -886,7 +987,14 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
         result = await loop.run_in_executor(None, get_player_by_id, player_id)
         return result if result else None
     except Exception as e:
-        logger.error(f"Error getting player {player_id}: {e}")
+        logger.error(
+            "Failed to get player by ID",
+            player_id=player_id,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True,
+            _tags=["mcp_tool", "get_player_by_sleeper_id", "error"],
+        )
         return None  # Return None on error
 
 
@@ -902,6 +1010,7 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_trending_players(type: str = "add") -> List[Dict[str, Any]]:
     """Get trending NFL players based on recent add/drop activity across all Sleeper leagues.
 
@@ -950,6 +1059,7 @@ async def get_trending_players(type: str = "add") -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_player_stats_all_weeks(
     player_id: str, season: Optional[str] = None
 ) -> Dict[str, Any]:
@@ -1031,7 +1141,14 @@ async def get_player_stats_all_weeks(
             # Process each week's response
             for week_num, response in enumerate(responses, start=1):
                 if isinstance(response, Exception):
-                    logger.warning(f"Failed to fetch week {week_num}: {response}")
+                    logger.warning(
+                        "Failed to fetch week stats",
+                        week_num=week_num,
+                        player_id=player_id,
+                        error_type=type(response).__name__,
+                        error_message=str(response),
+                        _tags=["mcp_tool", "get_player_stats_all_weeks", "warning"],
+                    )
                     continue
 
                 try:
@@ -1072,7 +1189,15 @@ async def get_player_stats_all_weeks(
                             result["totals"][stat_key] += stat_value
 
                 except Exception as e:
-                    logger.error(f"Error processing week {week_num}: {e}")
+                    logger.error(
+                        "Failed to process week stats",
+                        week_num=week_num,
+                        player_id=player_id,
+                        error_type=type(e).__name__,
+                        error_message=str(e),
+                        exc_info=True,
+                        _tags=["mcp_tool", "get_player_stats_all_weeks", "error"],
+                    )
                     continue
 
         # Round the total fantasy points
@@ -1094,7 +1219,15 @@ async def get_player_stats_all_weeks(
         return result
 
     except Exception as e:
-        logger.error(f"Error getting all weeks stats for player {player_id}: {e}")
+        logger.error(
+            "Failed to get all weeks stats",
+            player_id=player_id,
+            season=season,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True,
+            _tags=["mcp_tool", "get_player_stats_all_weeks", "error"],
+        )
         return {
             "error": f"Failed to get stats: {str(e)}",
             "player_id": player_id,
@@ -1102,6 +1235,7 @@ async def get_player_stats_all_weeks(
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_waiver_wire_players(
     position: Optional[str] = None,
     search_term: Optional[str] = None,
@@ -1176,7 +1310,12 @@ async def get_waiver_wire_players(
                     if txn.get("drops"):
                         recent_drops.update(txn["drops"].keys())
             except Exception as e:
-                logger.warning(f"Could not fetch recent drops: {e}")
+                logger.warning(
+                    "Could not fetch recent drops",
+                    error_type=type(e).__name__,
+                    error_message=str(e),
+                    _tags=["mcp_tool", "get_waiver_wire_players", "warning"],
+                )
 
         # Get all NFL players from cache (sync function, don't await)
         all_players = get_players_from_cache(active_only=False)
@@ -1189,7 +1328,12 @@ async def get_waiver_wire_players(
                 item["player_id"]: item["count"] for item in trending_response
             }
         except Exception as e:
-            logger.warning(f"Could not fetch trending data: {e}")
+            logger.warning(
+                "Could not fetch trending data",
+                error_type=type(e).__name__,
+                error_message=str(e),
+                _tags=["mcp_tool", "get_waiver_wire_players", "warning"],
+            )
 
         # Filter to find available players
         available_players = []
@@ -1316,7 +1460,16 @@ async def get_waiver_wire_players(
         }
 
     except Exception as e:
-        logger.error(f"Error fetching waiver wire players: {e}")
+        logger.error(
+            "Failed to fetch waiver wire players",
+            position=position,
+            search_term=search_term,
+            limit=limit,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True,
+            _tags=["mcp_tool", "get_waiver_wire_players", "error"],
+        )
         return {
             "error": f"Failed to fetch waiver wire players: {str(e)}",
             "total_available": 0,
@@ -1326,6 +1479,7 @@ async def get_waiver_wire_players(
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_waiver_analysis(
     position: Optional[str] = None,
     days_back: int = 7,
@@ -1431,7 +1585,12 @@ async def get_waiver_analysis(
             recent_drops.sort(key=lambda x: x.get("days_since_dropped", 999))
 
         except Exception as e:
-            logger.warning(f"Could not fetch recent drops: {e}")
+            logger.warning(
+                "Could not fetch recent drops for waiver analysis",
+                error_type=type(e).__name__,
+                error_message=str(e),
+                _tags=["mcp_tool", "get_waiver_analysis", "warning"],
+            )
 
         # Get available players on waiver wire
         waiver_players = await get_waiver_wire_players.fn(
@@ -1528,7 +1687,14 @@ async def get_waiver_analysis(
         }
 
     except Exception as e:
-        logger.error(f"Error in waiver analysis: {e}")
+        logger.error(
+            "Failed to analyze waiver claims",
+            player_id=player_id,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True,
+            _tags=["mcp_tool", "get_waiver_analysis", "error"],
+        )
         return {
             "error": f"Failed to complete waiver analysis: {str(e)}",
             "recently_dropped": [],
@@ -1539,6 +1705,7 @@ async def get_waiver_analysis(
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_trending_context(
     player_ids: List[str],
     max_players: int = 5,
@@ -1635,17 +1802,31 @@ async def get_trending_context(
                 trending_context[player_id] = context
 
             except Exception as e:
-                logger.warning(f"Could not get context for player {player_id}: {e}")
+                logger.warning(
+                    "Could not get context for player",
+                    player_id=player_id,
+                    error_type=type(e).__name__,
+                    error_message=str(e),
+                    _tags=["mcp_tool", "get_trending_context", "warning"],
+                )
                 trending_context[player_id] = "Context unavailable due to error."
 
         return trending_context
 
     except Exception as e:
-        logger.error(f"Error getting trending context: {e}")
+        logger.error(
+            "Failed to get trending context",
+            max_players=max_players,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True,
+            _tags=["mcp_tool", "get_trending_context", "error"],
+        )
         return {"error": f"Failed to get trending context: {str(e)}"}
 
 
 @mcp.tool()
+@log_mcp_tool
 async def evaluate_waiver_priority_cost(
     current_position: int,
     projected_points_gain: float,
@@ -1733,7 +1914,16 @@ async def evaluate_waiver_priority_cost(
         }
 
     except Exception as e:
-        logger.error(f"Error evaluating waiver priority cost: {e}")
+        logger.error(
+            "Failed to evaluate waiver priority cost",
+            current_position=current_position,
+            projected_points_gain=projected_points_gain,
+            weeks_remaining=weeks_remaining,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True,
+            _tags=["mcp_tool", "evaluate_waiver_priority_cost", "error"],
+        )
         return {
             "error": f"Failed to evaluate waiver priority: {str(e)}",
             "recommended_action": "wait",
@@ -1742,6 +1932,7 @@ async def evaluate_waiver_priority_cost(
 
 
 @mcp.tool()
+@log_mcp_tool
 async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
     """Get NFL schedule for a specific week or the current week.
 
@@ -1812,10 +2003,24 @@ async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
         }
 
     except httpx.HTTPError as e:
-        logger.error(f"HTTP error fetching NFL schedule: {e}")
+        logger.error(
+            "HTTP error fetching NFL schedule",
+            week=week,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True,
+            _tags=["mcp_tool", "get_nfl_schedule", "http_error"],
+        )
         return {"error": "Failed to fetch NFL schedule", "details": str(e)}
     except Exception as e:
-        logger.error(f"Error getting NFL schedule: {e}")
+        logger.error(
+            "Failed to get NFL schedule",
+            week=week,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True,
+            _tags=["mcp_tool", "get_nfl_schedule", "error"],
+        )
         return {"error": "Failed to get NFL schedule", "details": str(e)}
 
 
@@ -1910,6 +2115,7 @@ async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
 
 
 @mcp.tool()
+@log_mcp_tool
 async def search(query: str) -> Dict[str, List[Dict[str, Any]]]:
     """Search for fantasy football information across players, teams, and league data.
 
@@ -2026,12 +2232,20 @@ async def search(query: str) -> Dict[str, List[Dict[str, Any]]]:
                 )
 
     except Exception as e:
-        logger.error(f"Error in search tool: {e}")
+        logger.error(
+            "Failed to execute search",
+            query=query,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True,
+            _tags=["mcp_tool", "search", "error"],
+        )
 
     return {"results": results}
 
 
 @mcp.tool()
+@log_mcp_tool
 async def fetch(id: str) -> Dict[str, Any]:
     """Retrieve complete information for a specific fantasy football resource.
 
@@ -2154,7 +2368,14 @@ async def fetch(id: str) -> Dict[str, Any]:
             raise ValueError(f"Unknown resource type: {resource_type}")
 
     except Exception as e:
-        logger.error(f"Error in fetch tool: {e}")
+        logger.error(
+            "Failed to fetch resource",
+            resource_id=id,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True,
+            _tags=["mcp_tool", "fetch", "error"],
+        )
         return {
             "id": id,
             "title": "Error",
