@@ -9,10 +9,11 @@ Analyze waiver wire opportunities for Bill Beliclaude (Roster ID 2) in the Token
 - Identify the positions where we need the most help to increase our odds of making the playoffs
 
   - **Positional Scarcity Priority**: Always prioritize based on roster construction:
-    - If 0-1 bench players at a position = CRITICAL NEED (highest priority)
-    - If 2 bench players = ADEQUATE DEPTH (medium priority)
-    - If 3+ bench players = OVERSTOCKED (lowest priority)
-    - RB depth takes precedence over WR depth due to injury rates and waiver scarcity
+    - RB - Should have 1-2 on bench given position scarcity and injury rate. Can use a bench spot for a speculative handcuff who does not perform well now but may in the future due to team injury. 
+    - QB - Need one backup only if we are approaching our QB's bye
+    - WR - Should have 2-3 backups. 
+    - TE - Do not need backup. Can stream if necessary. 
+    - K/DEF - no backups needed. Can stream if necessary. 
 
   - **Priority Adds** (ranked 1-5 with rationale)
     PRIORITIZATION FRAMEWORK:
@@ -33,15 +34,25 @@ Analyze waiver wire opportunities for Bill Beliclaude (Roster ID 2) in the Token
   - All data in minimal format to save context
 - This single tool replaces multiple queries and reduces context by 80%
 
-### 1. Identify Top Waiver Targets
-- **Use the efficient waiver analysis first** (see 0.5 above)
+### 1. Prioritize Recently Dropped Players (CRITICAL)
+- **FIRST PRIORITY**: Analyze players dropped by opponents in the last 7-14 days
+- **Our opponents make mistakes** - valuable players get dropped that aren't necessarily trending
+- **Deep dive on recently dropped players at positions of need**:
+  - Even if they're not trending, they may offer immense opportunity
+  - Research their situation: injury returns, depth chart changes, schedule
+  - Players dropped with 0 games played may be returning from suspension/IR
+- **Use `get_recent_transactions(drops_only=True)` to find hidden gems**
+- **For positions where we need depth**: Research ANY undropped player, not just trending ones
+
+### 2. Identify Trending Waiver Targets
+- **After evaluating recently dropped players**, look at trending adds
+- Use the efficient waiver analysis (see 0.5 above)
 - For deeper analysis on specific players:
   - Use `get_trending_context(player_ids)` to understand WHY players are trending
   - Focus on players with high target share and opportunity
   - Look for recent usage changes or injury situations
-- **CRITICAL**: Always check dropped players with 0 games played - they may be returning from suspension/IR
 
-### 2. Evaluation Criteria
+### 3. Evaluation Criteria
 **Priority metrics:**
 - **Ceiling over floor**: Target players with breakout potential
 - **Opportunity share**: High targets -> consistent PPR points
@@ -60,13 +71,13 @@ Analyze waiver wire opportunities for Bill Beliclaude (Roster ID 2) in the Token
 
   For each potential drop candidate, answer: Would I rather have this player's projected 6-8 weekly points, or take a lottery ticket at our position of greatest need?
 
-### 3. Waiver Priority Decision (NEW)
+### 4. Waiver Priority Decision
 - **Use `evaluate_waiver_priority_cost()` tool** to determine if using waiver priority is worth it:
   - Input: current waiver position, projected points gain, weeks remaining
   - Returns: clear recommendation with reasoning
   - Helps decide between claiming now vs. waiting for better opportunity
 
-### 4. Cost-Benefit Decision Matrix
+### 5. Cost-Benefit Decision Matrix
 Only make moves if:
 - Waiver player's ceiling > Current player's floor by 20%+
 - Waiver player has clear path to increased usage
@@ -74,21 +85,32 @@ Only make moves if:
 - Position need aligns with upcoming bye weeks
 - **Waiver priority analysis confirms it's worth using (if applicable)**
 
-## Efficient Workflow (Updated for New Tools)
+## Efficient Workflow (Prioritizing Recently Dropped Players)
 
-1. **Start with consolidated analysis:**
+1. **FIRST - Analyze recently dropped players (7-14 days):**
+   ```
+   get_recent_transactions(drops_only=True, min_days_ago=0, max_days_ago=14, limit=20)
+   ```
+   Look for valuable players our opponents mistakenly dropped
+
+2. **Research undropped players at positions of need:**
+   - For positions where we have 0-1 bench players
+   - Even if not trending, research their opportunity
+   - Look beyond just trending players
+
+3. **Then run consolidated waiver analysis:**
    ```
    get_waiver_analysis(position=None, days_back=7, limit=20)
    ```
-   This gives you everything in one efficient call!
+   This shows trending players AND recently dropped in one call
 
-2. **Get context for top targets:**
+4. **Get context for top targets (both dropped and trending):**
    ```
    get_trending_context(player_ids=[list of top 5 player IDs])
    ```
-   Understand WHY players are trending
+   Understand WHY players are trending or were dropped
 
-3. **Evaluate waiver priority cost:**
+5. **Evaluate waiver priority cost if considering a claim:**
    ```
    evaluate_waiver_priority_cost(current_position, projected_points_gain, weeks_remaining)
    ```
