@@ -6,7 +6,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the Token Bowl MCP server - a Model Context Protocol server for fantasy football leagues using the Sleeper Fantasy Sports API. Built with FastMCP, it defaults to the Token Bowl league (ID: `1266471057523490816`) but can be configured for any league via the `SLEEPER_LEAGUE_ID` environment variable. Provides 21 tools to interact with fantasy football data.
 
-**Context**: This is part of the larger `tokenbowl` system - an LLM-powered fantasy football league management system. 
+**Context**: This is part of the larger `tokenbowl` system - an LLM-powered fantasy football league management system.
+
+## Directory Structure
+
+```
+sleeper-mcp/
+├── sleeper_mcp.py           # Main MCP server
+├── players_cache_redis.py   # Redis caching layer
+├── build_cache.py           # Cache building functions
+├── cache_client.py          # Cache client interface
+├── scripts/                 # Utility scripts
+│   ├── manual_cache_refresh.py
+│   ├── parse_trade_proposal.py
+│   └── extract_trade_proposal.py
+├── data/                    # Data files and analyses
+├── picks/                   # Weekly picks (week1, week2, etc.)
+├── slopups/                 # Weekly summaries
+├── scratchpads/             # Development notes and issues
+├── tests/                   # Test suite
+└── .github/workflows/       # CI/CD configuration
+``` 
 
 ## Development Commands
 
