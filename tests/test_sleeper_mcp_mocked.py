@@ -25,8 +25,8 @@ class TestLeagueToolsMocked:
             mock_client.return_value.__aenter__.return_value = mock_instance
 
             mock_resp = AsyncMock()
-            mock_resp.json.return_value = mock_response
-            mock_resp.raise_for_status = AsyncMock()
+            mock_resp.json = lambda: mock_response
+            mock_resp.raise_for_status = lambda: None
             mock_instance.get.return_value = mock_resp
 
             result = await sleeper_mcp.get_league_info.fn()
@@ -55,8 +55,8 @@ class TestLeagueToolsMocked:
             mock_client.return_value.__aenter__.return_value = mock_instance
 
             mock_resp = AsyncMock()
-            mock_resp.json.return_value = mock_response
-            mock_resp.raise_for_status = AsyncMock()
+            mock_resp.json = lambda: mock_response
+            mock_resp.raise_for_status = lambda: None
             mock_instance.get.return_value = mock_resp
 
             result = await sleeper_mcp.get_league_rosters.fn()
@@ -83,8 +83,8 @@ class TestLeagueToolsMocked:
             mock_client.return_value.__aenter__.return_value = mock_instance
 
             mock_resp = AsyncMock()
-            mock_resp.json.return_value = mock_response
-            mock_resp.raise_for_status = AsyncMock()
+            mock_resp.json = lambda: mock_response
+            mock_resp.raise_for_status = lambda: None
             mock_instance.get.return_value = mock_resp
 
             result = await sleeper_mcp.get_league_users.fn()
@@ -111,8 +111,8 @@ class TestLeagueToolsMocked:
             mock_client.return_value.__aenter__.return_value = mock_instance
 
             mock_resp = AsyncMock()
-            mock_resp.json.return_value = mock_response
-            mock_resp.raise_for_status = AsyncMock()
+            mock_resp.json = lambda: mock_response
+            mock_resp.raise_for_status = lambda: None
             mock_instance.get.return_value = mock_resp
 
             result = await sleeper_mcp.get_league_matchups.fn(week=1)
@@ -141,8 +141,8 @@ class TestLeagueToolsMocked:
             mock_client.return_value.__aenter__.return_value = mock_instance
 
             mock_resp = AsyncMock()
-            mock_resp.json.return_value = mock_response
-            mock_resp.raise_for_status = AsyncMock()
+            mock_resp.json = lambda: mock_response
+            mock_resp.raise_for_status = lambda: None
             mock_instance.get.return_value = mock_resp
 
             result = await sleeper_mcp.get_league_transactions.fn(round=1)
@@ -244,8 +244,8 @@ class TestUserToolsMocked:
             mock_client.return_value.__aenter__.return_value = mock_instance
 
             mock_resp = AsyncMock()
-            mock_resp.json.return_value = mock_response
-            mock_resp.raise_for_status = AsyncMock()
+            mock_resp.json = lambda: mock_response
+            mock_resp.raise_for_status = lambda: None
             mock_instance.get.return_value = mock_resp
 
             result = await sleeper_mcp.get_user.fn(username_or_id="testuser")
@@ -271,8 +271,8 @@ class TestPlayerToolsMocked:
             mock_client.return_value.__aenter__.return_value = mock_instance
 
             mock_resp = AsyncMock()
-            mock_resp.json.return_value = mock_response
-            mock_resp.raise_for_status = AsyncMock()
+            mock_resp.json = lambda: mock_response
+            mock_resp.raise_for_status = lambda: None
             mock_instance.get.return_value = mock_resp
 
             # Mock the cache function

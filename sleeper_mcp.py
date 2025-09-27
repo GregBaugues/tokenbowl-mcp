@@ -62,21 +62,49 @@ def log_mcp_tool(func):
     async def wrapper(*args, **kwargs):
         tool_name = func.__name__
 
-        # Prepare parameters for logging (serialize to JSON-safe format)
+        # Prepare parameters for logging (serialize to JSON-safe format) with error handling
         params = {}
-        if args:
-            params["args"] = [str(arg)[:200] for arg in args]  # Limit arg length
-        if kwargs:
-            params["kwargs"] = {
-                k: str(v)[:200] if v is not None else None for k, v in kwargs.items()
-            }
+        try:
+            if args:
+                params["args"] = [str(arg)[:200] for arg in args]  # Limit arg length
+            if kwargs:
+                params["kwargs"] = {
+                    k: str(v)[:200] if v is not None else None
+                    for k, v in kwargs.items()
+                }
+        except Exception as e:
+            logger.warning(f"Error preparing params for {tool_name}: {e}")
+            params = {"error": "Could not serialize parameters"}
 
-        with logfire.span(
-            f"mcp_tool.{tool_name}",
-            tool_name=tool_name,
-            parameters=params,
-            _tags=["mcp_tool", tool_name],
-        ) as span:
+        # Create span with defensive error handling
+        span = None
+        try:
+            span = logfire.span(
+                f"mcp_tool.{tool_name}",
+                tool_name=tool_name,
+                parameters=params,
+                _tags=["mcp_tool", tool_name],
+            )
+            span.__enter__()
+        except (TypeError, AttributeError) as e:
+            # If span creation fails, log the error and continue without span tracking
+            logger.error(
+                f"Error creating logfire span for {tool_name}: {type(e).__name__}: {e}"
+            )
+            # Execute function without span tracking
+            try:
+                result = await func(*args, **kwargs)
+                logger.info(f"MCP Tool Called (no span): {tool_name}")
+                return result
+            except Exception as func_error:
+                logger.error(
+                    f"MCP Tool Exception (no span): {tool_name} - {type(func_error).__name__}: {func_error}",
+                    exc_info=True,
+                )
+                raise
+
+        # Normal execution with span tracking
+        try:
             try:
                 # Log the tool invocation
                 logger.info(f"MCP Tool Called: {tool_name} with params: {params}")
@@ -86,13 +114,15 @@ def log_mcp_tool(func):
 
                 # Check if result indicates an error
                 if isinstance(result, dict) and "error" in result:
-                    span.set_attribute("success", False)
-                    span.set_attribute("error_message", result["error"])
+                    if span:
+                        span.set_attribute("success", False)
+                        span.set_attribute("error_message", result["error"])
                     logger.warning(
                         f"MCP Tool Error Response: {tool_name} - {result['error']}"
                     )
                 else:
-                    span.set_attribute("success", True)
+                    if span:
+                        span.set_attribute("success", True)
 
                     # Log response summary (avoid logging huge responses)
                     response_summary = None
@@ -103,16 +133,18 @@ def log_mcp_tool(func):
                     else:
                         response_summary = str(type(result))
 
-                    span.set_attribute("response_type", response_summary)
+                    if span:
+                        span.set_attribute("response_type", response_summary)
 
                     logger.info(f"MCP Tool Success: {tool_name} - {response_summary}")
 
                 return result
 
             except Exception as e:
-                span.set_attribute("success", False)
-                span.set_attribute("error_type", type(e).__name__)
-                span.set_attribute("error_message", str(e))
+                if span:
+                    span.set_attribute("success", False)
+                    span.set_attribute("error_type", type(e).__name__)
+                    span.set_attribute("error_message", str(e))
 
                 logger.error(
                     f"MCP Tool Exception: {tool_name} - {type(e).__name__}: {str(e)}",
@@ -121,6 +153,13 @@ def log_mcp_tool(func):
 
                 # Re-raise the exception to maintain original behavior
                 raise
+        finally:
+            # Safely exit the span if it was created
+            if span:
+                try:
+                    span.__exit__(None, None, None)
+                except Exception as e:
+                    logger.warning(f"Error closing span for {tool_name}: {e}")
 
     return wrapper
 
