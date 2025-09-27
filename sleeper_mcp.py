@@ -291,14 +291,23 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                 }
                 break
 
+            # Get current NFL season and week from state
+        async with httpx.AsyncClient() as client:
+            state_response = await client.get(f"{BASE_URL}/state/nfl")
+            state_response.raise_for_status()
+            state = state_response.json()
+
+        current_season = state.get("season", datetime.now().year)
+        current_week = state.get("week", 1)
+
             # Initialize roster structure with current datetime in EDT
         edt_time = datetime.now(ZoneInfo("America/New_York"))
         formatted_datetime = edt_time.strftime("%A, %B %d, %Y at %I:%M %p EDT")
 
         enriched_roster = {
             "current_datetime": formatted_datetime,
-            "season": None,  # Will be populated from player projections
-            "week": None,  # Will be populated from player projections
+            "season": current_season,
+            "week": current_week,
             "roster_id": roster_id,
             "owner": owner_info,
             "settings": roster.get("settings", {}),
