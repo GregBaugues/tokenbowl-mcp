@@ -35,10 +35,18 @@ class TestValidParameters:
         ]
         mock_users_response.raise_for_status = lambda: None
 
+        mock_state_response = AsyncMock()
+        mock_state_response.json = lambda: {"season": 2025, "week": 10}
+        mock_state_response.raise_for_status = lambda: None
+
         # Setup the mock client
         mock_instance = AsyncMock()
         mock_instance.get = AsyncMock()
-        mock_instance.get.side_effect = [mock_response, mock_users_response]
+        mock_instance.get.side_effect = [
+            mock_response,
+            mock_users_response,
+            mock_state_response,
+        ]
         mock_instance.__aenter__.return_value = mock_instance
         mock_instance.__aexit__.return_value = None
         mock_client.return_value = mock_instance
@@ -52,12 +60,16 @@ class TestValidParameters:
             # Test with valid integer
             result = await sleeper_mcp.get_roster.fn(2)
             assert "error" not in result
-            assert result["roster"]["roster_id"] == 2
+            assert result["roster_id"] == 2
+            assert result["season"] == 2025
+            assert result["week"] == 10
 
             # Test with string that can be converted to valid integer
             result = await sleeper_mcp.get_roster.fn("2")
             assert "error" not in result
-            assert result["roster"]["roster_id"] == 2
+            assert result["roster_id"] == 2
+            assert result["season"] == 2025
+            assert result["week"] == 10
 
     @pytest.mark.asyncio
     @patch("httpx.AsyncClient")

@@ -381,59 +381,59 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                     }
 
                     # Add to totals
-                total_projected += fantasy_points
-                if player_id in starters_ids:
-                    starters_projected += fantasy_points
+                    total_projected += fantasy_points
+                    if player_id in starters_ids:
+                        starters_projected += fantasy_points
 
                 # Add ROS projections from new structure
-            if cached_stats.get("ros_projected"):
-                ros = cached_stats["ros_projected"]
-                player_stats["ros_projected"] = {
-                    "fantasy_points": round(ros.get("fantasy_points", 0), 2),
-                    "season": ros.get("season"),
-                }
+                if cached_stats.get("ros_projected"):
+                    ros = cached_stats["ros_projected"]
+                    player_stats["ros_projected"] = {
+                        "fantasy_points": round(ros.get("fantasy_points", 0), 2),
+                        "season": ros.get("season"),
+                    }
 
-                # Add position-specific ROS stats if available
-                if player_data.get("position") == "QB":
-                    if "passing_yards" in ros:
-                        player_stats["ros_projected"].update(
-                            {
-                                "passing_yards": round(ros.get("passing_yards", 0), 0),
-                                "passing_touchdowns": round(
-                                    ros.get("passing_touchdowns", 0), 1
-                                ),
-                                "rushing_yards": round(ros.get("rushing_yards", 0), 0),
-                                "rushing_touchdowns": round(
-                                    ros.get("rushing_touchdowns", 0), 1
-                                ),
-                            }
-                        )
-                elif player_data.get("position") in ["RB", "WR", "TE"]:
-                    if any(
-                        k in ros
-                        for k in ["rushing_yards", "receiving_yards", "receptions"]
-                    ):
-                        player_stats["ros_projected"].update(
-                            {
-                                "rushing_yards": round(ros.get("rushing_yards", 0), 0),
-                                "receiving_yards": round(
-                                    ros.get("receiving_yards", 0), 0
-                                ),
-                                "receptions": round(ros.get("receptions", 0), 1),
-                                "total_touchdowns": round(
-                                    ros.get("total_touchdowns", 0), 1
-                                ),
-                            }
-                        )
+                    # Add position-specific ROS stats if available
+                    if player_data.get("position") == "QB":
+                        if "passing_yards" in ros:
+                            player_stats["ros_projected"].update(
+                                {
+                                    "passing_yards": round(ros.get("passing_yards", 0), 0),
+                                    "passing_touchdowns": round(
+                                        ros.get("passing_touchdowns", 0), 1
+                                    ),
+                                    "rushing_yards": round(ros.get("rushing_yards", 0), 0),
+                                    "rushing_touchdowns": round(
+                                        ros.get("rushing_touchdowns", 0), 1
+                                    ),
+                                }
+                            )
+                    elif player_data.get("position") in ["RB", "WR", "TE"]:
+                        if any(
+                            k in ros
+                            for k in ["rushing_yards", "receiving_yards", "receptions"]
+                        ):
+                            player_stats["ros_projected"].update(
+                                {
+                                    "rushing_yards": round(ros.get("rushing_yards", 0), 0),
+                                    "receiving_yards": round(
+                                        ros.get("receiving_yards", 0), 0
+                                    ),
+                                    "receptions": round(ros.get("receptions", 0), 1),
+                                    "total_touchdowns": round(
+                                        ros.get("total_touchdowns", 0), 1
+                                    ),
+                                }
+                            )
 
                 # Add actual stats if game has been played
-            if cached_stats.get("actual"):
-                actual = cached_stats["actual"]
-                player_stats["actual"] = {
-                    "fantasy_points": round(actual.get("fantasy_points", 0), 2),
-                    "game_status": actual.get("game_status", "unknown"),
-                    "game_stats": actual.get("game_stats"),
-                }
+                if cached_stats.get("actual"):
+                    actual = cached_stats["actual"]
+                    player_stats["actual"] = {
+                        "fantasy_points": round(actual.get("fantasy_points", 0), 2),
+                        "game_status": actual.get("game_status", "unknown"),
+                        "game_stats": actual.get("game_stats"),
+                    }
 
                 # Always include the stats field with consistent structure
             player_info["stats"] = player_stats
