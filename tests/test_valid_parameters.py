@@ -39,17 +39,32 @@ class TestValidParameters:
         mock_state_response.json = lambda: {"season": 2025, "week": 10}
         mock_state_response.raise_for_status = lambda: None
 
-        # Setup the mock client
-        mock_instance = AsyncMock()
-        mock_instance.get = AsyncMock()
-        mock_instance.get.side_effect = [
-            mock_response,
-            mock_users_response,
-            mock_state_response,
+        # Setup the mock client - we need to handle 3 separate AsyncClient instances
+        mock_instance1 = AsyncMock()
+        mock_instance1.get = AsyncMock(return_value=mock_response)
+        mock_instance1.__aenter__.return_value = mock_instance1
+        mock_instance1.__aexit__.return_value = None
+
+        mock_instance2 = AsyncMock()
+        mock_instance2.get = AsyncMock(return_value=mock_users_response)
+        mock_instance2.__aenter__.return_value = mock_instance2
+        mock_instance2.__aexit__.return_value = None
+
+        mock_instance3 = AsyncMock()
+        mock_instance3.get = AsyncMock(return_value=mock_state_response)
+        mock_instance3.__aenter__.return_value = mock_instance3
+        mock_instance3.__aexit__.return_value = None
+
+        # Return a different instance for each call to AsyncClient()
+        # We need 6 instances total: 3 for the first test, 3 for the second test
+        mock_client.side_effect = [
+            mock_instance1,
+            mock_instance2,
+            mock_instance3,
+            mock_instance1,
+            mock_instance2,
+            mock_instance3,
         ]
-        mock_instance.__aenter__.return_value = mock_instance
-        mock_instance.__aexit__.return_value = None
-        mock_client.return_value = mock_instance
 
         # Mock the cache function
         with patch("sleeper_mcp.get_players_from_cache") as mock_cache:
