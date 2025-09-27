@@ -1122,12 +1122,9 @@ async def search_players_by_name(name: str) -> List[Dict[str, Any]]:
         return result if result else []
     except Exception as e:
         logger.error(
-            "Failed to search for player",
-            player_name=name,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Failed to search for player (player_name={name}, error_type={type(e).__name__}, "
+            f"error_message={str(e)})",
             exc_info=True,
-            _tags=["mcp_tool", "search_players_by_name", "error"],
         )
         return []  # Return empty list on error
 
@@ -1177,12 +1174,9 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
         return result if result else None
     except Exception as e:
         logger.error(
-            "Failed to get player by ID",
-            player_id=player_id,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Failed to get player by ID (player_id={player_id}, error_type={type(e).__name__}, "
+            f"error_message={str(e)})",
             exc_info=True,
-            _tags=["mcp_tool", "get_player_by_sleeper_id", "error"],
         )
         return None  # Return None on error
 
@@ -1377,12 +1371,8 @@ async def get_player_stats_all_weeks(
             for week_num, response in enumerate(responses, start=1):
                 if isinstance(response, Exception):
                     logger.warning(
-                        "Failed to fetch week stats",
-                        week_num=week_num,
-                        player_id=player_id,
-                        error_type=type(response).__name__,
-                        error_message=str(response),
-                        _tags=["mcp_tool", "get_player_stats_all_weeks", "warning"],
+                        f"Failed to fetch week stats (week_num={week_num}, player_id={player_id}, "
+                        f"error_type={type(response).__name__}, error_message={str(response)})"
                     )
                     continue
 
@@ -1425,13 +1415,9 @@ async def get_player_stats_all_weeks(
 
                 except Exception as e:
                     logger.error(
-                        "Failed to process week stats",
-                        week_num=week_num,
-                        player_id=player_id,
-                        error_type=type(e).__name__,
-                        error_message=str(e),
+                        f"Failed to process week stats (week_num={week_num}, player_id={player_id}, "
+                        f"error_type={type(e).__name__}, error_message={str(e)})",
                         exc_info=True,
-                        _tags=["mcp_tool", "get_player_stats_all_weeks", "error"],
                     )
                     continue
 
@@ -1455,13 +1441,9 @@ async def get_player_stats_all_weeks(
 
     except Exception as e:
         logger.error(
-            "Failed to get all weeks stats",
-            player_id=player_id,
-            season=season,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Failed to get all weeks stats (player_id={player_id}, season={season}, "
+            f"error_type={type(e).__name__}, error_message={str(e)})",
             exc_info=True,
-            _tags=["mcp_tool", "get_player_stats_all_weeks", "error"],
         )
         return {
             "error": f"Failed to get stats: {str(e)}",
@@ -1579,10 +1561,7 @@ async def get_waiver_wire_players(
                         recent_drops.update(txn["drops"].keys())
             except Exception as e:
                 logger.warning(
-                    "Could not fetch recent drops",
-                    error_type=type(e).__name__,
-                    error_message=str(e),
-                    _tags=["mcp_tool", "get_waiver_wire_players", "warning"],
+                    f"Could not fetch recent drops (error_type={type(e).__name__}, error_message={str(e)})"
                 )
 
         # Get all NFL players from cache (sync function, don't await)
@@ -1591,16 +1570,13 @@ async def get_waiver_wire_players(
         # Always get trending data to identify hot waiver pickups
         trending_data = {}
         try:
-            trending_response = await get_trending_players.fn(type="add", limit=200)
+            trending_response = await get_trending_players.fn(type="add")
             trending_data = {
                 item["player_id"]: item["count"] for item in trending_response
             }
         except Exception as e:
             logger.warning(
-                "Could not fetch trending data",
-                error_type=type(e).__name__,
-                error_message=str(e),
-                _tags=["mcp_tool", "get_waiver_wire_players", "warning"],
+                f"Could not fetch trending data (error_type={type(e).__name__}, error_message={str(e)})"
             )
 
         # Filter to find available players
@@ -1729,14 +1705,9 @@ async def get_waiver_wire_players(
 
     except Exception as e:
         logger.error(
-            "Failed to fetch waiver wire players",
-            position=position,
-            search_term=search_term,
-            limit=limit,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Failed to fetch waiver wire players (position={position}, search_term={search_term}, "
+            f"limit={limit}, error_type={type(e).__name__}, error_message={str(e)})",
             exc_info=True,
-            _tags=["mcp_tool", "get_waiver_wire_players", "error"],
         )
         return {
             "error": f"Failed to fetch waiver wire players: {str(e)}",
@@ -1894,10 +1865,8 @@ async def get_waiver_analysis(
 
         except Exception as e:
             logger.warning(
-                "Could not fetch recent drops for waiver analysis",
-                error_type=type(e).__name__,
-                error_message=str(e),
-                _tags=["mcp_tool", "get_waiver_analysis", "warning"],
+                f"Could not fetch recent drops for waiver analysis (error_type={type(e).__name__}, "
+                f"error_message={str(e)})"
             )
 
         # Get available players on waiver wire
@@ -1996,12 +1965,9 @@ async def get_waiver_analysis(
 
     except Exception as e:
         logger.error(
-            "Failed to analyze waiver claims",
-            player_id=player_id,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Failed to analyze waiver claims (position={position}, days_back={days_back}, "
+            f"limit={limit}, error_type={type(e).__name__}, error_message={str(e)})",
             exc_info=True,
-            _tags=["mcp_tool", "get_waiver_analysis", "error"],
         )
         return {
             "error": f"Failed to complete waiver analysis: {str(e)}",
@@ -2140,11 +2106,8 @@ async def get_trending_context(
 
             except Exception as e:
                 logger.warning(
-                    "Could not get context for player",
-                    player_id=player_id,
-                    error_type=type(e).__name__,
-                    error_message=str(e),
-                    _tags=["mcp_tool", "get_trending_context", "warning"],
+                    f"Could not get context for player (player_id={player_id}, "
+                    f"error_type={type(e).__name__}, error_message={str(e)})"
                 )
                 trending_context[player_id] = "Context unavailable due to error."
 
@@ -2152,12 +2115,9 @@ async def get_trending_context(
 
     except Exception as e:
         logger.error(
-            "Failed to get trending context",
-            max_players=max_players,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Failed to get trending context (max_players={max_players}, "
+            f"error_type={type(e).__name__}, error_message={str(e)})",
             exc_info=True,
-            _tags=["mcp_tool", "get_trending_context", "error"],
         )
         return {"error": f"Failed to get trending context: {str(e)}"}
 
@@ -2294,14 +2254,10 @@ async def evaluate_waiver_priority_cost(
 
     except Exception as e:
         logger.error(
-            "Failed to evaluate waiver priority cost",
-            current_position=current_position,
-            projected_points_gain=projected_points_gain,
-            weeks_remaining=weeks_remaining,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Failed to evaluate waiver priority cost (current_position={current_position}, "
+            f"projected_points_gain={projected_points_gain}, weeks_remaining={weeks_remaining}, "
+            f"error_type={type(e).__name__}, error_message={str(e)})",
             exc_info=True,
-            _tags=["mcp_tool", "evaluate_waiver_priority_cost", "error"],
         )
         return {
             "error": f"Failed to evaluate waiver priority: {str(e)}",
@@ -2398,22 +2354,16 @@ async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
 
     except httpx.HTTPError as e:
         logger.error(
-            "HTTP error fetching NFL schedule",
-            week=week,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"HTTP error fetching NFL schedule (week={week}, error_type={type(e).__name__}, "
+            f"error_message={str(e)})",
             exc_info=True,
-            _tags=["mcp_tool", "get_nfl_schedule", "http_error"],
         )
         return {"error": "Failed to fetch NFL schedule", "details": str(e)}
     except Exception as e:
         logger.error(
-            "Failed to get NFL schedule",
-            week=week,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Failed to get NFL schedule (week={week}, error_type={type(e).__name__}, "
+            f"error_message={str(e)})",
             exc_info=True,
-            _tags=["mcp_tool", "get_nfl_schedule", "error"],
         )
         return {"error": "Failed to get NFL schedule", "details": str(e)}
 
@@ -2648,12 +2598,9 @@ async def search(query: str) -> Dict[str, List[Dict[str, Any]]]:
 
     except Exception as e:
         logger.error(
-            "Failed to execute search",
-            query=query,
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Failed to execute search (query={query}, error_type={type(e).__name__}, "
+            f"error_message={str(e)})",
             exc_info=True,
-            _tags=["mcp_tool", "search", "error"],
         )
 
     return {"results": results}
