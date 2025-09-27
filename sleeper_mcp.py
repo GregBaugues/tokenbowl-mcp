@@ -300,7 +300,7 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
         current_season = state.get("season", datetime.now().year)
         current_week = state.get("week", 1)
 
-            # Initialize roster structure with current datetime in EDT
+        # Initialize roster structure with current datetime in EDT
         edt_time = datetime.now(ZoneInfo("America/New_York"))
         formatted_datetime = edt_time.strftime("%A, %B %d, %Y at %I:%M %p EDT")
 
@@ -398,11 +398,15 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                         if "passing_yards" in ros:
                             player_stats["ros_projected"].update(
                                 {
-                                    "passing_yards": round(ros.get("passing_yards", 0), 0),
+                                    "passing_yards": round(
+                                        ros.get("passing_yards", 0), 0
+                                    ),
                                     "passing_touchdowns": round(
                                         ros.get("passing_touchdowns", 0), 1
                                     ),
-                                    "rushing_yards": round(ros.get("rushing_yards", 0), 0),
+                                    "rushing_yards": round(
+                                        ros.get("rushing_yards", 0), 0
+                                    ),
                                     "rushing_touchdowns": round(
                                         ros.get("rushing_touchdowns", 0), 1
                                     ),
@@ -415,7 +419,9 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
                         ):
                             player_stats["ros_projected"].update(
                                 {
-                                    "rushing_yards": round(ros.get("rushing_yards", 0), 0),
+                                    "rushing_yards": round(
+                                        ros.get("rushing_yards", 0), 0
+                                    ),
                                     "receiving_yards": round(
                                         ros.get("receiving_yards", 0), 0
                                     ),
