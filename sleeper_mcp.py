@@ -2918,10 +2918,13 @@ if __name__ == "__main__":
     if os.getenv("ENABLE_SSE_STATELESS_PATCH", "true").lower() == "true":
         try:
             from stateless_sse_patch import apply_server_run_patch
+
             apply_server_run_patch()
             logger.info("Applied SSE stateless patch for session persistence fix")
         except ImportError:
-            logger.warning("Could not import stateless_sse_patch, continuing without patch")
+            logger.warning(
+                "Could not import stateless_sse_patch, continuing without patch"
+            )
         except Exception as e:
             logger.error(f"Failed to apply SSE patch: {e}")
 
