@@ -2912,6 +2912,19 @@ if __name__ == "__main__":
     import sys
     import os
 
+    # Apply SSE stateless patch to fix session persistence issues
+    # This prevents "Received request before initialization was complete" errors
+    # on long-running sessions by making SSE sessions stateless
+    if os.getenv("ENABLE_SSE_STATELESS_PATCH", "true").lower() == "true":
+        try:
+            from stateless_sse_patch import apply_server_run_patch
+            apply_server_run_patch()
+            logger.info("Applied SSE stateless patch for session persistence fix")
+        except ImportError:
+            logger.warning("Could not import stateless_sse_patch, continuing without patch")
+        except Exception as e:
+            logger.error(f"Failed to apply SSE patch: {e}")
+
     # Check for environment variable or command line argument
     if os.getenv("RENDER") or (len(sys.argv) > 1 and sys.argv[1] == "http"):
         # Start background cache refresh if enabled (for Render deployment)
