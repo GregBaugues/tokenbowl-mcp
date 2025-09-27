@@ -30,7 +30,9 @@ class TestValidParameters:
         mock_response.raise_for_status = lambda: None
 
         mock_users_response = AsyncMock()
-        mock_users_response.json = lambda: [{"user_id": "123", "display_name": "Test User"}]
+        mock_users_response.json = lambda: [
+            {"user_id": "123", "display_name": "Test User"}
+        ]
         mock_users_response.raise_for_status = lambda: None
 
         # Setup the mock client
@@ -63,7 +65,9 @@ class TestValidParameters:
         """Test get_league_matchups works with valid week."""
         # Mock the HTTP response
         mock_response = AsyncMock()
-        mock_response.json = lambda: [{"matchup_id": 1, "roster_id": 1, "points": 100.5}]
+        mock_response.json = lambda: [
+            {"matchup_id": 1, "roster_id": 1, "points": 100.5}
+        ]
         mock_response.raise_for_status = lambda: None
 
         mock_instance = AsyncMock()
@@ -91,7 +95,9 @@ class TestValidParameters:
         """Test get_league_transactions works with valid round."""
         # Mock the HTTP response
         mock_response = AsyncMock()
-        mock_response.json = lambda: [{"type": "waiver", "status": "complete", "adds": {"4046": 1}}]
+        mock_response.json = lambda: [
+            {"type": "waiver", "status": "complete", "adds": {"4046": 1}}
+        ]
         mock_response.raise_for_status = lambda: None
 
         mock_instance = AsyncMock()
