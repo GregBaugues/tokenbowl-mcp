@@ -19,23 +19,19 @@ class TestValidParameters:
         """Test get_roster works with valid roster_id."""
         # Mock the HTTP responses
         mock_response = AsyncMock()
-        mock_response.json = AsyncMock(
-            return_value=[
-                {
-                    "roster_id": 2,
-                    "owner_id": "123",
-                    "players": ["4046"],
-                    "settings": {"wins": 5, "losses": 3},
-                }
-            ]
-        )
-        mock_response.raise_for_status = AsyncMock()
+        mock_response.json = lambda: [
+            {
+                "roster_id": 2,
+                "owner_id": "123",
+                "players": ["4046"],
+                "settings": {"wins": 5, "losses": 3},
+            }
+        ]
+        mock_response.raise_for_status = lambda: None
 
         mock_users_response = AsyncMock()
-        mock_users_response.json = AsyncMock(
-            return_value=[{"user_id": "123", "display_name": "Test User"}]
-        )
-        mock_users_response.raise_for_status = AsyncMock()
+        mock_users_response.json = lambda: [{"user_id": "123", "display_name": "Test User"}]
+        mock_users_response.raise_for_status = lambda: None
 
         # Setup the mock client
         mock_instance = AsyncMock()
@@ -67,10 +63,8 @@ class TestValidParameters:
         """Test get_league_matchups works with valid week."""
         # Mock the HTTP response
         mock_response = AsyncMock()
-        mock_response.json = AsyncMock(
-            return_value=[{"matchup_id": 1, "roster_id": 1, "points": 100.5}]
-        )
-        mock_response.raise_for_status = AsyncMock()
+        mock_response.json = lambda: [{"matchup_id": 1, "roster_id": 1, "points": 100.5}]
+        mock_response.raise_for_status = lambda: None
 
         mock_instance = AsyncMock()
         mock_instance.get.return_value = mock_response
@@ -97,10 +91,8 @@ class TestValidParameters:
         """Test get_league_transactions works with valid round."""
         # Mock the HTTP response
         mock_response = AsyncMock()
-        mock_response.json = AsyncMock(
-            return_value=[{"type": "waiver", "status": "complete", "adds": {"4046": 1}}]
-        )
-        mock_response.raise_for_status = AsyncMock()
+        mock_response.json = lambda: [{"type": "waiver", "status": "complete", "adds": {"4046": 1}}]
+        mock_response.raise_for_status = lambda: None
 
         mock_instance = AsyncMock()
         mock_instance.get.return_value = mock_response
@@ -150,14 +142,12 @@ class TestValidParameters:
         """Test get_user works with valid username."""
         # Mock the HTTP response
         mock_response = AsyncMock()
-        mock_response.json = AsyncMock(
-            return_value={
-                "user_id": "123456",
-                "username": "testuser",
-                "display_name": "Test User",
-            }
-        )
-        mock_response.raise_for_status = AsyncMock()
+        mock_response.json = lambda: {
+            "user_id": "123456",
+            "username": "testuser",
+            "display_name": "Test User",
+        }
+        mock_response.raise_for_status = lambda: None
 
         mock_instance = AsyncMock()
         mock_instance.get.return_value = mock_response
@@ -180,10 +170,8 @@ class TestValidParameters:
         with patch("httpx.AsyncClient") as mock_client:
             # Mock the HTTP response
             mock_response = AsyncMock()
-            mock_response.json = AsyncMock(
-                return_value=[{"player_id": "4046", "count": 1000}]
-            )
-            mock_response.raise_for_status = AsyncMock()
+            mock_response.json = lambda: [{"player_id": "4046", "count": 1000}]
+            mock_response.raise_for_status = lambda: None
 
             mock_instance = AsyncMock()
             mock_instance.get.return_value = mock_response
@@ -255,10 +243,8 @@ class TestValidParameters:
 
                 # Mock HTTP response for Sleeper API
                 mock_response = AsyncMock()
-                mock_response.json = AsyncMock(
-                    return_value={"season": "2024", "week": 10}
-                )
-                mock_response.raise_for_status = AsyncMock()
+                mock_response.json = lambda: {"season": "2024", "week": 10}
+                mock_response.raise_for_status = lambda: None
 
                 mock_instance = AsyncMock()
                 mock_instance.get.return_value = mock_response
