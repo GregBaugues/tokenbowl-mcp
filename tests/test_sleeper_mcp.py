@@ -181,6 +181,38 @@ class TestLeagueTools:
             "Including failed should have at least as many transactions"
         )
 
+    @pytest.mark.asyncio
+    @pytest.mark.vcr()
+    async def test_get_roster(self):
+        """Test getting detailed roster information with player enrichment."""
+        # Test roster ID 2 (Bill Beliclaude)
+        result = await sleeper_mcp.get_roster.fn(roster_id=2)
+
+        assert isinstance(result, dict)
+        assert "roster_id" in result
+        assert result["roster_id"] == 2
+        assert "owner" in result
+        assert "starters" in result
+        assert "bench" in result
+
+        # Verify owner information is included
+        if result.get("owner"):
+            assert "display_name" in result["owner"] or "username" in result["owner"]
+
+        # Verify starters have player data
+        if result.get("starters"):
+            assert len(result["starters"]) > 0
+            first_starter = result["starters"][0]
+            assert "player_id" in first_starter
+            assert "full_name" in first_starter or "first_name" in first_starter
+
+        # Verify bench has player data
+        if result.get("bench"):
+            assert isinstance(result["bench"], list)
+            if len(result["bench"]) > 0:
+                first_bench = result["bench"][0]
+                assert "player_id" in first_bench
+
 
 class TestUserTools:
     """Test user-related MCP tools."""

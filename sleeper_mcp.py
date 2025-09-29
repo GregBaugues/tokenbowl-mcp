@@ -2450,63 +2450,6 @@ async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
 #         return response.json()
 
 
-# @mcp.tool()
-# async def get_draft_picks(draft_id: str) -> List[Dict[str, Any]]:
-#     """Get all player selections from a completed or in-progress draft.
-
-#     Args:
-#         draft_id: The unique draft identifier from Sleeper.
-#                  Obtain from get_league_drafts() or get_user_drafts().
-
-#     Returns pick information including:
-#     - Pick number and round
-#     - Player ID of selected player
-#     - Roster ID that made the pick
-#     - Draft slot position
-#     - Keeper status if applicable
-#     - Pick metadata (is_keeper, pick_no)
-
-#     Picks are returned in draft order.
-#     Use with player data to get player names and details.
-
-#     Returns:
-#         List of pick dictionaries in chronological draft order
-#     """
-#     async with httpx.AsyncClient() as client:
-#         response = await client.get(f"{BASE_URL}/draft/{draft_id}/picks")
-#         response.raise_for_status()
-#         return response.json()
-
-
-# @mcp.tool()
-# async def get_draft_traded_picks(draft_id: str) -> List[Dict[str, Any]]:
-#     """Get information about draft picks that were traded before or during a draft.
-
-#     Args:
-#         draft_id: The unique draft identifier from Sleeper.
-#                  Obtain from get_league_drafts() or get_user_drafts().
-
-#     Returns traded pick details including:
-#     - Season and round of the traded pick
-#     - Original owner roster ID
-#     - New owner roster ID after trade
-#     - Previous owner if traded multiple times
-
-#     Useful for tracking draft pick trades in keeper/dynasty leagues.
-#     Empty list if no picks were traded.
-
-#     Returns:
-#         List of traded draft pick dictionaries
-#     """
-#     async with httpx.AsyncClient() as client:
-#         response = await client.get(f"{BASE_URL}/draft/{draft_id}/traded_picks")
-#         response.raise_for_status()
-#         return response.json()
-
-
-# Unified player tools removed - consolidated into main player tools above
-
-
 # ============================================================================
 # ChatGPT Compatibility Tools - Required for ChatGPT Connectors
 # ============================================================================
