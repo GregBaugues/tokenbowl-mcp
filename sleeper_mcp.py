@@ -28,7 +28,12 @@ from lib.validation import (
 )
 from lib.enrichment import (
     enrich_player_full,
+    enrich_player_minimal,
     organize_roster_by_position,
+    get_trending_data_map,
+    get_recent_drops_set,
+    add_trending_data,
+    mark_recent_drops,
 )
 
 # Load environment variables from .env file
@@ -1368,40 +1373,16 @@ async def get_waiver_wire_players(
                 if roster.get("players"):
                     rostered_players.update(roster["players"])
 
-        # Get recent drops if highlighting is requested
-        recent_drops = set()
-        if highlight_recent_drops:
-            try:
-                # Get transactions from last 7 days
-                recent_txns = await get_recent_transactions.fn(
-                    drops_only=True,
-                    max_days_ago=7,
-                    include_player_details=False,
-                    limit=50,
-                )
-                # Extract player IDs from drops
-                for txn in recent_txns:
-                    if txn.get("drops"):
-                        recent_drops.update(txn["drops"].keys())
-            except Exception as e:
-                logger.warning(
-                    f"Could not fetch recent drops (error_type={type(e).__name__}, error_message={str(e)})"
-                )
-
         # Get all NFL players from cache (sync function, don't await)
         all_players = get_players_from_cache(active_only=False)
 
-        # Always get trending data to identify hot waiver pickups
-        trending_data = {}
-        try:
-            trending_response = await get_trending_players.fn(type="add")
-            trending_data = {
-                item["player_id"]: item["count"] for item in trending_response
-            }
-        except Exception as e:
-            logger.warning(
-                f"Could not fetch trending data (error_type={type(e).__name__}, error_message={str(e)})"
-            )
+        # Fetch trending data and recent drops using utility functions
+        trending_data = await get_trending_data_map(get_trending_players.fn, txn_type="add")
+        recent_drops = (
+            await get_recent_drops_set(get_recent_transactions.fn, days_back=7, limit=50)
+            if highlight_recent_drops
+            else set()
+        )
 
         # Filter to find available players
         available_players = []
@@ -1423,63 +1404,18 @@ async def get_waiver_wire_players(
                 if search_term.lower() not in player_name:
                     continue
 
-            # Create minimal or full player data based on include_stats
+            # Use enrichment utility based on mode
             if not include_stats:
-                # Minimal data mode - only essential fields
-                minimal_data = {
-                    "player_id": player_id,
-                    "full_name": player_data.get("full_name"),
-                    "position": player_data.get("position"),
-                    "team": player_data.get("team"),
-                    "status": player_data.get("status"),
-                    "injury_status": player_data.get("injury_status"),
-                }
-
-                # Add projected points if available
-                # Check new location first (stats.projected.fantasy_points)
-                if "stats" in player_data and player_data["stats"].get("projected"):
-                    try:
-                        fantasy_points = player_data["stats"]["projected"].get(
-                            "fantasy_points"
-                        )
-                        if fantasy_points is not None:
-                            minimal_data["projected_points"] = float(fantasy_points)
-                    except (ValueError, TypeError):
-                        pass
-                # Fall back to old location for backward compatibility
-                elif "data" in player_data and player_data["data"].get("projections"):
-                    try:
-                        proj_pts = player_data["data"]["projections"].get("proj_pts")
-                        if proj_pts:
-                            minimal_data["projected_points"] = float(proj_pts)
-                    except (ValueError, TypeError):
-                        pass
-
-                # Add ROS projected points if available
-                if "stats" in player_data and player_data["stats"].get("ros_projected"):
-                    try:
-                        ros_points = player_data["stats"]["ros_projected"].get(
-                            "fantasy_points"
-                        )
-                        if ros_points is not None:
-                            minimal_data["ros_projected_points"] = float(ros_points)
-                    except (ValueError, TypeError):
-                        pass
-
-                player_entry = minimal_data
+                player_entry = enrich_player_minimal(player_id, player_data)
             else:
                 # Full data mode - pass through all player data
                 player_entry = player_data
 
-            # Add trending count if available
-            if player_id in trending_data:
-                player_entry["trending_add_count"] = trending_data[player_id]
-
-            # Mark if recently dropped
-            if player_id in recent_drops:
-                player_entry["recently_dropped"] = True
-
             available_players.append(player_entry)
+
+        # Add trending data and recent drops marks using utility functions
+        available_players = add_trending_data(available_players, trending_data)
+        available_players = mark_recent_drops(available_players, recent_drops)
 
         # Sort players by relevance
         # Priority: 1) Recently dropped, 2) Active status, 3) Trending adds, 4) Projected points, 5) Name
