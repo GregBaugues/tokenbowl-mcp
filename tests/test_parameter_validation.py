@@ -18,7 +18,8 @@ class TestParameterValidation:
         # Test with invalid type (string that can't be converted)
         result = await sleeper_mcp.get_roster.fn("invalid")
         assert "error" in result
-        assert "Invalid roster_id parameter" in result["error"]
+        assert "Roster ID must be" in result["error"]
+        assert "integer" in result["error"]
 
         # Test with out of range roster_id
         result = await sleeper_mcp.get_roster.fn(0)
@@ -40,7 +41,8 @@ class TestParameterValidation:
         result = await sleeper_mcp.get_league_matchups.fn("not_a_number")
         assert len(result) > 0
         assert "error" in result[0]
-        assert "Invalid week parameter" in result[0]["error"]
+        assert "Week must be" in result[0]["error"]
+        assert "integer" in result[0]["error"]
 
         # Test with out of range week
         result = await sleeper_mcp.get_league_matchups.fn(0)
