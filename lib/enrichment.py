@@ -167,8 +167,17 @@ def enrich_player_injury_news(
 
     # Add news if available
     if enriched_data.get("news") and len(enriched_data["news"]) > 0:
-        # Include latest N news items
-        enrichment["news"] = enriched_data["news"][:max_news]
+        # Deduplicate news items by headline (issue #108)
+        seen_headlines = set()
+        unique_news = []
+        for item in enriched_data["news"]:
+            headline = item.get("headline", "")
+            if headline and headline not in seen_headlines:
+                seen_headlines.add(headline)
+                unique_news.append(item)
+
+        # Include latest N unique news items
+        enrichment["news"] = unique_news[:max_news]
 
     return enrichment
 
