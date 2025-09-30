@@ -214,22 +214,41 @@ class TestEnrichPlayerInjuryNews:
         assert result["injury"]["last_update"] == "2024-01-15"
 
     def test_news_items(self):
-        """Test extraction of news items."""
+        """Test extraction of news items (with deduplication)."""
         player_data = {
             "data": {
                 "news": [
-                    {"title": "News 1", "date": "2024-01-15"},
-                    {"title": "News 2", "date": "2024-01-14"},
-                    {"title": "News 3", "date": "2024-01-13"},
-                    {"title": "News 4", "date": "2024-01-12"},
+                    {"headline": "News 1", "date": "2024-01-15"},
+                    {"headline": "News 2", "date": "2024-01-14"},
+                    {"headline": "News 3", "date": "2024-01-13"},
+                    {"headline": "News 4", "date": "2024-01-12"},
                 ]
             }
         }
         result = enrich_player_injury_news(player_data, max_news=3)
 
         assert len(result["news"]) == 3
-        assert result["news"][0]["title"] == "News 1"
-        assert result["news"][2]["title"] == "News 3"
+        assert result["news"][0]["headline"] == "News 1"
+        assert result["news"][2]["headline"] == "News 3"
+
+    def test_news_deduplication(self):
+        """Test that duplicate news items are removed."""
+        player_data = {
+            "data": {
+                "news": [
+                    {"headline": "Breaking news", "date": "2024-01-15"},
+                    {"headline": "Breaking news", "date": "2024-01-15"},  # Duplicate
+                    {"headline": "Other news", "date": "2024-01-14"},
+                    {"headline": "Breaking news", "date": "2024-01-13"},  # Another duplicate
+                ]
+            }
+        }
+        result = enrich_player_injury_news(player_data, max_news=5)
+
+        # Should only have 2 unique news items
+        assert len(result["news"]) == 2
+        assert result["news"][0]["headline"] == "Breaking news"
+        assert result["news"][1]["headline"] == "Other news"
 
     def test_no_injury_or_news(self):
         """Test when no injury or news data exists."""
@@ -263,7 +282,7 @@ class TestEnrichPlayerFull:
             },
             "data": {
                 "injury": {"game_status": "Healthy"},
-                "news": [{"title": "Latest news"}],
+                "news": [{"headline": "Latest news"}],
             },
         }
         result = enrich_player_full("4046", player_data)

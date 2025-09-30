@@ -884,7 +884,7 @@ async def get_trending_players(
 
     # Validate limit parameter
     try:
-        limit = validate_limit(limit, default=10, max_value=25)
+        limit = validate_limit(limit, max_value=25)
     except ValueError as e:
         logger.error(f"Limit validation failed: {e}")
         return [
