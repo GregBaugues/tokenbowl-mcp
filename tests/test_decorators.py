@@ -1,7 +1,7 @@
 """Unit tests for lib.decorators module."""
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 from lib.decorators import log_mcp_tool
 
 
@@ -11,6 +11,7 @@ class TestLogMcpTool:
     @pytest.mark.asyncio
     async def test_decorator_success_basic(self):
         """Test decorator with successful function execution."""
+
         @log_mcp_tool
         async def sample_tool(param1: str, param2: int):
             return {"result": "success", "param1": param1, "param2": param2}
@@ -21,6 +22,7 @@ class TestLogMcpTool:
     @pytest.mark.asyncio
     async def test_decorator_with_exception(self):
         """Test decorator with function that raises exception."""
+
         @log_mcp_tool
         async def failing_tool():
             raise ValueError("Test error")
@@ -31,6 +33,7 @@ class TestLogMcpTool:
     @pytest.mark.asyncio
     async def test_decorator_with_error_response(self):
         """Test decorator with error response dict."""
+
         @log_mcp_tool
         async def error_tool():
             return {"error": "Something went wrong", "details": "test"}
@@ -42,6 +45,7 @@ class TestLogMcpTool:
     @pytest.mark.asyncio
     async def test_decorator_preserves_function_name(self):
         """Test that decorator preserves function metadata."""
+
         @log_mcp_tool
         async def my_tool():
             return {"ok": True}
@@ -51,6 +55,7 @@ class TestLogMcpTool:
     @pytest.mark.asyncio
     async def test_decorator_with_args_and_kwargs(self):
         """Test decorator with mixed args and kwargs."""
+
         @log_mcp_tool
         async def tool_with_params(pos_arg, keyword_arg="default"):
             return {"pos": pos_arg, "kw": keyword_arg}
@@ -61,6 +66,7 @@ class TestLogMcpTool:
     @pytest.mark.asyncio
     async def test_decorator_with_none_values(self):
         """Test decorator handles None parameter values."""
+
         @log_mcp_tool
         async def tool_with_none(param1, param2=None):
             return {"param1": param1, "param2": param2}
@@ -72,6 +78,7 @@ class TestLogMcpTool:
     @pytest.mark.asyncio
     async def test_decorator_with_list_result(self):
         """Test decorator with list result."""
+
         @log_mcp_tool
         async def list_tool():
             return [1, 2, 3, 4, 5]
@@ -82,6 +89,7 @@ class TestLogMcpTool:
     @pytest.mark.asyncio
     async def test_decorator_with_dict_result(self):
         """Test decorator with dict result (non-error)."""
+
         @log_mcp_tool
         async def dict_tool():
             return {"key1": "value1", "key2": "value2", "status": "ok"}
@@ -92,6 +100,7 @@ class TestLogMcpTool:
     @pytest.mark.asyncio
     async def test_decorator_with_string_result(self):
         """Test decorator with string result."""
+
         @log_mcp_tool
         async def string_tool():
             return "simple string result"
@@ -103,6 +112,7 @@ class TestLogMcpTool:
     @patch("lib.decorators.logger")
     async def test_decorator_logs_success(self, mock_logger):
         """Test that decorator logs successful execution."""
+
         @log_mcp_tool
         async def success_tool():
             return {"result": "ok"}
@@ -116,6 +126,7 @@ class TestLogMcpTool:
     @patch("lib.decorators.logger")
     async def test_decorator_logs_error_response(self, mock_logger):
         """Test that decorator logs error responses."""
+
         @log_mcp_tool
         async def error_tool():
             return {"error": "Failed"}
@@ -129,6 +140,7 @@ class TestLogMcpTool:
     @patch("lib.decorators.logger")
     async def test_decorator_logs_exception(self, mock_logger):
         """Test that decorator logs exceptions."""
+
         @log_mcp_tool
         async def exception_tool():
             raise RuntimeError("Something broke")
@@ -239,6 +251,7 @@ class TestLogMcpTool:
     @patch("lib.decorators.logger")
     async def test_decorator_handles_parameter_serialization_failure(self, mock_logger):
         """Test that decorator handles parameter serialization failures."""
+
         # Create an object that can't be easily serialized
         class UnserializableObject:
             def __str__(self):

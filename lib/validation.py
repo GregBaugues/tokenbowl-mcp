@@ -38,9 +38,7 @@ def validate_roster_id(roster_id: Union[int, str]) -> int:
         ) from e
 
     if not 1 <= roster_id_int <= 10:
-        raise ValueError(
-            f"Roster ID must be between 1 and 10, got {roster_id_int}"
-        )
+        raise ValueError(f"Roster ID must be between 1 and 10, got {roster_id_int}")
 
     return roster_id_int
 
@@ -65,9 +63,7 @@ def validate_week(week: Union[int, str]) -> int:
         ) from e
 
     if not 1 <= week_int <= 18:
-        raise ValueError(
-            f"Week must be between 1 and 18, got {week_int}"
-        )
+        raise ValueError(f"Week must be between 1 and 18, got {week_int}")
 
     return week_int
 
@@ -91,9 +87,7 @@ def validate_position(position: Optional[str]) -> Optional[str]:
     position_upper = str(position).upper()
 
     if position_upper not in valid_positions:
-        raise ValueError(
-            f"Position must be one of {valid_positions}, got {position}"
-        )
+        raise ValueError(f"Position must be one of {valid_positions}, got {position}")
 
     return position_upper
 
@@ -119,9 +113,7 @@ def validate_limit(limit: Union[int, str], max_value: int = 200) -> int:
         ) from e
 
     if limit_int < 1:
-        raise ValueError(
-            f"Limit must be a positive integer, got {limit_int}"
-        )
+        raise ValueError(f"Limit must be a positive integer, got {limit_int}")
 
     # Cap at max_value
     return min(limit_int, max_value)
@@ -148,17 +140,13 @@ def validate_non_empty_string(value: str, param_name: str) -> str:
         ) from e
 
     if not value_str:
-        raise ValueError(
-            f"{param_name} cannot be empty"
-        )
+        raise ValueError(f"{param_name} cannot be empty")
 
     return value_str
 
 
 def validate_days_back(
-    days_back: Union[int, str],
-    min_value: int = 1,
-    max_value: int = 30
+    days_back: Union[int, str], min_value: int = 1, max_value: int = 30
 ) -> int:
     """Validate days_back parameter for historical queries.
 

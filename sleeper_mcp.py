@@ -23,7 +23,6 @@ from lib.validation import (
     validate_week,
     validate_position,
     validate_limit,
-    validate_non_empty_string,
     validate_days_back,
     create_error_response,
 )
@@ -62,6 +61,7 @@ mcp = FastMCP("tokenbowl-mcp")
 BASE_URL = "https://api.sleeper.app/v1"
 
 # Get league ID from environment variable with fallback to Token Bowl
+
 
 @mcp.tool()
 @log_mcp_tool
@@ -2078,7 +2078,9 @@ async def evaluate_waiver_priority_cost(
     try:
         # Validate current_position (using roster_id validation since it's also 1-10)
         try:
-            current_position = validate_roster_id(current_position)  # Reuse 1-10 validation
+            current_position = validate_roster_id(
+                current_position
+            )  # Reuse 1-10 validation
         except ValueError as e:
             logger.error(f"Current position validation failed: {e}")
             return create_error_response(
@@ -2095,14 +2097,18 @@ async def evaluate_waiver_priority_cost(
         except (TypeError, ValueError) as e:
             logger.error(f"Projected points gain validation failed: {e}")
             return create_error_response(
-                str(e) if isinstance(e, ValueError) else f"Invalid projected_points_gain: must be a non-negative number, got {type(projected_points_gain).__name__}",
+                str(e)
+                if isinstance(e, ValueError)
+                else f"Invalid projected_points_gain: must be a non-negative number, got {type(projected_points_gain).__name__}",
                 value_received=str(projected_points_gain)[:100],
                 expected="non-negative number",
             )
 
         # Validate weeks_remaining
         try:
-            weeks_remaining = validate_week(weeks_remaining)  # Reuse week validation (1-18)
+            weeks_remaining = validate_week(
+                weeks_remaining
+            )  # Reuse week validation (1-18)
         except ValueError as e:
             logger.error(f"Weeks remaining validation failed: {e}")
             return create_error_response(

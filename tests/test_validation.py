@@ -258,31 +258,25 @@ class TestCreateErrorResponse:
     def test_error_response_with_context(self):
         """Test error response with additional context."""
         result = create_error_response(
-            "Invalid parameter",
-            value_received="abc",
-            expected="integer"
+            "Invalid parameter", value_received="abc", expected="integer"
         )
         assert result == {
             "error": "Invalid parameter",
             "value_received": "abc",
-            "expected": "integer"
+            "expected": "integer",
         }
 
     def test_error_response_with_multiple_context_fields(self):
         """Test error response with multiple context fields."""
         result = create_error_response(
-            "Range error",
-            value=15,
-            min=1,
-            max=10,
-            parameter="limit"
+            "Range error", value=15, min=1, max=10, parameter="limit"
         )
         assert result == {
             "error": "Range error",
             "value": 15,
             "min": 1,
             "max": 10,
-            "parameter": "limit"
+            "parameter": "limit",
         }
 
     def test_error_response_empty_context(self):
