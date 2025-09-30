@@ -204,7 +204,7 @@ class TestLeagueTools:
             assert len(result["starters"]) > 0
             first_starter = result["starters"][0]
             assert "player_id" in first_starter
-            assert "full_name" in first_starter or "first_name" in first_starter
+            assert "name" in first_starter
 
         # Verify bench has player data
         if result.get("bench"):
