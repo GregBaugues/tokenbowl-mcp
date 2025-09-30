@@ -328,8 +328,7 @@ def spot_refresh_player_stats(player_ids: Optional[Set[str]] = None) -> bool:
 
     except Exception as e:
         logger.error(
-            "Error in spot refresh",
-            player_id=player_id,
+            "Error spot refreshing player stats",
             error_type=type(e).__name__,
             error_message=str(e),
             exc_info=True,
