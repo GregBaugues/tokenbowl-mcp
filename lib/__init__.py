@@ -22,6 +22,17 @@ from lib.enrichment import (
     mark_recent_drops,
     organize_roster_by_position,
 )
+from lib.league_tools import (
+    fetch_league_info,
+    fetch_league_rosters,
+    fetch_roster_with_enrichment,
+    fetch_league_users,
+    fetch_league_matchups,
+    fetch_league_transactions,
+    fetch_league_traded_picks,
+    fetch_league_drafts,
+    fetch_league_winners_bracket,
+)
 
 __all__ = [
     "validate_roster_id",
@@ -42,4 +53,13 @@ __all__ = [
     "add_trending_data",
     "mark_recent_drops",
     "organize_roster_by_position",
+    "fetch_league_info",
+    "fetch_league_rosters",
+    "fetch_roster_with_enrichment",
+    "fetch_league_users",
+    "fetch_league_matchups",
+    "fetch_league_transactions",
+    "fetch_league_traded_picks",
+    "fetch_league_drafts",
+    "fetch_league_winners_bracket",
 ]

@@ -27,9 +27,7 @@ from lib.validation import (
     create_error_response,
 )
 from lib.enrichment import (
-    enrich_player_full,
     enrich_player_minimal,
-    organize_roster_by_position,
     get_trending_data_map,
     get_recent_drops_set,
     add_trending_data,
@@ -88,10 +86,9 @@ async def get_league_info() -> Dict[str, Any]:
     Returns:
         Dict containing all league configuration and settings
     """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}")
-        response.raise_for_status()
-        return response.json()
+    from lib.league_tools import fetch_league_info
+
+    return await fetch_league_info(LEAGUE_ID, BASE_URL)
 
 
 @mcp.tool()
@@ -109,10 +106,9 @@ async def get_league_rosters() -> List[Dict[str, Any]]:
     Returns:
         List of roster dictionaries, one for each team in the league
     """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/rosters")
-        response.raise_for_status()
-        return response.json()
+    from lib.league_tools import fetch_league_rosters
+
+    return await fetch_league_rosters(LEAGUE_ID, BASE_URL)
 
 
 @mcp.tool()
@@ -135,161 +131,20 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
     Returns:
         Dict with roster info and enriched player data
     """
+    from lib.league_tools import fetch_roster_with_enrichment
+
+    # Validate roster_id
     try:
-        # Validate roster_id
-        try:
-            roster_id = validate_roster_id(roster_id)
-        except ValueError as e:
-            logger.error(f"Roster ID validation failed: {e}")
-            return create_error_response(
-                str(e),
-                value_received=str(roster_id)[:100],
-                expected="integer between 1 and 10",
-            )
-
-        # Get all rosters to find the specific one
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/rosters")
-            response.raise_for_status()
-            rosters = response.json()
-
-        # Find the specific roster
-        roster = None
-        for r in rosters:
-            if r.get("roster_id") == roster_id:
-                roster = r
-                break
-
-        if not roster:
-            return {"error": f"Roster ID {roster_id} not found"}
-
-            # Get all player data from cache (sync function, don't await)
-        all_players = get_players_from_cache(active_only=False)
-        if not all_players:
-            return {"error": "Failed to load player data from cache"}
-
-            # Get league users to find owner name
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/users")
-            response.raise_for_status()
-            users = response.json()
-
-            # Find owner info
-        owner_info = None
-        for user in users:
-            if user.get("user_id") == roster.get("owner_id"):
-                owner_info = {
-                    "user_id": user.get("user_id"),
-                    "username": user.get("username"),
-                    "display_name": user.get("display_name"),
-                    "team_name": user.get("metadata", {}).get(
-                        "team_name", user.get("display_name")
-                    ),
-                }
-                break
-
-            # Get current NFL season and week from state
-        async with httpx.AsyncClient() as client:
-            state_response = await client.get(f"{BASE_URL}/state/nfl")
-            state_response.raise_for_status()
-            state = state_response.json()
-
-        current_season = state.get("season", datetime.now().year)
-        current_week = state.get("week", 1)
-
-        # Initialize roster structure with current datetime in EDT
-        edt_time = datetime.now(ZoneInfo("America/New_York"))
-        formatted_datetime = edt_time.strftime("%A, %B %d, %Y at %I:%M %p EDT")
-
-        enriched_roster = {
-            "current_datetime": formatted_datetime,
-            "season": current_season,
-            "week": current_week,
-            "roster_id": roster_id,
-            "owner": owner_info,
-            "settings": roster.get("settings", {}),
-            "starters": [],
-            "bench": [],
-            "taxi": [],
-            "reserve": [],
-        }
-
-        # Get player IDs by category
-        starters_ids = roster.get("starters", [])
-        all_player_ids = roster.get("players", [])
-        taxi_ids = roster.get("taxi", []) or []
-        reserve_ids = roster.get("reserve", []) or []
-
-        # Spot refresh stats for roster players
-        player_ids_set = set(filter(None, all_player_ids))  # Filter out None values
-        if player_ids_set:
-            logger.info(
-                f"Spot refreshing stats for roster players (count={len(player_ids_set)}, roster_id={roster_id})"
-            )
-            spot_refresh_player_stats(player_ids_set)
-
-            # Track totals for meta information
-        total_projected = 0.0
-        starters_projected = 0.0
-
-        # Enrich all players using utility functions
-        enriched_players = []
-        for player_id in all_player_ids:
-            if not player_id:
-                continue
-
-            # Get player data from cache
-            player_data = all_players.get(player_id, {})
-
-            # Use enrichment utility to get fully enriched player data
-            player_info = enrich_player_full(
-                player_id,
-                player_data,
-                include_position_stats=True,
-                max_news=3,
-            )
-
-            # Track projected points for meta info
-            if player_info["stats"]["projected"]:
-                fantasy_points = player_info["stats"]["projected"]["fantasy_points"]
-                total_projected += fantasy_points
-                if player_id in starters_ids:
-                    starters_projected += fantasy_points
-
-            enriched_players.append(player_info)
-
-        # Organize players into roster categories using utility function
-        categorized = organize_roster_by_position(
-            enriched_players, starters_ids, taxi_ids, reserve_ids
+        roster_id = validate_roster_id(roster_id)
+    except ValueError as e:
+        logger.error(f"Roster ID validation failed: {e}")
+        return create_error_response(
+            str(e),
+            value_received=str(roster_id)[:100],
+            expected="integer between 1 and 10",
         )
-        enriched_roster.update(categorized)
 
-        # Add comprehensive meta information
-        enriched_roster["meta"] = {
-            "total_players": len(all_player_ids),
-            "starters_count": len(enriched_roster["starters"]),
-            "bench_count": len(enriched_roster["bench"]),
-            "projected_points": round(starters_projected, 2),
-            "bench_projected_points": round(total_projected - starters_projected, 2),
-            "injured_count": sum(
-                1
-                for cat in ["starters", "bench", "taxi", "reserve"]
-                for p in enriched_roster[cat]
-                if "injury" in p
-            ),
-            "record": f"{roster['settings'].get('wins', 0)}-{roster['settings'].get('losses', 0)}",
-            "points_for": roster["settings"].get("fpts", 0),
-            "points_against": roster["settings"].get("fpts_against", 0),
-        }
-
-        return enriched_roster
-
-    except Exception as e:
-        logger.error(
-            f"Failed to get roster: {roster_id} - {type(e).__name__}: {str(e)}",
-            exc_info=True,
-        )
-        return {"error": f"Failed to get roster: {str(e)}"}
+    return await fetch_roster_with_enrichment(roster_id, LEAGUE_ID, BASE_URL)
 
 
 @mcp.tool()
@@ -308,10 +163,9 @@ async def get_league_users() -> List[Dict[str, Any]]:
     Returns:
         List of user dictionaries for all league participants
     """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/users")
-        response.raise_for_status()
-        return response.json()
+    from lib.league_tools import fetch_league_users
+
+    return await fetch_league_users(LEAGUE_ID, BASE_URL)
 
 
 @mcp.tool()
@@ -334,6 +188,8 @@ async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
     Returns:
         List of matchup dictionaries for the specified week
     """
+    from lib.league_tools import fetch_league_matchups
+
     # Validate week
     try:
         week = validate_week(week)
@@ -347,27 +203,7 @@ async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
             )
         ]
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/matchups/{week}")
-        response.raise_for_status()
-        matchups = response.json()
-
-        # Collect all player IDs from matchups for spot refresh
-        all_player_ids = set()
-        for matchup in matchups:
-            if matchup and isinstance(matchup, dict):
-                players = matchup.get("players", [])
-                if players:
-                    all_player_ids.update(filter(None, players))
-
-        # Spot refresh stats for all players in matchups
-        if all_player_ids:
-            logger.info(
-                f"Spot refreshing stats for {len(all_player_ids)} players in week {week} matchups"
-            )
-            spot_refresh_player_stats(all_player_ids)
-
-        return matchups
+    return await fetch_league_matchups(LEAGUE_ID, week, BASE_URL)
 
 
 @mcp.tool()
@@ -393,6 +229,8 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
     Returns:
         List of transaction dictionaries for the specified round with enriched player data
     """
+    from lib.league_tools import fetch_league_transactions
+
     # Type conversion and validation
     try:
         round = int(round)
@@ -419,51 +257,7 @@ async def get_league_transactions(round: int = 1) -> List[Dict[str, Any]]:
             }
         ]
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{BASE_URL}/league/{LEAGUE_ID}/transactions/{round}"
-        )
-        response.raise_for_status()
-        transactions = response.json()
-
-    # Get player data from cache for enrichment
-    from cache_client import get_player_by_id
-
-    # Enrich transactions with player data
-    for txn in transactions:
-        # Enrich "adds" with full player data
-        if txn.get("adds"):
-            enriched_adds = {}
-            for player_id, roster_id in txn["adds"].items():
-                player_data = get_player_by_id(player_id)
-                enriched_adds[player_id] = {
-                    "roster_id": roster_id,
-                    "player_name": player_data.get("full_name")
-                    if player_data
-                    else "Unknown",
-                    "team": player_data.get("team") if player_data else None,
-                    "position": player_data.get("position") if player_data else None,
-                    # Removed player_data to reduce context size
-                }
-            txn["adds"] = enriched_adds
-
-        # Enrich "drops" with full player data
-        if txn.get("drops"):
-            enriched_drops = {}
-            for player_id, roster_id in txn["drops"].items():
-                player_data = get_player_by_id(player_id)
-                enriched_drops[player_id] = {
-                    "roster_id": roster_id,
-                    "player_name": player_data.get("full_name")
-                    if player_data
-                    else "Unknown",
-                    "team": player_data.get("team") if player_data else None,
-                    "position": player_data.get("position") if player_data else None,
-                    # Removed player_data to reduce context size
-                }
-            txn["drops"] = enriched_drops
-
-    return transactions
+    return await fetch_league_transactions(LEAGUE_ID, round, BASE_URL)
 
 
 @mcp.tool()
@@ -696,10 +490,9 @@ async def get_league_traded_picks() -> List[Dict[str, Any]]:
     Returns:
         List of traded draft pick dictionaries
     """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/traded_picks")
-        response.raise_for_status()
-        return response.json()
+    from lib.league_tools import fetch_league_traded_picks
+
+    return await fetch_league_traded_picks(LEAGUE_ID, BASE_URL)
 
 
 @mcp.tool()
@@ -719,10 +512,9 @@ async def get_league_drafts() -> List[Dict[str, Any]]:
     Returns:
         List of draft dictionaries for all league drafts
     """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/drafts")
-        response.raise_for_status()
-        return response.json()
+    from lib.league_tools import fetch_league_drafts
+
+    return await fetch_league_drafts(LEAGUE_ID, BASE_URL)
 
 
 @mcp.tool()
@@ -742,10 +534,9 @@ async def get_league_winners_bracket() -> List[Dict[str, Any]]:
     Returns:
         List of playoff matchup dictionaries for the winners bracket
     """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_URL}/league/{LEAGUE_ID}/winners_bracket")
-        response.raise_for_status()
-        return response.json()
+    from lib.league_tools import fetch_league_winners_bracket
+
+    return await fetch_league_winners_bracket(LEAGUE_ID, BASE_URL)
 
 
 @mcp.tool()
