@@ -317,8 +317,16 @@ class TestPlayerToolsMocked:
             # Mock the cache function
             with patch("sleeper_mcp.get_players_from_cache") as mock_cache:
                 mock_cache.return_value = {
-                    "4046": {"full_name": "Patrick Mahomes", "position": "QB"},
-                    "4034": {"full_name": "Davante Adams", "position": "WR"},
+                    "4046": {
+                        "player_id": "4046",
+                        "full_name": "Patrick Mahomes",
+                        "position": "QB",
+                    },
+                    "4034": {
+                        "player_id": "4034",
+                        "full_name": "Davante Adams",
+                        "position": "WR",
+                    },
                 }
 
                 result = await sleeper_mcp.get_trending_players.fn(type="add")
