@@ -91,8 +91,22 @@ class TestLeagueTools:
     @pytest.mark.asyncio
     @pytest.mark.vcr()
     async def test_get_league_rosters(self):
-        """Test getting league rosters."""
+        """Test getting league rosters (minimal by default)."""
         result = await sleeper_mcp.get_league_rosters.fn()
+
+        assert isinstance(result, list)
+        if result:  # If we have data
+            assert "roster_id" in result[0]
+            assert "owner_id" in result[0]
+            # Default is minimal mode - no players field
+            assert "wins" in result[0]
+            assert "losses" in result[0]
+
+    @pytest.mark.asyncio
+    @pytest.mark.vcr()
+    async def test_get_league_rosters_with_details(self):
+        """Test getting league rosters with full details."""
+        result = await sleeper_mcp.get_league_rosters.fn(include_details=True)
 
         assert isinstance(result, list)
         if result:  # If we have data

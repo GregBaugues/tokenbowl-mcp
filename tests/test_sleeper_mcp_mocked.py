@@ -39,7 +39,7 @@ class TestLeagueToolsMocked:
 
     @pytest.mark.asyncio
     async def test_get_league_rosters(self):
-        """Test getting league rosters with mocked response."""
+        """Test getting league rosters with mocked response (minimal by default)."""
         mock_response = [
             {
                 "roster_id": 1,
@@ -60,6 +60,37 @@ class TestLeagueToolsMocked:
             mock_instance.get.return_value = mock_resp
 
             result = await sleeper_mcp.get_league_rosters.fn()
+
+            assert isinstance(result, list)
+            assert len(result) > 0
+            assert "roster_id" in result[0]
+            # Default is minimal mode - no players field
+            assert "wins" in result[0]
+            assert "losses" in result[0]
+
+    @pytest.mark.asyncio
+    async def test_get_league_rosters_with_details(self):
+        """Test getting league rosters with full details."""
+        mock_response = [
+            {
+                "roster_id": 1,
+                "owner_id": "123456",
+                "players": ["4046", "4034"],
+                "starters": ["4046"],
+                "settings": {"wins": 5, "losses": 2},
+            }
+        ]
+
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_instance = AsyncMock()
+            mock_client.return_value.__aenter__.return_value = mock_instance
+
+            mock_resp = AsyncMock()
+            mock_resp.json = lambda: mock_response
+            mock_resp.raise_for_status = lambda: None
+            mock_instance.get.return_value = mock_resp
+
+            result = await sleeper_mcp.get_league_rosters.fn(include_details=True)
 
             assert isinstance(result, list)
             assert len(result) > 0

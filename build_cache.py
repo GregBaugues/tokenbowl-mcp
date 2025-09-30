@@ -523,31 +523,30 @@ def enrich_and_filter_players(
     fantasy_positions = {"QB", "RB", "WR", "TE", "K", "DEF"}
 
     # Define the fields to keep
+    # Removed unused fields for context optimization (issue #108):
+    # - search_first_name, search_full_name, search_last_name (search internals)
+    # - hashtag (unused unique identifier)
+    # - team_abbr (always null, redundant with team)
+    # - depth_chart_position (too granular)
+    # - team_changed_at (rarely relevant)
     fields_to_keep = {
         "team",
         "practice_description",
-        "search_first_name",
         "active",
         "injury_start_date",
         "first_name",
         "player_id",
         "status",
         "news_updated",
-        "team_changed_at",
         "last_name",
-        "search_full_name",
-        "search_last_name",
         "full_name",
         "depth_chart_order",
         "injury_status",
-        "depth_chart_position",
         "age",
         "injury_body_part",
-        "team_abbr",
         "position",
         "injury_notes",
         "fantasy_positions",
-        "hashtag",
         "count",
     }
 
@@ -611,7 +610,9 @@ def enrich_and_filter_players(
                         print(
                             f"Warning: Failed to parse projections for {filtered_player.get('full_name', sleeper_id)}: {e}"
                         )
-                        print(f"  proj_pts={proj.get('proj_pts')}, type={type(proj.get('proj_pts'))}")
+                        print(
+                            f"  proj_pts={proj.get('proj_pts')}, type={type(proj.get('proj_pts'))}"
+                        )
 
                 # Add ROS projections to the stats structure
                 if player_ffnerd_data and player_ffnerd_data.get("ros_projections"):
