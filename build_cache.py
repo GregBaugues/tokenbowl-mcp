@@ -204,6 +204,37 @@ def fetch_fantasy_nerds_players() -> List[Dict]:
         return data
 
 
+def fetch_bye_weeks() -> Dict[str, int]:
+    """Fetch bye week data from Fantasy Nerds API.
+
+    Returns:
+        Dict mapping team abbreviation to bye week number (e.g., {"CHI": 5, "ATL": 5})
+    """
+    api_key = os.getenv("FFNERD_API_KEY")
+    url = f"https://api.fantasynerds.com/v1/nfl/byes?apikey={api_key}"
+
+    print("Fetching bye weeks from Fantasy Nerds...")
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            response = client.get(url)
+            response.raise_for_status()
+            data = response.json()
+
+            # Build team -> bye_week mapping
+            bye_weeks_map = {}
+            if "weeks" in data:
+                for week_num, week_data in data["weeks"].items():
+                    teams = week_data.get("teams", [])
+                    for team in teams:
+                        bye_weeks_map[team] = int(week_num)
+
+            print(f"Fetched bye weeks for {len(bye_weeks_map)} teams")
+            return bye_weeks_map
+    except Exception as e:
+        print(f"Warning: Failed to fetch bye weeks: {e}")
+        return {}
+
+
 def create_player_mappings(
     sleeper_players: Dict, ffnerd_players: List
 ) -> Dict[str, int]:
@@ -513,9 +544,13 @@ def organize_ffnerd_data(
 
 
 def enrich_and_filter_players(
-    sleeper_players: Dict, mapping: Dict, ffnerd_data: Dict, stats_data: Dict
+    sleeper_players: Dict,
+    mapping: Dict,
+    ffnerd_data: Dict,
+    stats_data: Dict,
+    bye_weeks_map: Dict[str, int],
 ) -> Dict:
-    """Enrich Sleeper players with Fantasy Nerds data and current week stats.
+    """Enrich Sleeper players with Fantasy Nerds data, current week stats, and bye weeks.
     Only includes active players on NFL teams (excludes free agents and retired players).
     Creates a consistent stats structure with both projected and actual data.
     Filters to only include specified fields to reduce context size."""
@@ -578,6 +613,11 @@ def enrich_and_filter_players(
             last_name = player.get("last_name", "")
             if first_name and last_name:
                 filtered_player["full_name"] = f"{first_name} {last_name}"
+
+        # Add bye week if available
+        team = filtered_player.get("team")
+        if team and team in bye_weeks_map:
+            filtered_player["bye_week"] = bye_weeks_map[team]
 
         # Create the new stats structure
         filtered_player["stats"] = {"projected": None, "actual": None}
@@ -772,6 +812,7 @@ def cache_players():
         ffnerd_players = fetch_fantasy_nerds_players()
         rankings, injuries, news = fetch_fantasy_nerds_data()
         ros = fetch_fantasy_nerds_ros()  # Fetch ROS projections
+        bye_weeks_map = fetch_bye_weeks()  # Fetch bye weeks
 
         # Get current NFL week and fetch stats
         current_week, season = fetch_current_nfl_week()
@@ -791,7 +832,7 @@ def cache_players():
         # Enrich and filter to fantasy-relevant players only
         print("Enriching and filtering players...")
         players = enrich_and_filter_players(
-            sleeper_players, mapping, ffnerd_data, stats_data
+            sleeper_players, mapping, ffnerd_data, stats_data, bye_weeks_map
         )
 
         print(f"Total fantasy-relevant players: {len(players)}")

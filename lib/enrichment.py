@@ -26,7 +26,7 @@ def enrich_player_basic(player_id: str, player_data: Dict[str, Any]) -> Dict[str
         player_data: Player data from cache
 
     Returns:
-        Dict with basic player info (player_id, name, position, team, status)
+        Dict with basic player info (player_id, name, position, team, status, bye_week)
     """
     # Build basic player info
     player_info = {
@@ -42,6 +42,10 @@ def enrich_player_basic(player_id: str, player_data: Dict[str, Any]) -> Dict[str
         player_info["name"] = f"{player_id} Defense"
         player_info["position"] = "DEF"
         player_info["team"] = player_id
+
+    # Add bye week if available
+    if "bye_week" in player_data:
+        player_info["bye_week"] = player_data["bye_week"]
 
     return player_info
 
@@ -226,7 +230,7 @@ def enrich_player_minimal(
         player_data: Player data from cache
 
     Returns:
-        Dict with minimal player data (name, position, team, status, projected_points)
+        Dict with minimal player data (name, position, team, status, projected_points, bye_week)
     """
     minimal_data = {
         "player_id": player_id,
@@ -236,6 +240,10 @@ def enrich_player_minimal(
         "status": player_data.get("status"),
         "injury_status": player_data.get("injury_status"),
     }
+
+    # Add bye week if available
+    if "bye_week" in player_data:
+        minimal_data["bye_week"] = player_data["bye_week"]
 
     # Add projected points if available
     # Check new location first (stats.projected.fantasy_points)
