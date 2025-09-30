@@ -812,7 +812,9 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
 
 @mcp.tool()
 @log_mcp_tool
-async def get_trending_players(type: str = "add") -> List[Dict[str, Any]]:
+async def get_trending_players(
+    type: str = "add", limit: int = 10, position: Optional[str] = None
+) -> List[Dict[str, Any]]:
     """Get trending NFL players based on recent add/drop activity across all Sleeper leagues.
 
     Args:
@@ -820,8 +822,12 @@ async def get_trending_players(type: str = "add") -> List[Dict[str, Any]]:
               Must be exactly "add" or "drop" (case-sensitive).
               - "add": Players being picked up from waivers/free agency
               - "drop": Players being dropped to waivers
+        limit: Maximum number of players to return (default: 10, max: 25).
+              Can be integer or string (will be converted).
+        position: Filter by position (QB, RB, WR, TE, DEF, K). None returns all positions.
+                 Case-insensitive (will be uppercased).
 
-    Returns top 25 trending players with:
+    Returns trending players with:
     - Full player information including name, position, team
     - FFNerd enrichment data (projections, injuries when available)
     - Count of adds/drops over the last 24 hours
@@ -843,7 +849,32 @@ async def get_trending_players(type: str = "add") -> List[Dict[str, Any]]:
             }
         ]
 
-    # Always use 24 hour lookback and return 25 players
+    # Validate limit parameter
+    try:
+        limit = validate_limit(limit, default=10, max_value=25)
+    except ValueError as e:
+        logger.error(f"Limit validation failed: {e}")
+        return [
+            create_error_response(
+                str(e), value_received=str(limit)[:100], expected="integer between 1 and 25"
+            )
+        ]
+
+    # Validate position parameter if provided
+    if position is not None:
+        try:
+            position = validate_position(position)
+        except ValueError as e:
+            logger.error(f"Position validation failed: {e}")
+            return [
+                create_error_response(
+                    str(e),
+                    value_received=str(position)[:100],
+                    valid_values=["QB", "RB", "WR", "TE", "K", "DEF"],
+                )
+            ]
+
+    # Always use 24 hour lookback, fetch 25 players from API (filter after enrichment)
     params = {"lookback_hours": 24, "limit": 25}
 
     async with httpx.AsyncClient() as client:
@@ -863,13 +894,21 @@ async def get_trending_players(type: str = "add") -> List[Dict[str, Any]]:
         if player_id in all_players:
             player_data = all_players[player_id].copy()
             player_data["count"] = item.get("count", 0)
+
+            # Filter by position if requested
+            if position:
+                player_position = player_data.get("position")
+                if player_position != position:
+                    continue
+
             enriched_trending.append(player_data)
         else:
             # If player not in cache, return basic info
             item["player_id"] = player_id
             enriched_trending.append(item)
 
-    return enriched_trending
+    # Apply limit after filtering
+    return enriched_trending[:limit]
 
 
 @mcp.tool()
