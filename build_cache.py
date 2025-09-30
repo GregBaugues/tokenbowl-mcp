@@ -607,8 +607,11 @@ def enrich_and_filter_players(
                             "fantasy_points_low": fantasy_points_low,
                             "fantasy_points_high": fantasy_points_high,
                         }
-                    except (ValueError, TypeError):
-                        pass
+                    except (ValueError, TypeError) as e:
+                        print(
+                            f"Warning: Failed to parse projections for {filtered_player.get('full_name', sleeper_id)}: {e}"
+                        )
+                        print(f"  proj_pts={proj.get('proj_pts')}, type={type(proj.get('proj_pts'))}")
 
                 # Add ROS projections to the stats structure
                 if player_ffnerd_data and player_ffnerd_data.get("ros_projections"):

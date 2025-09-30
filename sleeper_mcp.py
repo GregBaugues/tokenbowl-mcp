@@ -805,9 +805,6 @@ async def get_player_by_sleeper_id(player_id: str) -> Optional[Dict[str, Any]]:
 # Cache status removed - cache management should be handled elsewhere, not in MCP server
 
 
-# Note: refresh_players_cache removed - cache refresh should be handled by cron job
-# The cache auto-refreshes on miss after 24-hour TTL expiration
-
 # Note: get_player_stats removed - stats are now included in cached player data
 # Player stats for the current week are automatically included when fetching player data
 # from get_players(), search_players_by_name(), or get_player_by_sleeper_id()

@@ -3,7 +3,7 @@ services:
     name: sleeper-mcp
     runtime: python
     buildCommand: "pip install uv && uv sync"
-    startCommand: "uv run python sleeper_mcp.py http"
+    startCommand: "uv run python build_cache.py; uv run python sleeper_mcp.py http"
     envVars:
       - key: RENDER
         value: "true"
