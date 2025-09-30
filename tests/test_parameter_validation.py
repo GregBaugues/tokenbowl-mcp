@@ -264,7 +264,10 @@ class TestParameterValidation:
 
         result = await sleeper_mcp.evaluate_waiver_priority_cost.fn(1, "invalid")
         assert "error" in result
-        assert ("non-negative number" in result["error"] or "could not convert" in result["error"])
+        assert (
+            "non-negative number" in result["error"]
+            or "could not convert" in result["error"]
+        )
 
         # Test weeks_remaining validation
         result = await sleeper_mcp.evaluate_waiver_priority_cost.fn(
