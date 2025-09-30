@@ -394,11 +394,15 @@ def organize_ffnerd_data(
     if "projections" in ros:
         # Check if ros["projections"] is actually a dict
         if not isinstance(ros["projections"], dict):
-            print(f"Warning: ros['projections'] is {type(ros['projections'])}, expected dict. Skipping ROS processing.")
+            print(
+                f"Warning: ros['projections'] is {type(ros['projections'])}, expected dict. Skipping ROS processing."
+            )
         else:
             for position, players in ros["projections"].items():
                 if not isinstance(players, list):
-                    print(f"Warning: Expected list for ROS position {position}, got {type(players)}. Skipping.")
+                    print(
+                        f"Warning: Expected list for ROS position {position}, got {type(players)}. Skipping."
+                    )
                     continue
                 for player in players:
                     player_id = str(player.get("playerId"))
@@ -423,7 +427,9 @@ def organize_ffnerd_data(
                         ros_data.update(
                             {
                                 "passing_attempts": player.get("passing_attempts"),
-                                "passing_completions": player.get("passing_completions"),
+                                "passing_completions": player.get(
+                                    "passing_completions"
+                                ),
                                 "passing_yards": player.get("passing_yards"),
                                 "passing_touchdowns": player.get("passing_touchdowns"),
                                 "passing_interceptions": player.get(
@@ -442,7 +448,9 @@ def organize_ffnerd_data(
                                 "rushing_touchdowns": player.get("rushing_touchdowns"),
                                 "receptions": player.get("receptions"),
                                 "receiving_yards": player.get("receiving_yards"),
-                                "receiving_touchdowns": player.get("receiving_touchdowns"),
+                                "receiving_touchdowns": player.get(
+                                    "receiving_touchdowns"
+                                ),
                                 "targets": player.get("targets"),
                                 "fumbles": player.get("fumbles"),
                             }
