@@ -132,7 +132,9 @@ async def get_league_rosters(include_details: bool = False) -> List[Dict[str, An
                 "losses": r.get("settings", {}).get("losses", 0),
                 "ties": r.get("settings", {}).get("ties", 0),
                 "points_for": round(r.get("settings", {}).get("fpts", 0), 2),
-                "points_against": round(r.get("settings", {}).get("fpts_against", 0), 2),
+                "points_against": round(
+                    r.get("settings", {}).get("fpts_against", 0), 2
+                ),
                 "waiver_position": r.get("settings", {}).get("waiver_position"),
             }
             for r in rosters
@@ -889,7 +891,9 @@ async def get_trending_players(
         logger.error(f"Limit validation failed: {e}")
         return [
             create_error_response(
-                str(e), value_received=str(limit)[:100], expected="integer between 1 and 25"
+                str(e),
+                value_received=str(limit)[:100],
+                expected="integer between 1 and 25",
             )
         ]
 

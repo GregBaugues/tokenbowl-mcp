@@ -239,7 +239,10 @@ class TestEnrichPlayerInjuryNews:
                     {"headline": "Breaking news", "date": "2024-01-15"},
                     {"headline": "Breaking news", "date": "2024-01-15"},  # Duplicate
                     {"headline": "Other news", "date": "2024-01-14"},
-                    {"headline": "Breaking news", "date": "2024-01-13"},  # Another duplicate
+                    {
+                        "headline": "Breaking news",
+                        "date": "2024-01-13",
+                    },  # Another duplicate
                 ]
             }
         }
