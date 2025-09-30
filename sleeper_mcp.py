@@ -67,8 +67,6 @@ mcp = FastMCP("tokenbowl-mcp")
 # Base URL for Sleeper API
 BASE_URL = "https://api.sleeper.app/v1"
 
-# Get league ID from environment variable with fallback to Token Bowl
-
 
 @mcp.tool()
 @log_mcp_tool
