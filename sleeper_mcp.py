@@ -1430,33 +1430,30 @@ async def get_waiver_wire_players(
         Dict with available players and metadata
     """
     try:
-        # Validate parameters
+        # Validate position
         if position is not None:
-            valid_positions = ["QB", "RB", "WR", "TE", "DEF", "K"]
-            position = str(position).upper()
-            if position not in valid_positions:
-                logger.error(f"Invalid position: {position}")
-                return {
-                    "error": "Invalid position parameter",
-                    "value_received": str(position)[:100],
-                    "valid_values": valid_positions,
-                }
+            try:
+                position = validate_position(position)
+            except ValueError as e:
+                logger.error(f"Position validation failed: {e}")
+                return create_error_response(
+                    str(e),
+                    value_received=str(position)[:100],
+                    valid_values=["QB", "RB", "WR", "TE", "DEF", "K"],
+                )
 
         # Validate limit
         try:
-            limit = int(limit)
-            if limit < 1:
-                raise ValueError("Must be positive")
-            limit = min(limit, 200)  # Cap at 200
-        except (TypeError, ValueError):
-            logger.error(f"Invalid limit: {limit}")
-            return {
-                "error": "Invalid limit parameter",
-                "value_received": str(limit)[:100],
-                "expected": "integer between 1 and 200",
-            }
+            limit = validate_limit(limit, max_value=200)
+        except ValueError as e:
+            logger.error(f"Limit validation failed: {e}")
+            return create_error_response(
+                str(e),
+                value_received=str(limit)[:100],
+                expected="integer between 1 and 200",
+            )
 
-        # Validate search_term if provided
+        # Validate search_term if provided (allow empty to be treated as None)
         if search_term is not None:
             search_term = str(search_term).strip()
             if not search_term:
@@ -1679,44 +1676,39 @@ async def get_waiver_analysis(
         Dict with waiver analysis and recommendations
     """
     try:
-        # Validate parameters
+        # Validate position
         if position is not None:
-            valid_positions = ["QB", "RB", "WR", "TE", "DEF", "K"]
-            position = str(position).upper()
-            if position not in valid_positions:
-                logger.error(f"Invalid position: {position}")
-                return {
-                    "error": "Invalid position parameter",
-                    "value_received": str(position)[:100],
-                    "valid_values": valid_positions,
-                }
+            try:
+                position = validate_position(position)
+            except ValueError as e:
+                logger.error(f"Position validation failed: {e}")
+                return create_error_response(
+                    str(e),
+                    value_received=str(position)[:100],
+                    valid_values=["QB", "RB", "WR", "TE", "DEF", "K"],
+                )
 
         # Validate days_back
         try:
-            days_back = int(days_back)
-            if days_back < 1 or days_back > 30:
-                raise ValueError("Out of range")
-        except (TypeError, ValueError):
-            logger.error(f"Invalid days_back: {days_back}")
-            return {
-                "error": "Invalid days_back parameter",
-                "value_received": str(days_back)[:100],
-                "expected": "integer between 1 and 30",
-            }
+            days_back = validate_days_back(days_back, min_value=1, max_value=30)
+        except ValueError as e:
+            logger.error(f"days_back validation failed: {e}")
+            return create_error_response(
+                str(e),
+                value_received=str(days_back)[:100],
+                expected="integer between 1 and 30",
+            )
 
-        # Validate limit
+        # Validate limit (capped at 50 for this analysis)
         try:
-            limit = int(limit)
-            if limit < 1:
-                raise ValueError("Must be positive")
-            limit = min(limit, 50)  # Cap at 50 for this analysis
-        except (TypeError, ValueError):
-            logger.error(f"Invalid limit: {limit}")
-            return {
-                "error": "Invalid limit parameter",
-                "value_received": str(limit)[:100],
-                "expected": "integer between 1 and 50",
-            }
+            limit = validate_limit(limit, max_value=50)
+        except ValueError as e:
+            logger.error(f"Limit validation failed: {e}")
+            return create_error_response(
+                str(e),
+                value_received=str(limit)[:100],
+                expected="integer between 1 and 50",
+            )
         logger.info(
             f"Starting waiver analysis for position={position}, days_back={days_back}"
         )
@@ -2084,44 +2076,40 @@ async def evaluate_waiver_priority_cost(
         Dict with waiver priority cost analysis and recommendation
     """
     try:
-        # Validate current_position
+        # Validate current_position (using roster_id validation since it's also 1-10)
         try:
-            current_position = int(current_position)
-            if current_position < 1 or current_position > 10:
-                raise ValueError("Out of range")
-        except (TypeError, ValueError):
-            logger.error(f"Invalid current_position: {current_position}")
-            return {
-                "error": "Invalid current_position parameter",
-                "value_received": str(current_position)[:100],
-                "expected": "integer between 1 and 10",
-            }
+            current_position = validate_roster_id(current_position)  # Reuse 1-10 validation
+        except ValueError as e:
+            logger.error(f"Current position validation failed: {e}")
+            return create_error_response(
+                f"Current position must be between 1 and 10, got {current_position}",
+                value_received=str(current_position)[:100],
+                expected="integer between 1 and 10",
+            )
 
         # Validate projected_points_gain
         try:
             projected_points_gain = float(projected_points_gain)
             if projected_points_gain < 0:
-                raise ValueError("Must be non-negative")
-        except (TypeError, ValueError):
-            logger.error(f"Invalid projected_points_gain: {projected_points_gain}")
-            return {
-                "error": "Invalid projected_points_gain parameter",
-                "value_received": str(projected_points_gain)[:100],
-                "expected": "non-negative number",
-            }
+                raise ValueError("Projected points gain must be non-negative")
+        except (TypeError, ValueError) as e:
+            logger.error(f"Projected points gain validation failed: {e}")
+            return create_error_response(
+                str(e) if isinstance(e, ValueError) else f"Invalid projected_points_gain: must be a non-negative number, got {type(projected_points_gain).__name__}",
+                value_received=str(projected_points_gain)[:100],
+                expected="non-negative number",
+            )
 
         # Validate weeks_remaining
         try:
-            weeks_remaining = int(weeks_remaining)
-            if weeks_remaining < 1 or weeks_remaining > 18:
-                raise ValueError("Out of range")
-        except (TypeError, ValueError):
-            logger.error(f"Invalid weeks_remaining: {weeks_remaining}")
-            return {
-                "error": "Invalid weeks_remaining parameter",
-                "value_received": str(weeks_remaining)[:100],
-                "expected": "integer between 1 and 18",
-            }
+            weeks_remaining = validate_week(weeks_remaining)  # Reuse week validation (1-18)
+        except ValueError as e:
+            logger.error(f"Weeks remaining validation failed: {e}")
+            return create_error_response(
+                f"Weeks remaining must be between 1 and 18, got {weeks_remaining}",
+                value_received=str(weeks_remaining)[:100],
+                expected="integer between 1 and 18",
+            )
 
         # Calculate expected value from the player
         total_expected_points = projected_points_gain * weeks_remaining
@@ -2224,16 +2212,14 @@ async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
         # Validate week if provided
         if week is not None:
             try:
-                week = int(week)
-                if week < 1 or week > 18:
-                    raise ValueError("Out of range")
-            except (TypeError, ValueError):
-                logger.error(f"Invalid week: {week}")
-                return {
-                    "error": "Invalid week parameter",
-                    "value_received": str(week)[:100],
-                    "expected": "integer between 1 and 18, or None for current week",
-                }
+                week = validate_week(week)
+            except ValueError as e:
+                logger.error(f"Week validation failed: {e}")
+                return create_error_response(
+                    str(e),
+                    value_received=str(week)[:100],
+                    expected="integer between 1 and 18, or None for current week",
+                )
 
         # Get Fantasy Nerds API key
         api_key = os.environ.get("FFNERD_API_KEY")
