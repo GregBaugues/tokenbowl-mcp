@@ -386,7 +386,12 @@ class TestGetRecentDropsSet:
         """Test fetching recently dropped players."""
         mock_fn = AsyncMock(
             return_value=[
-                {"drops": {"4046": {"player_id": "4046"}, "7528": {"player_id": "7528"}}},
+                {
+                    "drops": {
+                        "4046": {"player_id": "4046"},
+                        "7528": {"player_id": "7528"},
+                    }
+                },
                 {"drops": {"9999": {"player_id": "9999"}}},
             ]
         )

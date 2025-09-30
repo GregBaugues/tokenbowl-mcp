@@ -264,7 +264,7 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
         )
         enriched_roster.update(categorized)
 
-            # Add comprehensive meta information
+        # Add comprehensive meta information
         enriched_roster["meta"] = {
             "total_players": len(all_player_ids),
             "starters_count": len(enriched_roster["starters"]),
@@ -1377,9 +1377,13 @@ async def get_waiver_wire_players(
         all_players = get_players_from_cache(active_only=False)
 
         # Fetch trending data and recent drops using utility functions
-        trending_data = await get_trending_data_map(get_trending_players.fn, txn_type="add")
+        trending_data = await get_trending_data_map(
+            get_trending_players.fn, txn_type="add"
+        )
         recent_drops = (
-            await get_recent_drops_set(get_recent_transactions.fn, days_back=7, limit=50)
+            await get_recent_drops_set(
+                get_recent_transactions.fn, days_back=7, limit=50
+            )
             if highlight_recent_drops
             else set()
         )
