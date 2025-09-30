@@ -4,18 +4,42 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the Token Bowl MCP server - a Model Context Protocol server for fantasy football leagues using the Sleeper Fantasy Sports API. Built with FastMCP, it defaults to the Token Bowl league (ID: `1266471057523490816`) but can be configured for any league via the `SLEEPER_LEAGUE_ID` environment variable. Provides 21 tools to interact with fantasy football data.
+This is the Token Bowl MCP server - a Model Context Protocol server for fantasy football leagues using the Sleeper Fantasy Sports API. Built with FastMCP, it defaults to the Token Bowl league (ID: `1266471057523490816`) but can be configured for any league via the `SLEEPER_LEAGUE_ID` environment variable. Provides 27 tools to interact with fantasy football data.
 
 **Context**: This is part of the larger `tokenbowl` system - an LLM-powered fantasy football league management system.
+
+### Architecture
+
+The codebase follows a modular architecture with clear separation of concerns:
+
+- **MCP Tool Layer** (`sleeper_mcp.py`) - Tool definitions and interfaces (~2,400 lines)
+- **Business Logic Layer** (`lib/`) - Reusable modules for core functionality
+  - `validation.py` - Parameter validation utilities
+  - `decorators.py` - MCP tool decorator (logging, error handling)
+  - `enrichment.py` - Player data enrichment functions
+  - `league_tools.py` - League operation business logic
+- **Cache Layer** (`cache_client.py`, `build_cache.py`) - Redis-backed player data caching
+- **Test Layer** (`tests/`) - 166 comprehensive tests
+
+This modular design enables:
+- Independent testing of business logic
+- Code reuse across tools
+- Clear separation between MCP framework and business logic
+- Easy maintenance and refactoring
 
 ## Directory Structure
 
 ```
 sleeper-mcp/
-├── sleeper_mcp.py           # Main MCP server
-├── players_cache_redis.py   # Redis caching layer
+├── sleeper_mcp.py           # MCP tool definitions (~2,400 lines)
+├── lib/                     # Reusable business logic modules
+│   ├── __init__.py          # Module exports
+│   ├── validation.py        # Parameter validation (190 lines)
+│   ├── decorators.py        # MCP tool decorator (137 lines)
+│   ├── enrichment.py        # Player enrichment (401 lines)
+│   └── league_tools.py      # League operations (373 lines)
+├── cache_client.py          # Cache interface
 ├── build_cache.py           # Cache building functions
-├── cache_client.py          # Cache client interface
 ├── scripts/                 # Utility scripts
 │   ├── manual_cache_refresh.py
 │   ├── parse_trade_proposal.py
@@ -24,7 +48,7 @@ sleeper-mcp/
 ├── picks/                   # Weekly picks (week1, week2, etc.)
 ├── slopups/                 # Weekly summaries
 ├── scratchpads/             # Development notes and issues
-├── tests/                   # Test suite
+├── tests/                   # Test suite (166 tests, 9 files)
 └── .github/workflows/       # CI/CD configuration
 ``` 
 
@@ -152,34 +176,63 @@ The project is configured for Render deployment via `render.yaml`. When pushing 
 - **Deployment**: Auto-deploys on push to `main` branch
 - **MCP Tool Prefix**: When deployed, tools are prefixed with `mcp__tokenbowl__`
 
-## Architecture
+## Implementation Details
 
-### Core Components
+### MCP Tool Layer (sleeper_mcp.py)
 
-1. **sleeper_mcp.py**: Single-file MCP server implementation (21 tools)
-   - Uses FastMCP framework for tool definitions
-   - All tools are async functions decorated with `@mcp.tool()`
-   - `LEAGUE_ID` from environment variable `SLEEPER_LEAGUE_ID` (default: `1266471057523490816`)
-   - Base API URL: `https://api.sleeper.app/v1`
-   - Environment-aware transport detection
+The main file contains 27 MCP tools using FastMCP framework:
+- All tools are async functions decorated with `@mcp.tool()` and `@log_mcp_tool`
+- Tools act as thin wrappers that validate parameters and call business logic
+- `LEAGUE_ID` from environment variable `SLEEPER_LEAGUE_ID` (default: `1266471057523490816`)
+- Base API URL: `https://api.sleeper.app/v1`
+- Environment-aware transport detection (HTTP/SSE for production, STDIO for local)
 
-2. **players_cache_redis.py**: Redis caching layer for NFL player data
-   - Caches 5MB+ player dataset to avoid API rate limits
-   - 24-hour TTL with automatic refresh
-   - Gzip compression to reduce memory usage
-   - Aggressive filtering for free Redis tier constraints
-   - Connection pooling and robust error handling
+### Business Logic Layer (lib/)
 
-3. **Transport Modes**:
-   - **HTTP/SSE**: For web deployment (binds to 0.0.0.0 when `RENDER` env var is set or `http` argument provided)
-   - **STDIO**: Default mode for Claude Desktop integration
+Modular, reusable business logic extracted from MCP tools:
 
-4. **Deployment Configuration**:
-   - **render.yaml**: Defines build and start commands for Render deployment
-   - Build: `pip install uv && uv sync`
-   - Start: `uv run python sleeper_mcp.py http`
-   - Python version: 3.13 (specified via PYTHON_VERSION env var)
-   - Health check endpoint: `/health`
+**lib/validation.py** (190 lines):
+- `validate_roster_id()`, `validate_week()`, `validate_position()`, etc.
+- Standardized parameter validation across all tools
+- Consistent error response formatting via `create_error_response()`
+
+**lib/decorators.py** (137 lines):
+- `@log_mcp_tool` decorator for all MCP tools
+- Automatic logging, error handling, and observability integration
+- Logfire span management and parameter serialization
+
+**lib/enrichment.py** (401 lines):
+- `enrich_player_full()`, `enrich_player_minimal()` - Player data enrichment
+- `get_trending_data_map()`, `mark_recent_drops()` - Trending/waiver analysis
+- `organize_roster_by_position()` - Roster organization utilities
+- Reduces duplication across player-related tools
+
+**lib/league_tools.py** (373 lines):
+- `fetch_roster_with_enrichment()` - Complex roster fetching with enrichment
+- `fetch_league_matchups()`, `fetch_league_transactions()` - League operations
+- Business logic for 9 league-related MCP tools
+- Separates API calls from MCP tool interfaces
+
+### Cache Layer
+
+**cache_client.py** and **build_cache.py**:
+- Redis caching layer for NFL player data (5MB+ dataset)
+- 24-hour TTL with automatic refresh
+- Gzip compression to reduce memory usage
+- Connection pooling and robust error handling
+
+### Transport Modes
+
+- **HTTP/SSE**: For web deployment (binds to 0.0.0.0 when `RENDER` env var is set or `http` argument provided)
+- **STDIO**: Default mode for Claude Desktop integration
+
+### Deployment Configuration
+
+**render.yaml**: Defines build and start commands for Render deployment
+- Build: `pip install uv && uv sync`
+- Start: `uv run python sleeper_mcp.py http`
+- Python version: 3.13 (specified via PYTHON_VERSION env var)
+- Health check endpoint: `/health`
 
 ## Key Implementation Details
 
@@ -194,12 +247,12 @@ The project is configured for Render deployment via `render.yaml`. When pushing 
 
 ## Available Tools
 
-The server exposes 21 Sleeper API endpoints as MCP tools:
-- **League operations**: info, rosters, users, matchups, transactions, traded picks, drafts, playoffs
-- **User operations**: profile, leagues, drafts
-- **Player data**: all NFL players (cached), trending adds/drops, search by name/ID
-- **Draft operations**: draft details, picks, traded picks
-- **Cache operations**: status, refresh, search functionality
+The server exposes 27 MCP tools organized by functionality:
+- **League operations** (9 tools): info, rosters, users, matchups, transactions, traded picks, drafts, playoffs
+- **Player data** (7 tools): search, lookup, trending, stats, waiver wire, waiver analysis
+- **User operations** (3 tools): profile, leagues, drafts
+- **NFL data** (1 tool): game schedule
+- **Utility** (7 tools): cache operations, health check, ChatGPT compatibility
 
 ## Dependencies
 

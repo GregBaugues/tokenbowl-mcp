@@ -55,7 +55,7 @@ FFNERD_API_KEY=your_api_key_here
 
 ## Available Tools
 
-The server provides 21 MCP tools for fantasy football operations:
+The server provides 27 MCP tools for fantasy football operations:
 
 ### League Operations
 - `get_league_info` - League settings and configuration
@@ -96,17 +96,41 @@ See [CLAUDE.md](CLAUDE.md) for detailed development instructions.
 
 ## Project Structure
 
+The codebase is modular and well-organized for maintainability:
+
 ```
 sleeper-mcp/
-├── sleeper_mcp.py           # Main MCP server
-├── players_cache_redis.py   # Redis caching
+├── sleeper_mcp.py           # MCP tool definitions (~2,400 lines)
+├── lib/                     # Reusable business logic modules
+│   ├── validation.py        # Parameter validation utilities
+│   ├── decorators.py        # MCP tool decorator (logging, error handling)
+│   ├── enrichment.py        # Player data enrichment functions
+│   └── league_tools.py      # League operation business logic
+├── cache_client.py          # Cache interface for player data
+├── build_cache.py           # Cache building and refreshing
 ├── scripts/                 # Utility scripts
-├── data/                    # Data files
+├── tests/                   # Comprehensive test suite (166 tests)
+├── data/                    # Data files and analyses
 ├── picks/                   # Weekly picks
 ├── slopups/                 # Weekly summaries
-├── scratchpads/             # Development notes
-└── tests/                   # Test suite
+└── scratchpads/             # Development notes
 ```
+
+### Architecture Highlights
+
+**Modular Design**: Business logic is extracted into focused modules for:
+- **Validation** - Reusable parameter validation across all tools
+- **Enrichment** - Player data enrichment with stats, projections, trending data
+- **League Operations** - Complex league business logic (rosters, matchups, transactions)
+- **Decorators** - Shared logging and error handling patterns
+
+**Separation of Concerns**: MCP tools in `sleeper_mcp.py` are thin wrappers that:
+1. Define tool interfaces and documentation
+2. Validate parameters using `lib.validation`
+3. Call business logic from `lib/` modules
+4. Return formatted responses
+
+**Testability**: Business logic in `lib/` modules can be unit tested independently of MCP framework integration.
 
 ## License
 
