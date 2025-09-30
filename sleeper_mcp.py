@@ -10,7 +10,6 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
-from functools import wraps
 from cache_client import (
     get_players_from_cache,
     search_players as search_players_unified,
@@ -18,6 +17,15 @@ from cache_client import (
     spot_refresh_player_stats,
 )
 import logfire
+from lib.decorators import log_mcp_tool
+from lib.validation import (
+    validate_roster_id,
+    validate_week,
+    validate_position,
+    validate_limit,
+    validate_days_back,
+    create_error_response,
+)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -53,115 +61,6 @@ mcp = FastMCP("tokenbowl-mcp")
 BASE_URL = "https://api.sleeper.app/v1"
 
 # Get league ID from environment variable with fallback to Token Bowl
-
-
-def log_mcp_tool(func):
-    """Decorator to automatically log MCP tool calls with parameters and responses."""
-
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        tool_name = func.__name__
-
-        # Prepare parameters for logging (serialize to JSON-safe format) with error handling
-        params = {}
-        try:
-            if args:
-                params["args"] = [str(arg)[:200] for arg in args]  # Limit arg length
-            if kwargs:
-                params["kwargs"] = {
-                    k: str(v)[:200] if v is not None else None
-                    for k, v in kwargs.items()
-                }
-        except Exception as e:
-            logger.warning(f"Error preparing params for {tool_name}: {e}")
-            params = {"error": "Could not serialize parameters"}
-
-        # Create span with defensive error handling
-        span = None
-        try:
-            span = logfire.span(
-                f"mcp_tool.{tool_name}",
-                tool_name=tool_name,
-                parameters=params,
-                _tags=["mcp_tool", tool_name],
-            )
-            span.__enter__()
-        except (TypeError, AttributeError) as e:
-            # If span creation fails, log the error and continue without span tracking
-            logger.error(
-                f"Error creating logfire span for {tool_name}: {type(e).__name__}: {e}"
-            )
-            # Execute function without span tracking
-            try:
-                result = await func(*args, **kwargs)
-                logger.info(f"MCP Tool Called (no span): {tool_name}")
-                return result
-            except Exception as func_error:
-                logger.error(
-                    f"MCP Tool Exception (no span): {tool_name} - {type(func_error).__name__}: {func_error}",
-                    exc_info=True,
-                )
-                raise
-
-        # Normal execution with span tracking
-        try:
-            try:
-                # Log the tool invocation
-                logger.info(f"MCP Tool Called: {tool_name} with params: {params}")
-
-                # Execute the actual function
-                result = await func(*args, **kwargs)
-
-                # Check if result indicates an error
-                if isinstance(result, dict) and "error" in result:
-                    if span:
-                        span.set_attribute("success", False)
-                        span.set_attribute("error_message", result["error"])
-                    logger.warning(
-                        f"MCP Tool Error Response: {tool_name} - {result['error']}"
-                    )
-                else:
-                    if span:
-                        span.set_attribute("success", True)
-
-                    # Log response summary (avoid logging huge responses)
-                    response_summary = None
-                    if isinstance(result, list):
-                        response_summary = f"List with {len(result)} items"
-                    elif isinstance(result, dict):
-                        response_summary = f"Dict with keys: {list(result.keys())[:10]}"
-                    else:
-                        response_summary = str(type(result))
-
-                    if span:
-                        span.set_attribute("response_type", response_summary)
-
-                    logger.info(f"MCP Tool Success: {tool_name} - {response_summary}")
-
-                return result
-
-            except Exception as e:
-                if span:
-                    span.set_attribute("success", False)
-                    span.set_attribute("error_type", type(e).__name__)
-                    span.set_attribute("error_message", str(e))
-
-                logger.error(
-                    f"MCP Tool Exception: {tool_name} - {type(e).__name__}: {str(e)}",
-                    exc_info=True,
-                )
-
-                # Re-raise the exception to maintain original behavior
-                raise
-        finally:
-            # Safely exit the span if it was created
-            if span:
-                try:
-                    span.__exit__(None, None, None)
-                except Exception as e:
-                    logger.warning(f"Error closing span for {tool_name}: {e}")
-
-    return wrapper
 
 
 @mcp.tool()
@@ -228,27 +127,16 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
         Dict with roster info and enriched player data
     """
     try:
-        # Type conversion and validation
+        # Validate roster_id
         try:
-            roster_id = int(roster_id)
-        except (TypeError, ValueError):
-            logger.error(
-                f"Failed to convert roster_id to int: {roster_id} ({type(roster_id).__name__})"
+            roster_id = validate_roster_id(roster_id)
+        except ValueError as e:
+            logger.error(f"Roster ID validation failed: {e}")
+            return create_error_response(
+                str(e),
+                value_received=str(roster_id)[:100],
+                expected="integer between 1 and 10",
             )
-            return {
-                "error": f"Invalid roster_id parameter: expected integer, got {type(roster_id).__name__}",
-                "value_received": str(roster_id)[:100],  # Truncate for safety
-                "expected": "integer between 1 and 10",
-            }
-
-        # Range validation
-        if not 1 <= roster_id <= 10:
-            logger.error(f"Roster ID out of range: {roster_id}")
-            return {
-                "error": "Roster ID must be between 1 and 10",
-                "value_received": roster_id,
-                "valid_range": "1-10",
-            }
 
         # Get all rosters to find the specific one
         async with httpx.AsyncClient() as client:
@@ -545,28 +433,17 @@ async def get_league_matchups(week: int) -> List[Dict[str, Any]]:
     Returns:
         List of matchup dictionaries for the specified week
     """
-    # Type conversion and validation
+    # Validate week
     try:
-        week = int(week)
-    except (TypeError, ValueError):
-        logger.error(f"Failed to convert week to int: {week} ({type(week).__name__})")
+        week = validate_week(week)
+    except ValueError as e:
+        logger.error(f"Week validation failed: {e}")
         return [
-            {
-                "error": f"Invalid week parameter: expected integer, got {type(week).__name__}",
-                "value_received": str(week)[:100],
-                "expected": "integer between 1 and 18",
-            }
-        ]
-
-    # Range validation
-    if not 1 <= week <= 18:
-        logger.error(f"Week number out of range: {week}")
-        return [
-            {
-                "error": "Week must be between 1 and 18",
-                "value_received": week,
-                "valid_range": "1-18",
-            }
+            create_error_response(
+                str(e),
+                value_received=str(week)[:100],
+                expected="integer between 1 and 18",
+            )
         ]
 
     async with httpx.AsyncClient() as client:
@@ -1553,33 +1430,30 @@ async def get_waiver_wire_players(
         Dict with available players and metadata
     """
     try:
-        # Validate parameters
+        # Validate position
         if position is not None:
-            valid_positions = ["QB", "RB", "WR", "TE", "DEF", "K"]
-            position = str(position).upper()
-            if position not in valid_positions:
-                logger.error(f"Invalid position: {position}")
-                return {
-                    "error": "Invalid position parameter",
-                    "value_received": str(position)[:100],
-                    "valid_values": valid_positions,
-                }
+            try:
+                position = validate_position(position)
+            except ValueError as e:
+                logger.error(f"Position validation failed: {e}")
+                return create_error_response(
+                    str(e),
+                    value_received=str(position)[:100],
+                    valid_values=["QB", "RB", "WR", "TE", "DEF", "K"],
+                )
 
         # Validate limit
         try:
-            limit = int(limit)
-            if limit < 1:
-                raise ValueError("Must be positive")
-            limit = min(limit, 200)  # Cap at 200
-        except (TypeError, ValueError):
-            logger.error(f"Invalid limit: {limit}")
-            return {
-                "error": "Invalid limit parameter",
-                "value_received": str(limit)[:100],
-                "expected": "integer between 1 and 200",
-            }
+            limit = validate_limit(limit, max_value=200)
+        except ValueError as e:
+            logger.error(f"Limit validation failed: {e}")
+            return create_error_response(
+                str(e),
+                value_received=str(limit)[:100],
+                expected="integer between 1 and 200",
+            )
 
-        # Validate search_term if provided
+        # Validate search_term if provided (allow empty to be treated as None)
         if search_term is not None:
             search_term = str(search_term).strip()
             if not search_term:
@@ -1802,44 +1676,39 @@ async def get_waiver_analysis(
         Dict with waiver analysis and recommendations
     """
     try:
-        # Validate parameters
+        # Validate position
         if position is not None:
-            valid_positions = ["QB", "RB", "WR", "TE", "DEF", "K"]
-            position = str(position).upper()
-            if position not in valid_positions:
-                logger.error(f"Invalid position: {position}")
-                return {
-                    "error": "Invalid position parameter",
-                    "value_received": str(position)[:100],
-                    "valid_values": valid_positions,
-                }
+            try:
+                position = validate_position(position)
+            except ValueError as e:
+                logger.error(f"Position validation failed: {e}")
+                return create_error_response(
+                    str(e),
+                    value_received=str(position)[:100],
+                    valid_values=["QB", "RB", "WR", "TE", "DEF", "K"],
+                )
 
         # Validate days_back
         try:
-            days_back = int(days_back)
-            if days_back < 1 or days_back > 30:
-                raise ValueError("Out of range")
-        except (TypeError, ValueError):
-            logger.error(f"Invalid days_back: {days_back}")
-            return {
-                "error": "Invalid days_back parameter",
-                "value_received": str(days_back)[:100],
-                "expected": "integer between 1 and 30",
-            }
+            days_back = validate_days_back(days_back, min_value=1, max_value=30)
+        except ValueError as e:
+            logger.error(f"days_back validation failed: {e}")
+            return create_error_response(
+                str(e),
+                value_received=str(days_back)[:100],
+                expected="integer between 1 and 30",
+            )
 
-        # Validate limit
+        # Validate limit (capped at 50 for this analysis)
         try:
-            limit = int(limit)
-            if limit < 1:
-                raise ValueError("Must be positive")
-            limit = min(limit, 50)  # Cap at 50 for this analysis
-        except (TypeError, ValueError):
-            logger.error(f"Invalid limit: {limit}")
-            return {
-                "error": "Invalid limit parameter",
-                "value_received": str(limit)[:100],
-                "expected": "integer between 1 and 50",
-            }
+            limit = validate_limit(limit, max_value=50)
+        except ValueError as e:
+            logger.error(f"Limit validation failed: {e}")
+            return create_error_response(
+                str(e),
+                value_received=str(limit)[:100],
+                expected="integer between 1 and 50",
+            )
         logger.info(
             f"Starting waiver analysis for position={position}, days_back={days_back}"
         )
@@ -2207,44 +2076,46 @@ async def evaluate_waiver_priority_cost(
         Dict with waiver priority cost analysis and recommendation
     """
     try:
-        # Validate current_position
+        # Validate current_position (using roster_id validation since it's also 1-10)
         try:
-            current_position = int(current_position)
-            if current_position < 1 or current_position > 10:
-                raise ValueError("Out of range")
-        except (TypeError, ValueError):
-            logger.error(f"Invalid current_position: {current_position}")
-            return {
-                "error": "Invalid current_position parameter",
-                "value_received": str(current_position)[:100],
-                "expected": "integer between 1 and 10",
-            }
+            current_position = validate_roster_id(
+                current_position
+            )  # Reuse 1-10 validation
+        except ValueError as e:
+            logger.error(f"Current position validation failed: {e}")
+            return create_error_response(
+                f"Current position must be between 1 and 10, got {current_position}",
+                value_received=str(current_position)[:100],
+                expected="integer between 1 and 10",
+            )
 
         # Validate projected_points_gain
         try:
             projected_points_gain = float(projected_points_gain)
             if projected_points_gain < 0:
-                raise ValueError("Must be non-negative")
-        except (TypeError, ValueError):
-            logger.error(f"Invalid projected_points_gain: {projected_points_gain}")
-            return {
-                "error": "Invalid projected_points_gain parameter",
-                "value_received": str(projected_points_gain)[:100],
-                "expected": "non-negative number",
-            }
+                raise ValueError("Projected points gain must be non-negative")
+        except (TypeError, ValueError) as e:
+            logger.error(f"Projected points gain validation failed: {e}")
+            return create_error_response(
+                str(e)
+                if isinstance(e, ValueError)
+                else f"Invalid projected_points_gain: must be a non-negative number, got {type(projected_points_gain).__name__}",
+                value_received=str(projected_points_gain)[:100],
+                expected="non-negative number",
+            )
 
         # Validate weeks_remaining
         try:
-            weeks_remaining = int(weeks_remaining)
-            if weeks_remaining < 1 or weeks_remaining > 18:
-                raise ValueError("Out of range")
-        except (TypeError, ValueError):
-            logger.error(f"Invalid weeks_remaining: {weeks_remaining}")
-            return {
-                "error": "Invalid weeks_remaining parameter",
-                "value_received": str(weeks_remaining)[:100],
-                "expected": "integer between 1 and 18",
-            }
+            weeks_remaining = validate_week(
+                weeks_remaining
+            )  # Reuse week validation (1-18)
+        except ValueError as e:
+            logger.error(f"Weeks remaining validation failed: {e}")
+            return create_error_response(
+                f"Weeks remaining must be between 1 and 18, got {weeks_remaining}",
+                value_received=str(weeks_remaining)[:100],
+                expected="integer between 1 and 18",
+            )
 
         # Calculate expected value from the player
         total_expected_points = projected_points_gain * weeks_remaining
@@ -2347,16 +2218,14 @@ async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
         # Validate week if provided
         if week is not None:
             try:
-                week = int(week)
-                if week < 1 or week > 18:
-                    raise ValueError("Out of range")
-            except (TypeError, ValueError):
-                logger.error(f"Invalid week: {week}")
-                return {
-                    "error": "Invalid week parameter",
-                    "value_received": str(week)[:100],
-                    "expected": "integer between 1 and 18, or None for current week",
-                }
+                week = validate_week(week)
+            except ValueError as e:
+                logger.error(f"Week validation failed: {e}")
+                return create_error_response(
+                    str(e),
+                    value_received=str(week)[:100],
+                    expected="integer between 1 and 18, or None for current week",
+                )
 
         # Get Fantasy Nerds API key
         api_key = os.environ.get("FFNERD_API_KEY")

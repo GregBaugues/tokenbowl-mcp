@@ -18,7 +18,8 @@ class TestParameterValidation:
         # Test with invalid type (string that can't be converted)
         result = await sleeper_mcp.get_roster.fn("invalid")
         assert "error" in result
-        assert "Invalid roster_id parameter" in result["error"]
+        assert "Roster ID must be" in result["error"]
+        assert "integer" in result["error"]
 
         # Test with out of range roster_id
         result = await sleeper_mcp.get_roster.fn(0)
@@ -40,7 +41,8 @@ class TestParameterValidation:
         result = await sleeper_mcp.get_league_matchups.fn("not_a_number")
         assert len(result) > 0
         assert "error" in result[0]
-        assert "Invalid week parameter" in result[0]["error"]
+        assert "Week must be" in result[0]["error"]
+        assert "integer" in result[0]["error"]
 
         # Test with out of range week
         result = await sleeper_mcp.get_league_matchups.fn(0)
@@ -182,16 +184,16 @@ class TestParameterValidation:
         # Test position validation
         result = await sleeper_mcp.get_waiver_wire_players.fn(position="INVALID")
         assert "error" in result
-        assert "Invalid position parameter" in result["error"]
+        assert "Position must be one of" in result["error"]
 
         # Test limit validation
         result = await sleeper_mcp.get_waiver_wire_players.fn(limit=0)
         assert "error" in result
-        assert "Invalid limit parameter" in result["error"]
+        assert "Limit must be" in result["error"]
 
         result = await sleeper_mcp.get_waiver_wire_players.fn(limit="not_a_number")
         assert "error" in result
-        assert "Invalid limit parameter" in result["error"]
+        assert "Limit must be" in result["error"]
 
     @pytest.mark.asyncio
     async def test_get_waiver_analysis_validation(self):
@@ -199,21 +201,21 @@ class TestParameterValidation:
         # Test position validation
         result = await sleeper_mcp.get_waiver_analysis.fn(position="INVALID")
         assert "error" in result
-        assert "Invalid position parameter" in result["error"]
+        assert "Position must be one of" in result["error"]
 
         # Test days_back validation
         result = await sleeper_mcp.get_waiver_analysis.fn(days_back=0)
         assert "error" in result
-        assert "Invalid days_back parameter" in result["error"]
+        assert "days_back must be between" in result["error"]
 
         result = await sleeper_mcp.get_waiver_analysis.fn(days_back=31)
         assert "error" in result
-        assert "Invalid days_back parameter" in result["error"]
+        assert "days_back must be between" in result["error"]
 
         # Test limit validation
         result = await sleeper_mcp.get_waiver_analysis.fn(limit=0)
         assert "error" in result
-        assert "Invalid limit parameter" in result["error"]
+        assert "Limit must be" in result["error"]
 
     @pytest.mark.asyncio
     async def test_get_trending_context_validation(self):
@@ -245,37 +247,40 @@ class TestParameterValidation:
         # Test current_position validation
         result = await sleeper_mcp.evaluate_waiver_priority_cost.fn(0, 5.0)
         assert "error" in result
-        assert "Invalid current_position parameter" in result["error"]
+        assert "Current position must be between" in result["error"]
 
         result = await sleeper_mcp.evaluate_waiver_priority_cost.fn(11, 5.0)
         assert "error" in result
-        assert "Invalid current_position parameter" in result["error"]
+        assert "Current position must be between" in result["error"]
 
         result = await sleeper_mcp.evaluate_waiver_priority_cost.fn("invalid", 5.0)
         assert "error" in result
-        assert "Invalid current_position parameter" in result["error"]
+        assert "Current position must be between" in result["error"]
 
         # Test projected_points_gain validation
         result = await sleeper_mcp.evaluate_waiver_priority_cost.fn(1, -1.0)
         assert "error" in result
-        assert "Invalid projected_points_gain parameter" in result["error"]
+        assert "non-negative" in result["error"]
 
         result = await sleeper_mcp.evaluate_waiver_priority_cost.fn(1, "invalid")
         assert "error" in result
-        assert "Invalid projected_points_gain parameter" in result["error"]
+        assert (
+            "non-negative number" in result["error"]
+            or "could not convert" in result["error"]
+        )
 
         # Test weeks_remaining validation
         result = await sleeper_mcp.evaluate_waiver_priority_cost.fn(
             1, 5.0, weeks_remaining=0
         )
         assert "error" in result
-        assert "Invalid weeks_remaining parameter" in result["error"]
+        assert "Weeks remaining must be between" in result["error"]
 
         result = await sleeper_mcp.evaluate_waiver_priority_cost.fn(
             1, 5.0, weeks_remaining=19
         )
         assert "error" in result
-        assert "Invalid weeks_remaining parameter" in result["error"]
+        assert "Weeks remaining must be between" in result["error"]
 
     @pytest.mark.asyncio
     async def test_get_nfl_schedule_validation(self):
@@ -283,15 +288,16 @@ class TestParameterValidation:
         # Test with invalid week
         result = await sleeper_mcp.get_nfl_schedule.fn(week=0)
         assert "error" in result
-        assert "Invalid week parameter" in result["error"]
+        assert "Week must be between" in result["error"]
 
         result = await sleeper_mcp.get_nfl_schedule.fn(week=19)
         assert "error" in result
-        assert "Invalid week parameter" in result["error"]
+        assert "Week must be between" in result["error"]
 
         result = await sleeper_mcp.get_nfl_schedule.fn(week="invalid")
         assert "error" in result
-        assert "Invalid week parameter" in result["error"]
+        assert "Week must be" in result["error"]
+        assert "integer" in result["error"]
 
     @pytest.mark.asyncio
     async def test_search_validation(self):
