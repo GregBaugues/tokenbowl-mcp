@@ -298,6 +298,242 @@ class TestPlayerTools:
                 assert "player_id" in result[0]
                 assert "count" in result[0]
 
+    @pytest.mark.asyncio
+    @pytest.mark.vcr()
+    async def test_search_players_by_name_integration(self):
+        """Test searching for players by name with real API."""
+        # Mock cache to return a sample player
+        with patch("sleeper_mcp.search_players_unified") as mock_search:
+            mock_search.return_value = [
+                {
+                    "player_id": "4046",
+                    "full_name": "Patrick Mahomes",
+                    "first_name": "Patrick",
+                    "last_name": "Mahomes",
+                    "team": "KC",
+                    "position": "QB",
+                    "age": 29,
+                    "status": "Active",
+                }
+            ]
+
+            result = await sleeper_mcp.search_players_by_name.fn(name="Mahomes")
+
+            assert isinstance(result, list)
+            assert len(result) >= 1
+            # Check that we got Mahomes in the results
+            mahomes = next(
+                (p for p in result if "Mahomes" in p.get("full_name", "")), None
+            )
+            assert mahomes is not None
+            assert mahomes["position"] == "QB"
+            assert mahomes["team"] == "KC"
+
+    @pytest.mark.asyncio
+    @pytest.mark.vcr()
+    async def test_get_player_by_sleeper_id_integration(self):
+        """Test getting a player by Sleeper ID with real API."""
+        # Mock cache to return Patrick Mahomes
+        with patch("sleeper_mcp.get_player_by_id") as mock_get_player:
+            mock_get_player.return_value = {
+                "player_id": "4046",
+                "first_name": "Patrick",
+                "last_name": "Mahomes",
+                "full_name": "Patrick Mahomes",
+                "team": "KC",
+                "position": "QB",
+                "status": "Active",
+                "age": 29,
+            }
+
+            result = await sleeper_mcp.get_player_by_sleeper_id.fn(player_id="4046")
+
+            assert result is not None
+            assert result["player_id"] == "4046"
+            assert result["last_name"] == "Mahomes"
+            assert result["position"] == "QB"
+            assert result["team"] == "KC"
+
+    @pytest.mark.asyncio
+    @pytest.mark.vcr()
+    async def test_get_player_stats_all_weeks(self):
+        """Test getting player stats for all weeks of a season."""
+        result = await sleeper_mcp.get_player_stats_all_weeks.fn(
+            player_id="4046",  # Patrick Mahomes
+            season="2024",
+        )
+
+        assert isinstance(result, dict)
+        assert "player_id" in result
+        assert result["player_id"] == "4046"
+        assert "player_info" in result
+        assert "weekly_stats" in result
+        assert "totals" in result
+
+        # Verify player info
+        assert "name" in result["player_info"]
+        assert "position" in result["player_info"]
+        assert result["player_info"]["position"] == "QB"
+
+        # Verify weekly stats structure (if any games played)
+        if result["weekly_stats"]:
+            # weekly_stats is a dict with week numbers as keys
+            first_week_key = list(result["weekly_stats"].keys())[0]
+            first_week = result["weekly_stats"][first_week_key]
+            assert "fantasy_points" in first_week
+            assert "game_stats" in first_week
+
+        # Verify season totals
+        assert isinstance(result["totals"], dict)
+        assert "fantasy_points" in result["totals"]
+        assert "games_played" in result["totals"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.vcr()
+    async def test_get_waiver_wire_players_basic(self):
+        """Test getting waiver wire players with basic parameters."""
+        # Mock cache and roster data
+        with (
+            patch("sleeper_mcp.get_players_from_cache") as mock_cache,
+            patch("sleeper_mcp.get_trending_data_map") as mock_trending,
+        ):
+            mock_cache.return_value = {
+                "1234": {
+                    "player_id": "1234",
+                    "full_name": "Available Player",
+                    "position": "RB",
+                    "team": "CHI",
+                    "status": "Active",
+                }
+            }
+            mock_trending.return_value = {}
+
+            result = await sleeper_mcp.get_waiver_wire_players.fn(limit=10)
+
+            assert isinstance(result, dict)
+            assert "total_available" in result
+            assert "players" in result
+            assert isinstance(result["players"], list)
+            assert len(result["players"]) <= 10
+
+    @pytest.mark.asyncio
+    @pytest.mark.vcr()
+    async def test_get_waiver_wire_players_with_position(self):
+        """Test getting waiver wire players filtered by position."""
+        # Mock cache and roster data
+        with (
+            patch("sleeper_mcp.get_players_from_cache") as mock_cache,
+            patch("sleeper_mcp.get_trending_data_map") as mock_trending,
+        ):
+            mock_cache.return_value = {
+                "1234": {
+                    "player_id": "1234",
+                    "full_name": "Available RB",
+                    "position": "RB",
+                    "team": "CHI",
+                    "status": "Active",
+                },
+                "5678": {
+                    "player_id": "5678",
+                    "full_name": "Available WR",
+                    "position": "WR",
+                    "team": "DET",
+                    "status": "Active",
+                },
+            }
+            mock_trending.return_value = {}
+
+            result = await sleeper_mcp.get_waiver_wire_players.fn(
+                position="RB", limit=20
+            )
+
+            assert isinstance(result, dict)
+            assert "players" in result
+            # All returned players should be RBs
+            for player in result["players"]:
+                assert player["position"] == "RB"
+
+    @pytest.mark.asyncio
+    @pytest.mark.vcr()
+    async def test_get_waiver_wire_players_with_search(self):
+        """Test getting waiver wire players with search term."""
+        # Mock cache and roster data
+        with (
+            patch("sleeper_mcp.get_players_from_cache") as mock_cache,
+            patch("sleeper_mcp.get_trending_data_map") as mock_trending,
+        ):
+            mock_cache.return_value = {
+                "1234": {
+                    "player_id": "1234",
+                    "full_name": "John Smith",
+                    "position": "RB",
+                    "team": "CHI",
+                    "status": "Active",
+                },
+                "5678": {
+                    "player_id": "5678",
+                    "full_name": "Jane Doe",
+                    "position": "WR",
+                    "team": "DET",
+                    "status": "Active",
+                },
+            }
+            mock_trending.return_value = {}
+
+            result = await sleeper_mcp.get_waiver_wire_players.fn(
+                search_term="Smith", limit=20
+            )
+
+            assert isinstance(result, dict)
+            assert "players" in result
+            # All returned players should match search term
+            for player in result["players"]:
+                assert "Smith" in player["full_name"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.vcr()
+    async def test_get_waiver_analysis(self):
+        """Test getting waiver wire analysis."""
+        # Mock cache and roster data
+        with (
+            patch("sleeper_mcp.get_players_from_cache") as mock_cache,
+            patch("sleeper_mcp.get_trending_data_map") as mock_trending,
+        ):
+            mock_cache.return_value = {}
+            mock_trending.return_value = {}
+
+            result = await sleeper_mcp.get_waiver_analysis.fn(limit=10)
+
+            assert isinstance(result, dict)
+            assert "recently_dropped" in result
+            assert "trending_available" in result
+            assert isinstance(result["recently_dropped"], list)
+            assert isinstance(result["trending_available"], list)
+
+    @pytest.mark.asyncio
+    async def test_get_trending_context(self):
+        """Test getting trending context for players."""
+        # Mock the cache lookup to return player data
+        with patch("sleeper_mcp.get_player_by_id") as mock_get_player:
+            mock_get_player.return_value = {
+                "player_id": "4046",
+                "full_name": "Patrick Mahomes",
+                "team": "KC",
+                "position": "QB",
+                "status": "Active",
+            }
+
+            result = await sleeper_mcp.get_trending_context.fn(
+                player_ids=["4046"],  # Patrick Mahomes
+                max_players=1,
+            )
+
+            assert isinstance(result, dict)
+            assert "4046" in result
+            assert isinstance(result["4046"], str)
+            # Should have some context text
+            assert len(result["4046"]) > 0
+
 
 class TestDraftTools:
     """Test draft-related MCP tools."""
