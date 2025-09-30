@@ -186,44 +186,83 @@ class TestLeagueToolsMocked:
             },
         ]
 
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_instance = AsyncMock()
-            mock_client.return_value.__aenter__.return_value = mock_instance
+        # Mock the cache function
+        with patch("cache_client.get_player_by_id") as mock_cache:
+            # Return minimal player data for enrichment
+            def get_player_mock(player_id):
+                return {
+                    "full_name": f"Player {player_id}",
+                    "position": "RB",
+                    "team": "SF",
+                }
 
-            # Create mock responses for each round
-            mock_responses = []
-            for round_data in [mock_round1, mock_round2, [], [], []]:  # 5 rounds total
-                mock_resp = AsyncMock()
-                mock_resp.status_code = 200
-                # Make json() return the data directly, not a coroutine
-                mock_resp.json = lambda data=round_data: data
-                mock_responses.append(mock_resp)
+            mock_cache.side_effect = get_player_mock
 
-            # Set up the mock to return responses in order
-            mock_instance.get = AsyncMock(side_effect=mock_responses)
+            # Helper to create fresh mock responses for each test
+            def create_mock_responses():
+                def create_mock_response(data):
+                    mock_resp = AsyncMock()
+                    mock_resp.status_code = 200
+                    mock_resp.json = lambda: data
+                    return mock_resp
+
+                return [
+                    create_mock_response(mock_round1),  # Round 1
+                    create_mock_response(mock_round2),  # Round 2
+                    create_mock_response([]),  # Round 3
+                    create_mock_response([]),  # Round 4
+                    create_mock_response([]),  # Round 5
+                    create_mock_response([]),  # Round 6
+                    create_mock_response([]),  # Round 7
+                    create_mock_response([]),  # Round 8
+                    create_mock_response([]),  # Round 9
+                    create_mock_response([]),  # Round 10
+                ]
 
             # Test default behavior
-            result = await sleeper_mcp.get_recent_transactions.fn()
+            with patch("httpx.AsyncClient") as mock_client:
+                mock_instance = AsyncMock()
+                mock_client.return_value.__aenter__.return_value = mock_instance
+                mock_instance.get = AsyncMock(side_effect=create_mock_responses())
 
-            assert isinstance(result, list)
-            assert len(result) == 2  # Should exclude failed by default
-            assert result[0]["transaction_id"] == "2"  # Newest first
-            assert result[1]["transaction_id"] == "1"
+                result = await sleeper_mcp.get_recent_transactions.fn()
+
+                assert isinstance(result, list)
+                assert len(result) == 2  # Should exclude failed by default
+                assert result[0]["transaction_id"] == "2"  # Newest first
+                assert result[1]["transaction_id"] == "1"
 
             # Test with include_failed=True
-            result = await sleeper_mcp.get_recent_transactions.fn(include_failed=True)
-            assert len(result) == 3
+            with patch("httpx.AsyncClient") as mock_client:
+                mock_instance = AsyncMock()
+                mock_client.return_value.__aenter__.return_value = mock_instance
+                mock_instance.get = AsyncMock(side_effect=create_mock_responses())
+
+                result = await sleeper_mcp.get_recent_transactions.fn(
+                    include_failed=True
+                )
+                assert len(result) == 3
 
             # Test with transaction_type filter
-            result = await sleeper_mcp.get_recent_transactions.fn(
-                transaction_type="waiver"
-            )
-            assert len(result) == 1
-            assert result[0]["type"] == "waiver"
+            with patch("httpx.AsyncClient") as mock_client:
+                mock_instance = AsyncMock()
+                mock_client.return_value.__aenter__.return_value = mock_instance
+                mock_instance.get = AsyncMock(side_effect=create_mock_responses())
+
+                result = await sleeper_mcp.get_recent_transactions.fn(
+                    transaction_type="waiver"
+                )
+                assert len(result) == 1
+                assert result[0]["type"] == "waiver"
 
             # Test with limit
-            result = await sleeper_mcp.get_recent_transactions.fn(limit=1)
-            assert len(result) == 1
+            with patch("httpx.AsyncClient") as mock_client:
+                mock_instance = AsyncMock()
+                mock_client.return_value.__aenter__.return_value = mock_instance
+                mock_instance.get = AsyncMock(side_effect=create_mock_responses())
+
+                result = await sleeper_mcp.get_recent_transactions.fn(limit=1)
+                assert len(result) == 1
 
 
 class TestUserToolsMocked:
