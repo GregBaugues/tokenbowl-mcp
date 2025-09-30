@@ -26,6 +26,15 @@ from lib.validation import (
     validate_days_back,
     create_error_response,
 )
+from lib.enrichment import (
+    enrich_player_full,
+    enrich_player_minimal,
+    organize_roster_by_position,
+    get_trending_data_map,
+    get_recent_drops_set,
+    add_trending_data,
+    mark_recent_drops,
+)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -223,147 +232,39 @@ async def get_roster(roster_id: int) -> Dict[str, Any]:
         total_projected = 0.0
         starters_projected = 0.0
 
-        # Process each player
+        # Enrich all players using utility functions
+        enriched_players = []
         for player_id in all_player_ids:
             if not player_id:
                 continue
 
-                # Get player data directly from cache
+            # Get player data from cache
             player_data = all_players.get(player_id, {})
 
-            # Build simplified player info with all cached data
-            player_info = {
-                "player_id": player_id,
-                "name": player_data.get("full_name", f"{player_id} (Unknown)"),
-                "position": player_data.get("position"),
-                "team": player_data.get("team"),
-                "status": player_data.get("status"),
-            }
+            # Use enrichment utility to get fully enriched player data
+            player_info = enrich_player_full(
+                player_id,
+                player_data,
+                include_position_stats=True,
+                max_news=3,
+            )
 
-            # Handle team defenses
-            if len(player_id) <= 3 and player_id.isalpha():
-                player_info["name"] = f"{player_id} Defense"
-                player_info["position"] = "DEF"
-                player_info["team"] = player_id
+            # Track projected points for meta info
+            if player_info["stats"]["projected"]:
+                fantasy_points = player_info["stats"]["projected"]["fantasy_points"]
+                total_projected += fantasy_points
+                if player_id in starters_ids:
+                    starters_projected += fantasy_points
 
-                # Always use consistent stats structure
-            player_stats = {"projected": None, "actual": None, "ros_projected": None}
+            enriched_players.append(player_info)
 
-            # Add stats data if available (new structure from cache)
-            if "stats" in player_data:
-                cached_stats = player_data["stats"]
+        # Organize players into roster categories using utility function
+        categorized = organize_roster_by_position(
+            enriched_players, starters_ids, taxi_ids, reserve_ids
+        )
+        enriched_roster.update(categorized)
 
-                # Add projections from new structure
-                if cached_stats.get("projected"):
-                    proj = cached_stats["projected"]
-                    fantasy_points = proj.get("fantasy_points", 0)
-
-                    player_stats["projected"] = {
-                        "fantasy_points": round(fantasy_points, 2),
-                        "fantasy_points_low": round(
-                            proj.get("fantasy_points_low", fantasy_points), 2
-                        ),
-                        "fantasy_points_high": round(
-                            proj.get("fantasy_points_high", fantasy_points), 2
-                        ),
-                    }
-
-                    # Add to totals
-                    total_projected += fantasy_points
-                    if player_id in starters_ids:
-                        starters_projected += fantasy_points
-
-                # Add ROS projections from new structure
-                if cached_stats.get("ros_projected"):
-                    ros = cached_stats["ros_projected"]
-                    player_stats["ros_projected"] = {
-                        "fantasy_points": round(ros.get("fantasy_points", 0), 2),
-                        "season": ros.get("season"),
-                    }
-
-                    # Add position-specific ROS stats if available
-                    if player_data.get("position") == "QB":
-                        if "passing_yards" in ros:
-                            player_stats["ros_projected"].update(
-                                {
-                                    "passing_yards": round(
-                                        ros.get("passing_yards", 0), 0
-                                    ),
-                                    "passing_touchdowns": round(
-                                        ros.get("passing_touchdowns", 0), 1
-                                    ),
-                                    "rushing_yards": round(
-                                        ros.get("rushing_yards", 0), 0
-                                    ),
-                                    "rushing_touchdowns": round(
-                                        ros.get("rushing_touchdowns", 0), 1
-                                    ),
-                                }
-                            )
-                    elif player_data.get("position") in ["RB", "WR", "TE"]:
-                        if any(
-                            k in ros
-                            for k in ["rushing_yards", "receiving_yards", "receptions"]
-                        ):
-                            player_stats["ros_projected"].update(
-                                {
-                                    "rushing_yards": round(
-                                        ros.get("rushing_yards", 0), 0
-                                    ),
-                                    "receiving_yards": round(
-                                        ros.get("receiving_yards", 0), 0
-                                    ),
-                                    "receptions": round(ros.get("receptions", 0), 1),
-                                    "total_touchdowns": round(
-                                        ros.get("total_touchdowns", 0), 1
-                                    ),
-                                }
-                            )
-
-                # Add actual stats if game has been played
-                if cached_stats.get("actual"):
-                    actual = cached_stats["actual"]
-                    player_stats["actual"] = {
-                        "fantasy_points": round(actual.get("fantasy_points", 0), 2),
-                        "game_status": actual.get("game_status", "unknown"),
-                        "game_stats": actual.get("game_stats"),
-                    }
-
-                # Always include the stats field with consistent structure
-            player_info["stats"] = player_stats
-
-            # Add other enriched data if available (injury, news - backward compatible)
-            if "data" in player_data:
-                enriched = player_data["data"]
-
-                # Add injury info
-                if enriched.get("injury"):
-                    injury = enriched["injury"]
-                    player_info["injury"] = {
-                        "status": injury.get("game_status"),
-                        "description": injury.get("injury"),
-                        "last_update": injury.get("last_update"),
-                    }
-
-                # Add news if available
-                if enriched.get("news") and len(enriched["news"]) > 0:
-                    # Include latest 3 news items
-                    player_info["news"] = enriched["news"][:3]
-
-                # Categorize player by roster position
-            if player_id in reserve_ids:
-                enriched_roster["reserve"].append(player_info)
-            elif player_id in taxi_ids:
-                enriched_roster["taxi"].append(player_info)
-            elif player_id in starters_ids:
-                enriched_roster["starters"].append(player_info)
-            else:
-                enriched_roster["bench"].append(player_info)
-
-            # Season and week can be fetched separately if needed
-            # For now, leaving them as None since they're not in the new structure
-
-            # Add comprehensive meta information
+        # Add comprehensive meta information
         enriched_roster["meta"] = {
             "total_players": len(all_player_ids),
             "starters_count": len(enriched_roster["starters"]),
@@ -1472,40 +1373,20 @@ async def get_waiver_wire_players(
                 if roster.get("players"):
                     rostered_players.update(roster["players"])
 
-        # Get recent drops if highlighting is requested
-        recent_drops = set()
-        if highlight_recent_drops:
-            try:
-                # Get transactions from last 7 days
-                recent_txns = await get_recent_transactions.fn(
-                    drops_only=True,
-                    max_days_ago=7,
-                    include_player_details=False,
-                    limit=50,
-                )
-                # Extract player IDs from drops
-                for txn in recent_txns:
-                    if txn.get("drops"):
-                        recent_drops.update(txn["drops"].keys())
-            except Exception as e:
-                logger.warning(
-                    f"Could not fetch recent drops (error_type={type(e).__name__}, error_message={str(e)})"
-                )
-
         # Get all NFL players from cache (sync function, don't await)
         all_players = get_players_from_cache(active_only=False)
 
-        # Always get trending data to identify hot waiver pickups
-        trending_data = {}
-        try:
-            trending_response = await get_trending_players.fn(type="add")
-            trending_data = {
-                item["player_id"]: item["count"] for item in trending_response
-            }
-        except Exception as e:
-            logger.warning(
-                f"Could not fetch trending data (error_type={type(e).__name__}, error_message={str(e)})"
+        # Fetch trending data and recent drops using utility functions
+        trending_data = await get_trending_data_map(
+            get_trending_players.fn, txn_type="add"
+        )
+        recent_drops = (
+            await get_recent_drops_set(
+                get_recent_transactions.fn, days_back=7, limit=50
             )
+            if highlight_recent_drops
+            else set()
+        )
 
         # Filter to find available players
         available_players = []
@@ -1527,63 +1408,18 @@ async def get_waiver_wire_players(
                 if search_term.lower() not in player_name:
                     continue
 
-            # Create minimal or full player data based on include_stats
+            # Use enrichment utility based on mode
             if not include_stats:
-                # Minimal data mode - only essential fields
-                minimal_data = {
-                    "player_id": player_id,
-                    "full_name": player_data.get("full_name"),
-                    "position": player_data.get("position"),
-                    "team": player_data.get("team"),
-                    "status": player_data.get("status"),
-                    "injury_status": player_data.get("injury_status"),
-                }
-
-                # Add projected points if available
-                # Check new location first (stats.projected.fantasy_points)
-                if "stats" in player_data and player_data["stats"].get("projected"):
-                    try:
-                        fantasy_points = player_data["stats"]["projected"].get(
-                            "fantasy_points"
-                        )
-                        if fantasy_points is not None:
-                            minimal_data["projected_points"] = float(fantasy_points)
-                    except (ValueError, TypeError):
-                        pass
-                # Fall back to old location for backward compatibility
-                elif "data" in player_data and player_data["data"].get("projections"):
-                    try:
-                        proj_pts = player_data["data"]["projections"].get("proj_pts")
-                        if proj_pts:
-                            minimal_data["projected_points"] = float(proj_pts)
-                    except (ValueError, TypeError):
-                        pass
-
-                # Add ROS projected points if available
-                if "stats" in player_data and player_data["stats"].get("ros_projected"):
-                    try:
-                        ros_points = player_data["stats"]["ros_projected"].get(
-                            "fantasy_points"
-                        )
-                        if ros_points is not None:
-                            minimal_data["ros_projected_points"] = float(ros_points)
-                    except (ValueError, TypeError):
-                        pass
-
-                player_entry = minimal_data
+                player_entry = enrich_player_minimal(player_id, player_data)
             else:
                 # Full data mode - pass through all player data
                 player_entry = player_data
 
-            # Add trending count if available
-            if player_id in trending_data:
-                player_entry["trending_add_count"] = trending_data[player_id]
-
-            # Mark if recently dropped
-            if player_id in recent_drops:
-                player_entry["recently_dropped"] = True
-
             available_players.append(player_entry)
+
+        # Add trending data and recent drops marks using utility functions
+        available_players = add_trending_data(available_players, trending_data)
+        available_players = mark_recent_drops(available_players, recent_drops)
 
         # Sort players by relevance
         # Priority: 1) Recently dropped, 2) Active status, 3) Trending adds, 4) Projected points, 5) Name

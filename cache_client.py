@@ -73,10 +73,7 @@ def get_players_from_cache(active_only: bool = True) -> Optional[Dict[str, Any]]
                 else:
                     logger.info(f"Cache is {age_hours:.1f} hours old, refreshing...")
             else:
-                logger.warning(
-                    "Cache metadata missing, refreshing",
-                    _tags=["cache", "redis", "metadata", "warning"],
-                )
+                logger.warning("Cache metadata missing, refreshing")
         else:
             logger.info("No cached data found, fetching fresh data...")
 
@@ -106,21 +103,13 @@ def get_players_from_cache(active_only: bool = True) -> Optional[Dict[str, Any]]
 
                 return players
 
-        logger.error(
-            "Failed to refresh cache",
-            exc_info=True,
-            _tags=["cache", "redis", "refresh", "error"],
-        )
+        logger.error("Failed to refresh cache", exc_info=True)
         return None
 
     except Exception as e:
         logger.error(
-            "Error accessing player cache",
-            error_type=type(e).__name__,
-            error_message=str(e),
-            active_only=active_only,
+            f"Error accessing player cache (error_type={type(e).__name__}, error_message={str(e)}, active_only={active_only})",
             exc_info=True,
-            _tags=["cache", "redis", "access", "error"],
         )
         return None
 
@@ -143,18 +132,12 @@ def get_name_lookup_from_cache() -> Optional[Dict[str, str]]:
             decompressed = gzip.decompress(cached_data).decode("utf-8")
             return json.loads(decompressed)
 
-        logger.warning(
-            "Name lookup table not found in cache",
-            _tags=["cache", "redis", "name_lookup", "warning"],
-        )
+        logger.warning("Name lookup table not found in cache")
         return None
     except Exception as e:
         logger.error(
-            "Error getting name lookup from cache",
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Error getting name lookup from cache (error_type={type(e).__name__}, error_message={str(e)})",
             exc_info=True,
-            _tags=["cache", "redis", "name_lookup", "error"],
         )
         return None
 
@@ -279,10 +262,7 @@ def spot_refresh_player_stats(player_ids: Optional[Set[str]] = None) -> bool:
         # Get current cache
         cached_data = r.get(cache_key)
         if not cached_data:
-            logger.warning(
-                "No cache exists to spot update",
-                _tags=["cache", "redis", "spot_refresh", "warning"],
-            )
+            logger.warning("No cache exists to spot update")
             return False
 
         # Decompress and load current cache
@@ -328,11 +308,8 @@ def spot_refresh_player_stats(player_ids: Optional[Set[str]] = None) -> bool:
 
     except Exception as e:
         logger.error(
-            "Error spot refreshing player stats",
-            error_type=type(e).__name__,
-            error_message=str(e),
+            f"Error spot refreshing player stats (error_type={type(e).__name__}, error_message={str(e)})",
             exc_info=True,
-            _tags=["cache", "redis", "spot_refresh", "error"],
         )
         return False
 

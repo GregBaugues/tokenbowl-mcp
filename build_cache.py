@@ -345,8 +345,10 @@ def organize_ffnerd_data(
 
     # Process rankings
     if "players" in rankings:
-        for position, players in rankings["players"].items():
-            for ranking in players:
+        # Handle both dict (old format) and list (new format) structures
+        if isinstance(rankings["players"], list):
+            # New format: just a flat list of players
+            for ranking in rankings["players"]:
                 player_id = str(ranking.get("playerId"))
                 if player_id not in ffnerd_data:
                     ffnerd_data[player_id] = {
@@ -365,83 +367,125 @@ def organize_ffnerd_data(
                     "proj_pts_low": ranking.get("proj_pts_low"),
                     "proj_pts_high": ranking.get("proj_pts_high"),
                 }
+        else:
+            # Old format: dict keyed by position
+            for position, players in rankings["players"].items():
+                for ranking in players:
+                    player_id = str(ranking.get("playerId"))
+                    if player_id not in ffnerd_data:
+                        ffnerd_data[player_id] = {
+                            "projections": None,
+                            "ros_projections": None,
+                            "injury": None,
+                            "news": [],
+                        }
+
+                    ffnerd_data[player_id]["projections"] = {
+                        "week": rankings.get("week"),
+                        "season": rankings.get("season"),
+                        "position": ranking.get("position"),
+                        "team": ranking.get("team"),
+                        "proj_pts": ranking.get("proj_pts"),
+                        "proj_pts_low": ranking.get("proj_pts_low"),
+                        "proj_pts_high": ranking.get("proj_pts_high"),
+                    }
 
     # Process ROS projections
     if "projections" in ros:
-        for position, players in ros["projections"].items():
-            for player in players:
-                player_id = str(player.get("playerId"))
-                if player_id not in ffnerd_data:
-                    ffnerd_data[player_id] = {
-                        "projections": None,
-                        "ros_projections": None,
-                        "injury": None,
-                        "news": [],
+        # Check if ros["projections"] is actually a dict
+        if not isinstance(ros["projections"], dict):
+            print(
+                f"Warning: ros['projections'] is {type(ros['projections'])}, expected dict. Skipping ROS processing."
+            )
+        else:
+            for position, players in ros["projections"].items():
+                if not isinstance(players, list):
+                    print(
+                        f"Warning: Expected list for ROS position {position}, got {type(players)}. Skipping."
+                    )
+                    continue
+                for player in players:
+                    player_id = str(player.get("playerId"))
+                    if player_id not in ffnerd_data:
+                        ffnerd_data[player_id] = {
+                            "projections": None,
+                            "ros_projections": None,
+                            "injury": None,
+                            "news": [],
+                        }
+
+                    # Build ROS projection data based on position
+                    ros_data = {
+                        "season": ros.get("season"),
+                        "position": player.get("position"),
+                        "team": player.get("team"),
+                        "proj_pts": player.get("proj_pts"),
                     }
 
-                # Build ROS projection data based on position
-                ros_data = {
-                    "season": ros.get("season"),
-                    "position": player.get("position"),
-                    "team": player.get("team"),
-                    "proj_pts": player.get("proj_pts"),
-                }
+                    # Add position-specific stats
+                    if position == "QB":
+                        ros_data.update(
+                            {
+                                "passing_attempts": player.get("passing_attempts"),
+                                "passing_completions": player.get(
+                                    "passing_completions"
+                                ),
+                                "passing_yards": player.get("passing_yards"),
+                                "passing_touchdowns": player.get("passing_touchdowns"),
+                                "passing_interceptions": player.get(
+                                    "passing_interceptions"
+                                ),
+                                "rushing_attempts": player.get("rushing_attempts"),
+                                "rushing_yards": player.get("rushing_yards"),
+                                "rushing_touchdowns": player.get("rushing_touchdowns"),
+                            }
+                        )
+                    elif position in ["RB", "WR", "TE"]:
+                        ros_data.update(
+                            {
+                                "rushing_attempts": player.get("rushing_attempts"),
+                                "rushing_yards": player.get("rushing_yards"),
+                                "rushing_touchdowns": player.get("rushing_touchdowns"),
+                                "receptions": player.get("receptions"),
+                                "receiving_yards": player.get("receiving_yards"),
+                                "receiving_touchdowns": player.get(
+                                    "receiving_touchdowns"
+                                ),
+                                "targets": player.get("targets"),
+                                "fumbles": player.get("fumbles"),
+                            }
+                        )
 
-                # Add position-specific stats
-                if position == "QB":
-                    ros_data.update(
-                        {
-                            "passing_attempts": player.get("passing_attempts"),
-                            "passing_completions": player.get("passing_completions"),
-                            "passing_yards": player.get("passing_yards"),
-                            "passing_touchdowns": player.get("passing_touchdowns"),
-                            "passing_interceptions": player.get(
-                                "passing_interceptions"
-                            ),
-                            "rushing_attempts": player.get("rushing_attempts"),
-                            "rushing_yards": player.get("rushing_yards"),
-                            "rushing_touchdowns": player.get("rushing_touchdowns"),
-                        }
-                    )
-                elif position in ["RB", "WR", "TE"]:
-                    ros_data.update(
-                        {
-                            "rushing_attempts": player.get("rushing_attempts"),
-                            "rushing_yards": player.get("rushing_yards"),
-                            "rushing_touchdowns": player.get("rushing_touchdowns"),
-                            "receptions": player.get("receptions"),
-                            "receiving_yards": player.get("receiving_yards"),
-                            "receiving_touchdowns": player.get("receiving_touchdowns"),
-                            "targets": player.get("targets"),
-                            "fumbles": player.get("fumbles"),
-                        }
-                    )
-
-                ffnerd_data[player_id]["ros_projections"] = ros_data
+                    ffnerd_data[player_id]["ros_projections"] = ros_data
 
     # Process injuries
     if "teams" in injuries:
-        for team, team_injuries in injuries["teams"].items():
-            for injury in team_injuries:
-                player_id = str(injury.get("playerId"))
-                if player_id == "0":  # Skip placeholder entries
-                    continue
+        # Handle both dict (old format) and list (new format) structures
+        if not isinstance(injuries["teams"], dict):
+            # New API format returns a list, skip for now as we need to refactor this
+            pass
+        else:
+            for team, team_injuries in injuries["teams"].items():
+                for injury in team_injuries:
+                    player_id = str(injury.get("playerId"))
+                    if player_id == "0":  # Skip placeholder entries
+                        continue
 
-                if player_id not in ffnerd_data:
-                    ffnerd_data[player_id] = {
-                        "projections": None,
-                        "ros_projections": None,
-                        "injury": None,
-                        "news": [],
+                    if player_id not in ffnerd_data:
+                        ffnerd_data[player_id] = {
+                            "projections": None,
+                            "ros_projections": None,
+                            "injury": None,
+                            "news": [],
+                        }
+
+                    ffnerd_data[player_id]["injury"] = {
+                        "injury": injury.get("injury"),
+                        "game_status": injury.get("game_status"),
+                        "last_update": injury.get("last_update"),
+                        "team": injury.get("team"),
+                        "position": injury.get("position"),
                     }
-
-                ffnerd_data[player_id]["injury"] = {
-                    "injury": injury.get("injury"),
-                    "game_status": injury.get("game_status"),
-                    "last_update": injury.get("last_update"),
-                    "team": injury.get("team"),
-                    "position": injury.get("position"),
-                }
 
     # Process news
     for article in news:
