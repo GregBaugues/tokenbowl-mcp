@@ -91,22 +91,55 @@ async def get_league_info() -> Dict[str, Any]:
 
 @mcp.tool()
 @log_mcp_tool
-async def get_league_rosters() -> List[Dict[str, Any]]:
+async def get_league_rosters(include_details: bool = False) -> List[Dict[str, Any]]:
     """Get all team rosters in the Token Bowl league with player assignments.
 
-    Returns roster information for each team including:
+    Args:
+        include_details: If True, include full player ID arrays and all roster details.
+                        If False, return only summary info (default).
+                        Summary includes: roster_id, owner_id, wins, losses, ties,
+                        points_for, points_against, waiver_position.
+
+    Returns roster information for each team.
+
+    When include_details=False (default):
     - Roster ID and owner user ID
+    - Record (wins, losses, ties)
+    - Points for and against
+    - Waiver position
+
+    When include_details=True:
+    - All summary info above
     - List of player IDs on the roster (starters and bench)
-    - Roster settings (wins, losses, ties, points for/against)
     - Taxi squad and injured reserve assignments
     - Keeper information if applicable
+    - All other roster settings
 
     Returns:
         List of roster dictionaries, one for each team in the league
     """
     from lib.league_tools import fetch_league_rosters
 
-    return await fetch_league_rosters(LEAGUE_ID, BASE_URL)
+    rosters = await fetch_league_rosters(LEAGUE_ID, BASE_URL)
+
+    if not include_details:
+        # Return minimal roster info (reduces ~600 tokens)
+        return [
+            {
+                "roster_id": r.get("roster_id"),
+                "owner_id": r.get("owner_id"),
+                "wins": r.get("settings", {}).get("wins", 0),
+                "losses": r.get("settings", {}).get("losses", 0),
+                "ties": r.get("settings", {}).get("ties", 0),
+                "points_for": round(r.get("settings", {}).get("fpts", 0), 2),
+                "points_against": round(r.get("settings", {}).get("fpts_against", 0), 2),
+                "waiver_position": r.get("settings", {}).get("waiver_position"),
+            }
+            for r in rosters
+        ]
+
+    # Return full roster data
+    return rosters
 
 
 @mcp.tool()
