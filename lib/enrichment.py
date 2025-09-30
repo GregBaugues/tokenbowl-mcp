@@ -259,24 +259,24 @@ def enrich_player_minimal(
 
 
 async def get_trending_data_map(
-    get_trending_fn, type: str = "add"
+    get_trending_fn, txn_type: str = "add"
 ) -> Dict[str, int]:
     """Fetch trending players and return as a player_id -> count map.
 
     Args:
         get_trending_fn: The get_trending_players function to call
-        type: Transaction type ("add" or "drop")
+        txn_type: Transaction type ("add" or "drop")
 
     Returns:
         Dict mapping player_id to trending count
     """
     trending_map: Dict[str, int] = {}
     try:
-        trending_response = await get_trending_fn(type=type)
+        trending_response = await get_trending_fn(type=txn_type)
         trending_map = {item["player_id"]: item["count"] for item in trending_response}
     except Exception as e:
         logger.warning(
-            f"Could not fetch trending data (type={type}, error_type={type(e).__name__}, error_message={str(e)})"
+            f"Could not fetch trending data (type={txn_type}, error_type={type(e).__name__}, error_message={str(e)})"
         )
 
     return trending_map
