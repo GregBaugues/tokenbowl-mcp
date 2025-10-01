@@ -1,307 +1,247 @@
-# Week 5 Waiver Wire Analysis - Bill Beliclaude
+# Week 5 Waiver Wire Analysis
+**Bill Beliclaude (Roster ID 2) - Token Bowl League**
 
 **Date**: September 30, 2025
-**Current Record**: 3-1
-**Waiver Position**: 10 (last priority)
-**Points For**: 562.96 (2nd in league)
-**Points Against**: 505.42
+**Current Record**: 3-1 (562 PF, 505 PA)
+**Waiver Priority**: 10 (Last)
 
 ---
 
-## Team Performance Summary
+## Executive Summary
 
-**Strengths:**
-- **Elite RB Duo**: Jahmyr Gibbs (189.1 ROS) and James Cook (175.5 ROS) are top-tier RB1s
-- **Consistent QB Play**: Josh Allen averaging 23.6 PPG over 3 weeks
-- **Strong WR Depth**: Four startable WRs with Marvin Harrison, Chris Olave, DeVonta Smith, and Khalil Shakir
+**STAY THE COURSE** - Do not make waiver claims this week.
 
-**Weaknesses:**
-- **RB Depth**: Only 1 bench RB (TreVeyon Henderson - 9.8 proj, 91.9 ROS)
-- **WR Efficiency**: DJ Moore (bye week 5) and Ricky Pearsall (questionable, knee injury) provide inconsistent production
-- **Immediate Bye Week Issue**: DJ Moore and Tyler Allgeier both on bye Week 5
-
-**Recent Performance:**
-- Week 4: 144.36 (WIN vs Roster 10)
-- Week 3: 157.32 (WIN vs Roster 6)
-- Week 2: 120.32 (LOSS vs Roster 3)
-- Week 1: Dominant performance establishing our offense
+While there are interesting players available, none justify burning waiver priority from the 10th position. Our team is strong (3-1), and Week 7 presents a bye week challenge that can be managed through free agency after waivers clear.
 
 ---
 
-## Positional Needs Analysis
+## Team Situation Analysis
 
-### Critical Need: RB Depth (PRIORITY 1)
-- **Current State**: Only 1 bench RB (TreVeyon Henderson)
-- **Risk**: James Cook and Jahmyr Gibbs both have Week 7-8 byes coming up
-- **Scarcity**: RB is the thinnest position in fantasy football
-- **Action Required**: Add at least one RB with upside
+### Current Roster Composition
+- **QB**: Josh Allen (bye week 7) - Elite, keeper
+- **RB**: James Cook (bye 7), Jahmyr Gibbs (bye 8) + TreVeyon Henderson, Tyler Allgeier (bye 5)
+- **WR**: Marvin Harrison, Khalil Shakir (bye 7), Chris Olave, Quentin Johnston + DJ Moore (bye 5), DeVonta Smith, Ricky Pearsall
+- **TE**: Jake Ferguson (bye 10)
+- **K/DEF**: Matt Prater (bye 7), LAC (bye 12)
 
-### Moderate Need: WR Upgrade (PRIORITY 2)
-- **Current State**: 4 bench WRs, but efficiency concerns
-- **Issues**:
-  - DJ Moore: Declining production (12.8, 9.6, 7.8 pts last 3 weeks), 90.8 ROS
-  - Ricky Pearsall: Injury concerns (knee - PCL), inconsistent when healthy
-  - Quentin Johnston: High ceiling but boom/bust (23.8, 23.8, 13.1 last 3 weeks)
-- **Opportunity**: Malik Nabers' season-ending injury opens 170 targets in NYG offense
+### Critical Needs Assessment
 
-### Low Priority: TE/K/DEF
-- Jake Ferguson: Solid TE1 (17.0, 21.2, 16.8 in last 3 games)
-- LAC Defense: Serviceable streaming option
-- Matt Prater: Adequate kicker play
+**1. Week 7 Crisis (URGENT)**
+- **4 starters on bye**: Josh Allen, James Cook, Khalil Shakir, Matt Prater
+- **Position**: Need QB, RB, WR, K for one week
+- **Solution**: Stream from free agency after waivers clear
 
----
+**2. Position Depth Analysis**
 
-## Recently Dropped Player Analysis (CRITICAL REVIEW)
+| Position | Current Depth | League Standard | Assessment |
+|----------|---------------|-----------------|------------|
+| **RB** | 4 total (2 starters + 2 bench) | 5-6 ideal | **Acceptable** - Quality > Quantity |
+| **WR** | 7 total (4 starters + 3 bench) | 6-7 ideal | **OVERSATURATED** |
+| **QB** | 1 (Allen) | 1-2 | **Low priority** - Stream for bye |
+| **TE** | 1 (Ferguson) | 1 | **Appropriate** - Can stream |
 
-### High-Value Drops
-
-**1. Rachaad White (RB, TB) - Dropped 2 days ago by Roster 7**
-- **Projected**: 7.3 PPG | **ROS**: 68.6 points
-- **Analysis**: White has lost significant work to Bucky Irving (24-27% snap rate in Weeks 1&3). Week 4 showed minimal usage: 6 rushes for 17 yards, 4-of-5 targets for 29 yards. He's the clear RB2 in Tampa Bay but limited to passing-down work.
-- **Verdict**: **PASS** - Not enough volume to justify a roster spot over Henderson
-
-**2. Tyler Allgeier (ATL) - We're holding, on bye Week 5**
-- **ROS**: 71.1 points
-- **Status**: Backup to Bijan Robinson, but has standalone flex value
-- **Action**: **HOLD** - Valuable RB depth piece
-
-**3. Brenton Strange (TE, JAX) - Dropped 2 days ago (we dropped him)**
-- **Projected**: 9.0 PPG | **ROS**: 62.0 points
-- **Verdict**: **PASS** - Jake Ferguson is significantly better
-
-### Medium-Value Drops
-
-**4. James Conner (RB, ARI) - Dropped 6 days ago by Roster 7**
-- **Analysis**: No projection data available, likely injured or underperforming severely to be dropped
-- **Verdict**: **PASS** - Red flag that he was dropped
-
-**5. Blake Corum (RB, LAR) - We dropped him 5 days ago**
-- **Projected**: 5.2 PPG | **ROS**: 58.3 points
-- **Verdict**: **PASS** - Limited upside as Kyren Williams backup
-
-**6. Bhayshul Tuten (RB, JAX) - Dropped 5 days ago**
-- **Projected**: 6.2 PPG | **ROS**: 76.2 points
-- **Verdict**: **MONITOR** - Rookie with upside but inconsistent usage
-
-### Other Drops (Low Interest)
-- Adam Thielen (WR, MIN): 5.8 proj, 35.3 ROS - Aging veteran, minimal upside
-- Troy Franklin (WR, DEN): 7.7 proj, 68.0 ROS - Buried on depth chart
-- Jake Bates (K, DET): Kicker, no need
-- Baltimore DEF: No need to stream yet
+**Key Insight**: We are WR-heavy in a RB-scarce league, but our RB quality (Cook, Gibbs) is elite. Henderson and Allgeier provide adequate depth.
 
 ---
 
-## Trending Waiver Targets
+## Waiver Wire Landscape
 
-### Top RB Targets
+### Recently Dropped Players (Last 14 Days)
 
-**1. Kenneth Gainwell (RB, PIT) - 576,072 adds**
-- **Projected**: 0 (bye week) | **ROS**: 84.4 points
-- **Week 4**: 31.4 fantasy points (RB1 overall) - 19 carries, 99 yards, 2 TDs + 6 receptions, 35 yards
-- **Context**: Jaylen Warren was inactive (knee), giving Gainwell a massive workload
-- **Week 5**: **PITTSBURGH BYE WEEK**
-- **Analysis**: High-upside handcuff with a clear path to touches if Warren's knee issues linger through the bye. Warren was "close to playing" but the injury could persist.
-- **Verdict**: **STRONG ADD** - Even on bye, this is a league-winning lottery ticket if Warren misses time
+**Top RB Opportunities:**
+1. **Rachaad White** (TB, RB) - Dropped 2 days ago
+   - **ROS Projection**: 68.6 pts
+   - **Week 5**: 7.4 pts
+   - **Analysis**: Depth chart order #2, behind Bucky Irving. Lost starting role. Volume concern with 325.9 rushing yards projected ROS.
+   - **Verdict**: **PASS** - Backup role, limited ceiling
 
-**2. Justice Hill (RB, BAL) - 570,231 adds**
-- **Projected**: 6.4 PPG | **ROS**: 34.5 points
-- **Analysis**: Derrick Henry's backup but limited standalone value
-- **Verdict**: **PASS** - Not enough upside for our roster needs
+2. **Bhayshul Tuten** (JAX, RB) - Dropped 5 days ago
+   - **ROS Projection**: 76.2 pts (best among dropped RBs)
+   - **Week 5**: 6.2 pts
+   - **Analysis**: Depth chart #2 behind Travis Etienne. Emerging talent but no clear path to volume.
+   - **Verdict**: **PASS** - Speculative hold, not worth priority
 
-**3. Zavier Scott (RB, MIN) - 285,672 adds**
-- **Projected**: 6.2 PPG | **ROS**: 10.0 points
-- **Analysis**: Highly speculative dart throw with minimal ROS projection
-- **Verdict**: **PASS** - Too speculative
+3. **Keon Coleman** (BUF, WR) - Dropped 10 days ago
+   - **ROS Projection**: 93.5 pts
+   - **Week 5**: 10.3 pts
+   - **Analysis**: Bills WR2, same bye as our starters (week 7). Already have 7 WRs.
+   - **Verdict**: **PASS** - Position oversaturated
 
-### Top WR Targets
+**Top Streaming Options:**
+- **Matthew Stafford** (LAR, QB) - ROS: 198.1 pts, Week 5: 16.2 pts
+  - Available in free agency, bye week 8
+  - **Perfect Week 7 streamer** for Josh Allen bye
+  - **Action**: Pick up as FA after waivers clear
 
-**1. Darius Slayton (WR, NYG) - 1,738,938 adds (!)**
-- **Projected**: 7.7 PPG | **ROS**: 68.5 points
-- **Context**: **MALIK NABERS OUT FOR SEASON** (torn ACL) - 170 vacated targets
-- **Usage**: 90%+ snap rate (top 15 among WRs), 12 targets in 4 games
-- **Week 4**: 3-of-5 targets, 44 yards, led Giants in receptions/yards
-- **Historical**: 18.9 fantasy PPG in 2 games without Nabers in 2024
-- **Week 5**: Favorable matchup vs Saints with Jaxson Dart at QB
-- **Analysis**: Clear WR1 opportunity in Giants offense with Nabers done. Only 3% rostered, massive upside for ROS.
-- **Verdict**: **STRONGEST ADD OF THE WEEK** - This is the priority claim
-
-**2. Romeo Doubs (WR, GB) - 634,480 adds**
-- **Projected**: 0 (bye week) | **ROS**: 75.8 points
-- **Week 4**: Career game - 6-of-8 targets, 58 yards, **3 TDs**
-- **Context**: Jayden Reed out with collarbone injury since Week 2
-- **Usage**: Led team with 8 targets in Week 4, but only 2 targets in Week 3
-- **Analysis**: Volatile WR3/flex with TD-dependent value in receiver committee
-- **Verdict**: **MONITOR** - Boom/bust, not better than our current WRs
-
-**3. Malik Washington (WR, MIA) - 813,472 adds**
-- **Projected**: 8.1 PPG | **ROS**: 62.4 points
-- **Analysis**: Emerging role but limited track record
-- **Verdict**: **PASS** - Not clearly better than current bench WRs
-
-### Top TE Targets
-
-**1. Darren Waller (TE, MIA) - 2,770,434 adds (!!)**
-- **Projected**: 8.8 PPG | **ROS**: 62.3 points
-- **Week 4 Comeback**: **2-3 TDs** (sources vary) on just 3 catches, 27 yards in Dolphins debut after missing first 3 games (hip)
-- **Context**: **TYREEK HILL OUT FOR SEASON** (leg injury) - Waller is now uncontested WR2
-- **Usage**: Only 16-of-58 snaps, exclusively in red zone and passing situations
-- **Analysis**: Touchdown-or-bust TE with expanded role potential post-Hill injury
-- **Verdict**: **PASS** - We have Jake Ferguson (11.6 proj, 71.7 ROS), no need for backup TE
+- **Green Bay Packers DEF** - Dropped 3 days ago
+  - ROS: 130.6 pts (elite projection)
+  - **Consideration**: Could be valuable, but DST streaming works fine
 
 ---
 
-## Drop Candidates (Ranked by Dispensability)
+### Trending Adds (Not Rostered in League)
 
-### 1. DJ Moore (WR, CHI) - **TOP DROP CANDIDATE**
-- **ROS**: 90.8 points | **Bye**: Week 5 (this week)
-- **Recent Production**: 12.8 → 9.6 → 7.8 → 0 (bye) points in last 4 games
-- **Age**: 28 years old
-- **Situation**: Declining offense with inconsistent QB play
-- **Case for Drop**: Consistent 7-10 point floor is less valuable than RB lottery ticket or WR with 170 vacated targets (Slayton)
-- **Case to Hold**: Name recognition, former WR1, could bounce back
-- **Verdict**: **STRONG DROP** - Efficiency over volume, we need upside not a 7-point floor
+1. **Darren Waller** (MIA, TE) - 3.3M adds
+   - Don't need TE depth
 
-### 2. Tyler Allgeier (RB, ATL) - **HOLD FOR NOW**
-- **ROS**: 71.1 points | **Bye**: Week 5 (this week)
-- **Role**: RB2 behind Bijan Robinson
-- **Case for Drop**: On bye, limited touches, blocks adding another RB
-- **Case to Hold**: Only backup RB, RB scarcity, has flex value in pinch
-- **Verdict**: **HOLD** - RB depth too valuable to drop
+2. **Darius Slayton** (NYG, WR) - 2.3M adds
+   - Already have 7 WRs
 
-### 3. Ricky Pearsall (WR, SF) - **MONITOR**
-- **ROS**: 98.4 points | **Bye**: Week 14
-- **Injury**: Questionable (Knee - PCL), DNP Monday
-- **Production**: 8.6 points Week 4, inconsistent overall
-- **Case for Drop**: Injury concern, 49ers WR committee
-- **Case to Hold**: Upside in Shanahan offense, ROS projection better than Moore
-- **Verdict**: **HOLD** - Better upside than Moore, monitor injury
+3. **Malik Washington** (MIA, WR) - 1.2M adds
+   - Already have 7 WRs
 
-### 4. TreVeyon Henderson (RB, NE)
-- **ROS**: 91.9 points (highest of our bench players!)
-- **Projected**: 9.8 PPG
-- **Role**: Lead back in New England
-- **Verdict**: **STRONG HOLD** - Best ROS projection on bench, critical RB depth
-
-### 5. Quentin Johnston (WR, LAC)
-- **ROS**: 108.6 points (2nd highest on bench)
-- **Recent**: 23.8, 23.8, 13.1 in last 3 weeks
-- **Verdict**: **HOLD** - High ceiling, solid production
-
-### 6. DeVonta Smith (WR, PHI)
-- **ROS**: 102.2 points
-- **Projected**: 11.9 PPG
-- **Verdict**: **HOLD** - Startable WR2/3
-
-### 7. Khalil Shakir (WR, BUF)
-- **ROS**: 81.8 points
-- **Verdict**: **HOLD** - Josh Allen's safety valve
+4. **Justice Hill** (BAL, RB) - 834K adds
+   - Projected: 7.9 pts/week, ROS: 34.5
+   - Derrick Henry handcuff, minimal standalone value
+   - **Verdict**: PASS
 
 ---
 
-## Waiver Priority Cost-Benefit Analysis
+## Drop Candidates Analysis
 
-**Current Position**: 10 of 10 (last priority)
+### Droppable Players (Ranked by Dispensability)
 
-**Key Insight**: We're in last place for waivers, meaning any claim we make will process. We can't "save" priority - we're already at the bottom. **This means we should be aggressive.**
+**1. Tyler Allgeier** (RB, ATL) - **Most Droppable**
+- **Season Stats**: 29.9 pts in 4 games (7.5 PPG)
+- **Usage**: Boom/bust backup (2.4, 15.0, 1.4, 11.1)
+- **ROS Projection**: 71.1 pts
+- **Issues**: Bijan Robinson's backup, inconsistent touches, on bye week 5
+- **Case for Drop**: Lowest floor on roster. Name recognition trap - he's a backup RB in a committee.
 
-**Waiver Priority Evaluation (for reference):**
-- Projected weekly gain from Slayton over DJ Moore: ~4 points
-- Weeks remaining: 13
-- Expected value: 52.0 total points
-- Priority value at position 10: 4.6 points (minimal)
-- **Net value: 47.4 points**
-- **Recommendation: CLAIM** - Expected value far exceeds minimal priority cost
+**2. TreVeyon Henderson** (RB, NE) - **Droppable**
+- **Season Stats**: 37.4 pts in 4 games (9.4 PPG)
+- **Usage**: Part of Patriots RBBC, 13 receptions on 13 targets (100% catch rate)
+- **ROS Projection**: 91.9 pts (better than Allgeier)
+- **Issues**: Limited rushing volume (26 carries in 4 games), touchdown-dependent
+- **Case for Drop**: Serviceable but low ceiling. Patriots offense limits upside.
 
----
+**3. Ricky Pearsall** (WR, SF) - **Hold but Questionable**
+- **Season Stats**: 52.3 pts in 4 games (13.1 PPG)
+- **Usage**: Strong - 20 rec on 29 targets, 327 yards, two 100-yard games
+- **ROS Projection**: 98.4 pts
+- **Injury**: Questionable Week 5 (knee - PCL)
+- **Case for Hold**: Legitimate WR2 upside, target share trending up. Injury is only concern.
 
-## FINAL RECOMMENDATIONS
+**4. DJ Moore** (WR, CHI) - **Hold**
+- **Season Stats**: On bye week 5
+- **ROS Projection**: 90.8 pts
+- **Case for Hold**: Established WR2/3, veteran consistency
 
-### Priority Waiver Claims (in order)
-
-**CLAIM #1: Darius Slayton (WR, NYG)**
-- **Drop**: DJ Moore (WR, CHI)
-- **Rationale**:
-  - Malik Nabers season-ending injury = 170 vacated targets
-  - 90%+ snap rate, clear WR1 role
-  - Averaged 18.9 fantasy PPG without Nabers in 2024
-  - DJ Moore declining (7.8 pts last game, 90.8 ROS vs Slayton's 68.5 ROS)
-  - We're at waiver position 10 - no priority to preserve
-  - Moore on bye Week 5, perfect time to move on
-- **Expected Impact**: +4 PPG upgrade, league-winning WR depth with WR1 upside
-- **Risk Level**: LOW - Opportunity is clear, Slayton has proven production without Nabers
-
-**CLAIM #2: Kenneth Gainwell (RB, PIT)**
-- **Drop**: Tyler Allgeier (RB, ATL)
-- **Rationale**:
-  - Week 4: 31.4 fantasy points, RB1 overall
-  - Jaylen Warren's knee injury could linger through bye week
-  - High-upside handcuff with proven 25-touch workload
-  - Both players on bye Week 5, perfect swap timing
-  - Gainwell has standalone RB1 value if Warren misses any time
-  - ROS projection: 84.4 vs Allgeier's 71.1
-- **Expected Impact**: RB lottery ticket with league-winning upside if Warren's injury persists
-- **Risk Level**: MEDIUM - Depends on Warren's health, but even as handcuff has more upside than Allgeier
-
-### Alternative Conservative Approach
-
-**If risk-averse, make only Claim #1 (Slayton for Moore)**
-- Rationale: Allgeier provides RB depth insurance, Gainwell on bye and speculative
-- Keep 2 bench RBs for Cook/Gibbs bye week coverage
-- This is the safer play but sacrifices lottery ticket upside
+**5. DeVonta Smith** (WR, PHI) - **Hold**
+- **ROS Projection**: 102.2 pts
+- **Case for Hold**: Eagles offense, solid WR2/3
 
 ---
 
-## ULTIMATE RECOMMENDATION
+## Waiver Priority Cost Analysis
 
-**MAKE BOTH CLAIMS - BE AGGRESSIVE**
+**Current Position**: 10 (Last)
+**Priority Value**: Low (4.6 expected points)
+**Recommendation**: **DO NOT USE PRIORITY**
 
-**Why:**
-1. **Position 10 waiver priority is worthless** - can't get worse, any claim processes
-2. **Slayton is the clear WR1 add** - 170 vacated targets is a massive opportunity
-3. **Gainwell is a calculated risk worth taking** - 31.4 fantasy points in Week 4, Warren's injury timeline uncertain
-4. **DJ Moore is droppable** - declining production, age 28, on bye, name value doesn't match output
-5. **Both targets on bye Week 5** - perfect timing to add without roster crunch
-6. **ROS projections favor both adds** - Slayton comparable to Moore, Gainwell > Allgeier
+From last place in waiver order, any claim moves us to #1 priority next week. This is valuable insurance for:
+- Week 7 injury emergencies
+- League-winning pickups (handcuff RBs after starter injuries)
+- Mid-season breakout stars
 
-**The downside risk is minimal:**
-- If Gainwell doesn't work out and Warren returns healthy, we can stream another RB later
-- If Slayton doesn't work out, we can pivot to another WR (but unlikely given opportunity)
-- We're 3-1 and in strong playoff position - time to take calculated risks for league-winning upside
+**Break-even threshold**: Would need 0.4+ PPG improvement to justify claim from 10th position.
 
-**Expected Outcome:**
-- Slayton becomes a startable WR2/3 with WR1 weeks in favorable matchups
-- Gainwell either becomes an RB2 if Warren misses time OR sits on bench as handcuff
-- Improved roster depth with higher upside at both positions
+None of the available players meet this threshold given our roster construction.
 
 ---
 
-## Long-Term Roster Construction Notes
+## Priority Adds (If Making Claims - NOT RECOMMENDED)
 
-**Upcoming Bye Weeks to Monitor:**
-- Week 7: Josh Allen, James Cook, Khalil Shakir (need backup QB and RB)
-- Week 8: Marvin Harrison Jr., Jahmyr Gibbs (need WR and RB depth)
+**For Reference Only:**
 
-**Post-Week 5 Priority:**
-- Continue monitoring RB waiver wire for emerging handcuffs
-- Stream K/DEF as needed based on matchups
-- Hold core of Allen, Cook, Gibbs, Harrison, Olave, Ferguson
+1. **Matthew Stafford** (QB, LAR) - **FREE AGENT PICKUP**
+   - **Why**: Week 7 Josh Allen bye week streamer
+   - **Action**: Pick up as FA Wednesday after waivers clear
+   - **Rationale**: No competition expected, saves waiver priority
 
-**Playoff Push Strategy:**
-- We're 3-1 with strong core players
-- Focus on upside adds over safe floor plays
-- Target players with playoff-friendly schedules (Weeks 15-17)
-- Don't be afraid to churn bench spots for lottery tickets
+2. **Rachaad White** (RB, TB) - **WAIVER CLAIM IF DESPERATE**
+   - **Drop**: Tyler Allgeier
+   - **ROS Gain**: -2.5 pts (White: 68.6 vs Allgeier: 71.1)
+   - **Rationale**: Lateral move, not worth priority
+
+3. **Green Bay DEF** - **SPECULATIVE**
+   - **Drop**: LAC DEF (swap)
+   - **ROS Gain**: +20 pts (GB: 130.6 vs LAC: 110.6)
+   - **Rationale**: Best DST available, but streaming works fine
 
 ---
 
-## Summary
+## Final Recommendations
 
-**Claims to Make:**
-1. **ADD: Darius Slayton** | DROP: DJ Moore
-2. **ADD: Kenneth Gainwell** | DROP: Tyler Allgeier
+### WAIVER CLAIMS: **NONE**
 
-**Confidence Level:** HIGH on Slayton, MEDIUM on Gainwell
+**Reasoning:**
+1. **Waiver Position**: At #10, any claim burns reset to #1 priority
+2. **Team Strength**: 3-1 record with elite RB1/RB2 (Cook, Gibbs)
+3. **No Emergencies**: Week 7 byes manageable via free agency streaming
+4. **RB Depth Adequate**: Henderson/Allgeier are serviceable backups
+5. **No Clear Upgrades**: Available players are lateral moves or WRs (oversaturated)
 
-**This is an aggressive but calculated strategy** that maximizes our waiver position and targets high-upside players at positions of need. The opportunity created by Nabers' injury is too significant to pass up, and Gainwell represents the exact type of RB lottery ticket we need for depth.
+### FREE AGENT PICKUPS (After Waivers Clear Wednesday)
 
-**Let's make these moves and position ourselves for a championship run.**
+**Week 7 Bye Week Streaming:**
+1. **QB**: Matthew Stafford (LAR) or best available QB
+   - **Drop**: Tyler Allgeier (if needed for roster space)
+2. **RB**: Best available RB for James Cook bye (if Henderson/Allgeier insufficient)
+3. **K**: Stream best matchup for Matt Prater bye
+
+**Optional Depth Move:**
+- **Consider**: Green Bay DEF swap for LAC if available as FA
+- **Drop**: Tyler Allgeier (most expendable)
+
+### HOLD RECOMMENDATIONS
+
+**Close Calls to Monitor:**
+- **Ricky Pearsall**: Monitor knee injury. If he misses multiple weeks, consider dropping for RB depth.
+- **TreVeyon Henderson**: Low ceiling but adequate RB4. Keep unless better option emerges.
+- **DeVonta Smith**: Eagles offense too good to drop despite WR depth.
+
+---
+
+## Week 7 Bye Week Strategy
+
+**Starters on Bye**: Josh Allen (QB), James Cook (RB), Khalil Shakir (WR), Matt Prater (K)
+
+**Lineup Plan:**
+- **QB**: Stream Stafford or best available (pick up Tue/Wed)
+- **RB1**: Jahmyr Gibbs
+- **RB2**: TreVeyon Henderson or waiver pickup
+- **WR1**: Marvin Harrison
+- **WR2**: Chris Olave
+- **WR3**: Quentin Johnston
+- **WR4**: DeVonta Smith / DJ Moore / Ricky Pearsall (best matchup)
+- **TE**: Jake Ferguson
+- **K**: Stream (pick up Tue/Wed)
+- **DEF**: LAC (or GB if swapped)
+
+**Roster Moves Needed**:
+- Add QB (drop Allgeier or Pearsall if injured)
+- Add K (drop bench player or stream DST spot)
+
+---
+
+## Conclusion
+
+**STAY THE COURSE.**
+
+Our 3-1 team has elite RB talent (Cook, Gibbs), a top QB (Allen), and adequate depth. No waiver-wire player justifies burning our #10 priority position.
+
+The Week 7 bye week crunch is real but manageable through smart free-agency streaming. Matthew Stafford will be available as a FA, and we can fill the other spots with one-week rentals.
+
+**Trust the process. Save waiver priority for a league-winning move.**
+
+---
+
+## Manager's Decision
+
+✅ **Make 0 waiver claims**
+✅ **Pick up Matthew Stafford as FA on Wednesday**
+✅ **Monitor Ricky Pearsall injury status**
+✅ **Revisit Week 7 streaming options on Tuesday**
+
+**Confidence Level**: High - Team is strong, no panic moves needed.

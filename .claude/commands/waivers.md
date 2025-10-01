@@ -58,7 +58,12 @@ Analyze waiver wire opportunities for Bill Beliclaude (Roster ID 2) in the Token
 - **Opportunity share**: High targets -> consistent PPR points
 - **Trending usage**: Recent games more predictive than season averages
 - **Schedule strength**: Both immediate (1-3 weeks) and playoff weeks
-
+- **BYE WEEK CONSIDERATION (CRITICAL)**:
+  - **ALWAYS check the bye week of potential pickups** - use search_players_by_name to get full player details including bye_week
+  - **Immediate availability matters**: A player on bye THIS WEEK has ZERO value this week
+  - **Avoid stacking bye weeks**: Don't add a 3rd or 4th player with the same bye week
+  - **Current roster bye weeks**: Check which of our players are on bye this week and upcoming weeks
+  - **Depth chart position + bye week**: A #3 depth chart player on bye this week is nearly worthless compared to a #1 depth chart player available immediately
   - Check upcoming bye weeks for our starters and ensure we have coverage
   - A position with a bye week in the next 2 weeks automatically becomes higher priority
 
@@ -104,13 +109,22 @@ Only make moves if:
    ```
    This shows trending players AND recently dropped in one call
 
-4. **Get context for top targets (both dropped and trending):**
+4. **Check bye weeks for ALL top targets:**
+   ```
+   search_players_by_name(name="Player Name")
+   ```
+   Get full player details including bye_week and depth_chart_order
+   - **CRITICAL**: A player on bye THIS WEEK cannot help you immediately
+   - Compare bye week timing against current roster bye weeks
+   - Prioritize players available to play NOW over those on bye
+
+5. **Get context for top targets (both dropped and trending):**
    ```
    get_trending_context(player_ids=[list of top 5 player IDs])
    ```
    Understand WHY players are trending or were dropped
 
-5. **Evaluate waiver priority cost if considering a claim:**
+6. **Evaluate waiver priority cost if considering a claim:**
    ```
    evaluate_waiver_priority_cost(current_position, projected_points_gain, weeks_remaining)
    ```
@@ -137,6 +151,8 @@ Only make moves if:
 Present findings as:
 - **Priority Adds** (ranked 1-5 with rationale)
   - In determining priority - look at positions where we lack depth to be a season long contender, and positions where there is scarcity in the waivers. For example, in our league, if there is a hot RB, you should probably prioritize over a WR.
+  - **MUST INCLUDE**: Bye week, depth chart position, and immediate availability for EVERY recommended add
+  - **DISQUALIFY**: Players on bye THIS WEEK should be deprioritized or noted as "free agent pickup after bye"
 - **Drop Candidates** (ranked by dispensability)
 - **Hold Recommendations** (close calls to monitor)
 
