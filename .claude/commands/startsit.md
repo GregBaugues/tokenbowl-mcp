@@ -7,13 +7,17 @@ Analyze the Bill Beliclaude roster (Roster ID 2) and provide detailed start/sit 
 1. **Get current roster with `get_roster(roster_id=2)`**
    - This returns all starters and bench players with complete data
    - Each player includes: name, position, team, bye_week, projected points, ROS projections, injury status
+   - **CRITICAL: The roster response includes `"week": N` field - THIS IS THE CURRENT WEEK NUMBER**
+   - **Extract this week number and use it for ALL subsequent operations**
 
-2. **Get NFL schedule with `get_nfl_schedule(week=current_week)`**
-   - Confirms the current week number
+2. **Get NFL schedule with `get_nfl_schedule(week=<week_from_roster_data>)`**
+   - Pass the week number from the roster data (step 1)
+   - DO NOT assume or hardcode the week number
    - Shows game times and matchups for context
 
 3. **CRITICAL: Identify bye week players**
    - Extract `bye_week` field from each player
+   - **Compare each player's bye_week to the current week from roster data**
    - **IF player.bye_week == current_week: player is ON BYE and has 0.0 projected points**
    - Create a list of all bye week players to exclude from starting lineup
 
@@ -110,6 +114,8 @@ Provide a complete lineup with:
 
 Write comprehensive analysis to:
 **picks/week{n}/startsit_week{n}.md**
+
+Where `{n}` is the current week number extracted from the roster data in Phase 1.
 
 Include:
 - Executive summary of key decisions
