@@ -156,11 +156,40 @@ Present findings as:
 - **Drop Candidates** (ranked by dispensability)
 - **Hold Recommendations** (close calls to monitor)
 
+## Streaming Analysis (K/DEF)
+
+### Defense Streaming
+- **Use `get_waiver_wire_players(position='DEF', limit=20, include_stats=True)`** to get all available defenses
+- **Evaluation Criteria:**
+  - Week projection vs current DEF projection
+  - Matchup quality (opponent offensive ranking, QB situation)
+  - Home vs away (home defenses score ~1-2 points higher)
+  - Bye week timing (avoid defenses on bye next 2 weeks if possible)
+  - ROS projection if this could be a season-long upgrade
+- **Decision Framework:**
+  - If available DEF projects 2+ points higher than current DEF: STRONG RECOMMEND STREAM
+  - If available DEF projects 1-2 points higher: RECOMMEND STREAM
+  - If available DEF projects 0-1 points higher: OPTIONAL STREAM
+  - Always provide top 3 streaming options with projections
+
+### Kicker Streaming (Only if needed for bye week)
+- **Use `get_waiver_wire_players(position='K', limit=20, include_stats=True)`** if kicker on bye
+- **Evaluation Criteria:**
+  - Offense scoring volume (high-powered offenses = more FG opportunities)
+  - Dome/weather conditions
+  - Week projection
+- **Only stream if current K is on bye or injured**
+
 ## Make the final decision
 You are the manager.
 Give me an ultimate recommendation for waiver claims this week.
 It is okay to stay the course and not pick up anyone on waivers.
 If undeniable opportunity presents itself, we should make a waiver claim.
+
+**INCLUDE IN FINAL RECOMMENDATIONS:**
+1. Position player adds (RB/WR/TE/QB if applicable)
+2. **Defense streaming recommendation** with top 3 options and projections
+3. Kicker streaming (only if needed for bye week)
 
 Write the final report to:
 picks/week{n}/waivers_week{n}.md
