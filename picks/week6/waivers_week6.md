@@ -1,229 +1,173 @@
-# Week 6 Waiver Wire Analysis
-**Bill Beliclaude (Roster ID 2) - Token Bowl League**
-
-**Current Record:** 3-1 (562 PF, 505 PA)
-**Waiver Position:** 6 of 10
-**Analysis Date:** October 3, 2025
-
----
+# Week 6 Waiver Wire Analysis - Bill Beliclaude
 
 ## Executive Summary
+**Waiver Position:** 10/10 (LAST - Must be selective!)
+**Record:** 3-2
+**Key Crisis:** Only 2 RBs on roster (Cook, Gibbs) with bye weeks approaching
 
-**RECOMMENDATION: STAND PAT - No waiver claims this week.**
-
-Our roster is in excellent shape heading into Week 6. We have a balanced lineup with strong depth at critical positions (RB, WR) and our starters are performing well. While there are some intriguing waiver wire options available, none represent the kind of game-changing opportunity that justifies using waiver priority or roster spots at this time.
-
-**Key Factors:**
-- **Strong RB Depth:** James Cook and Jahmyr Gibbs are locked in as starters. TreVeyon Henderson provides solid RB3 depth.
-- **WR Depth is Adequate:** 5 active WRs with Ricky Pearsall returning from injury next week.
-- **Upcoming Bye Week Crunch:** Week 7 bye (Josh Allen, James Cook, Khalil Shakir, Matt Prater) requires careful roster management.
-- **Waiver Position (6/10):** Middle-of-the-pack priority should be saved for more impactful opportunities.
+### Top 3 Moves (PRIORITY ORDER)
+1. **ADD Jacory Croskey-Merritt** → DROP Tyler Allgeier (Week 7 RB need + ROS upside)
+2. **ADD Rachaad White** → DROP TreVeyon Henderson (Week 7 starter if Irving still out)
+3. **STREAM Green Bay DEF** → DROP Cleveland DEF (Week 6 gain: +2.8 points)
 
 ---
 
-## Current Roster Analysis
+## Team Needs Analysis
 
-### Positional Breakdown
+### Current Roster Construction
+- **QB (1):** Josh Allen (BYE Week 7) ⚠️
+- **RB (2):** James Cook (BYE 7), Jahmyr Gibbs (BYE 8) - **CRITICAL SHORTAGE**
+- **WR (7):** MHJ, Olave, Shakir (BYE 7), Q. Johnston, DJ Moore (BYE passed), DeVonta, Pearsall (Q)
+- **TE (1):** Jake Ferguson
+- **K (1):** Matt Prater (BYE Week 7) ⚠️
+- **DEF (1):** Cleveland (BYE 9)
 
-**Starters (Week 6 Projections):**
-- **QB:** Josh Allen (BYE Week 7) - 23.4 pts
-- **RB1:** James Cook (BYE Week 7) - 17.6 pts
-- **RB2:** Jahmyr Gibbs (BYE Week 8) - 20.0 pts
-- **WR1:** Marvin Harrison Jr. (BYE Week 8) - 13.3 pts
-- **WR2:** Quentin Johnston (BYE Week 12) - 14.5 pts
-- **WR3:** Chris Olave (BYE Week 11) - 12.7 pts
-- **WR4:** Khalil Shakir (BYE Week 7) - 11.3 pts
-- **TE:** Jake Ferguson (BYE Week 10) - 12.4 pts
-- **K:** Matt Prater (BYE Week 7) - 8.8 pts
-- **DEF:** LAC (BYE Week 12) - 6.3 pts
+### RB Depth Analysis (CRITICAL)
+- **Tyler Allgeier:** Bench RB, 68.3 ROS (5.7 PPG) - Clear backup to Bijan
+- **TreVeyon Henderson:** Bench RB, 83.6 ROS (7.0 PPG) - Stuck in NE committee
 
-**Bench:**
-- **RB:** TreVeyon Henderson (BYE Week 14) - 9.7 pts
-- **RB:** Tyler Allgeier (BYE Week 5 - played already)
-- **WR:** DJ Moore (BYE Week 5 - played already)
-- **WR:** DeVonta Smith (BYE Week 9) - 12.2 pts
-- **WR:** Ricky Pearsall (OUT Week 5, Expected back Week 6) - BYE Week 14
-
-### Positional Needs Assessment
-
-**Priority by Position:**
-
-1. **RB (LOW NEED):**
-   - 2 elite starters (Cook, Gibbs)
-   - 1 solid bench piece (Henderson)
-   - 1 depth piece (Allgeier)
-   - **Status:** Well-covered through bye weeks
-
-2. **WR (LOW-MEDIUM NEED):**
-   - 4 active WRs currently (5 when Pearsall returns Week 6)
-   - Adequate depth for bye week coverage
-   - **Status:** Sufficient depth, no urgent need
-
-3. **TE (LOW NEED):**
-   - Jake Ferguson is a solid TE1
-   - Can stream if needed during bye (Week 10)
-   - **Status:** No backup needed at this time
-
-4. **QB/K/DEF (NO NEED):**
-   - All single-position starters with no backup required
-   - Will need to stream K during Week 7 bye
+### Immediate Concerns
+1. **RB Depth Crisis:** Only 2 true RBs! Gibbs BYE Week 8, Cook BYE Week 7
+2. **Week 7 BYE Hell:** Allen, Cook, Shakir, Prater all on BYE
+3. **Bench Dead Weight:** Allgeier and Henderson offering minimal upside
 
 ---
 
-## Waiver Wire Opportunity Analysis
+## Priority Adds (Week 7 RB Crisis Focus)
 
-### Top Available Players
+### 1. **Jacory Croskey-Merritt, RB, WAS** 🎯 TOP PRIORITY
+- **Status:** Available, trending (595,512 adds!)
+- **Week 7 Value:** Playable RB2 when Cook on BYE
+- **Current:** 12.2 PPG projection
+- **ROS Projection:** 116.8 total (9.7 PPG)
+- **Context:** Brian Robinson traded to SF. JCM ran for 111 yards on 14 carries vs LAC. Committee with Ekeler, but he's getting goal-line work.
+- **Drop:** Tyler Allgeier (only 5.7 PPG, won't start)
+- **Net Gain:** Solves Week 7 RB crisis + lottery ticket upside
 
-#### Recently Dropped (Last 7 Days)
+### 2. **Rachaad White, RB, TB** 💰 WEEK 7 INSURANCE
+- **Status:** Dropped 4 days ago
+- **Week 7 Value:** If Irving still out, instant RB2
+- **Current:** 13.6 PPG when Irving out
+- **ROS:** 67.7 total (handcuff value)
+- **Analysis:** Two TDs in Week 5 with Irving out. Monitor Irving's status closely. Better Week 7 play than Henderson.
+- **Drop:** TreVeyon Henderson (stuck in committee)
+- **Verdict:** CLAIM for Week 7 emergency
 
-**1. Tucker Kraft (TE, GB) - JUST DROPPED (Week 5)**
-- **Bye Week:** 5 (already passed)
-- **Depth Chart:** #1 TE for GB
-- **Projected:** N/A Week 6 | ROS: 91.6 pts
-- **Context:** Emerging as a red zone target
-- **Analysis:** Kraft is the most valuable recently dropped player. However, we have Jake Ferguson performing well at TE and don't need a backup TE at this stage. Ferguson has a better playoff schedule and similar target share. **PASS.**
+### 3. **Isiah Pacheco, RB, KC** 🏥 STASH IF POSSIBLE
+- **Status:** Dropped 4 days ago, returning from injury
+- **Week 7 Value:** Unknown return timeline
+- **ROS:** 72.9 total when healthy
+- **Analysis:** Could be back by Week 7-8, would be RB1 in KC
+- **Verdict:** Add if you get JCM/White first
 
-**2. Isiah Pacheco (RB, KC) - JUST DROPPED (Week 5)**
-- **Bye Week:** 10
-- **Depth Chart:** #1 RB for KC
-- **Projected:** 8.7 pts Week 6 | ROS: 77.9 pts
-- **Context:** Seeing increased usage and targets
-- **Analysis:** Pacheco returning from injury is intriguing, but KC's backfield is unpredictable and his ROS projection (77.9) is lower than Henderson's (92.0). With Cook, Gibbs, and Henderson, we don't have room for a speculative RB4. **PASS.**
+### 4. **Romeo Doubs, WR, GB** 📉 LUXURY ADD
+- **Status:** Dropped 1 day ago
+- **Current:** 10.8 PPG projection
+- **Analysis:** Great value but WR isn't your need. You have 7 WRs already!
+- **Verdict:** PASS - Focus on RB crisis first
 
-**3. Mike Evans (WR, TB) - DROPPED 0 DAYS AGO**
-- **Bye Week:** 9
-- **Depth Chart:** #7 (injured, currently OUT)
-- **Injury Status:** OUT Week 5 (Hamstring strain), Expected back Week 6
-- **Projected:** 0.0 pts Week 6 | ROS: 108.8 pts
-- **Context:** Listed as Out on injury report
-- **Analysis:** Elite talent when healthy (108.8 ROS projection). However, hamstring injuries for 32-year-old WRs are concerning and can linger. Depth chart position #7 is worrying. He's a risk/reward play, but we have adequate WR depth and can't afford an IR stash right now. **MONITOR, but PASS for now.**
-
-**4. Other Recently Dropped Players:**
-- Matthew Stafford (QB) - Don't need backup QB
-- Joe Burrow (QB) - On IR, don't need backup QB
-- Michael Penix (QB) - Don't need backup QB
-- Trey Benson (RB, ARI) - On IR (knee), out until Week 10
-- Jauan Jennings (WR, SF) - OUT Week 5 (ankle), expected back Week 6
-- Denver Broncos (DEF) - Don't need backup DEF
-
-#### Trending Adds (Available)
-
-**1. Rico Dowdle (RB, CAR) - 722K+ adds**
-- **Bye Week:** 14
-- **Depth Chart:** #2 RB for CAR
-- **Projected:** 12.4 pts Week 6 | ROS: 54.5 pts
-- **Context:** Seeing increased usage and targets
-- **Analysis:** Dowdle had a strong Week 5, but he's still the backup in Carolina. His ROS projection (54.5) is significantly lower than our current RB3 Henderson (92.0). This looks like a one-week spike rather than sustained value. **PASS.**
-
-**2. Isaiah Davis (RB, NYJ) - 251K+ adds**
-- **Bye Week:** 9
-- **Depth Chart:** #2 RB for NYJ
-- **Projected:** 6.0 pts Week 6 | ROS: 29.7 pts
-- **Context:** Braelon Allen (knee) out 8-12 weeks, Davis backs up Breece Hall
-- **News:** "Isaiah Davis will get the first crack at backing up Breece Hall, and is worth a stash wherever still available."
-- **Analysis:** This is the most interesting waiver option. Davis has a clear path to touches behind Breece Hall with Allen out long-term. However, his ROS projection is very low (29.7), and he's purely a handcuff play. Given our strong RB depth (Cook, Gibbs, Henderson), we don't need a speculative handcuff. **PASS, but worth monitoring.**
-
-**3. Kendrick Bourne (WR, SF) - 243K+ adds**
-- **Bye Week:** 14
-- **Depth Chart:** #8 WR for SF
-- **Projected:** 8.7 pts Week 6 | ROS: 16.5 pts
-- **Just scored 24.2 pts in Week 5:** 10 rec, 142 yards on TNF
-- **Context:** Bounced back with standout performance vs. Rams
-- **Analysis:** Bourne had an explosive Week 5 (24.2 pts), but his depth chart position (#8) and low ROS projection (16.5) suggest this was an outlier. With Ricky Pearsall returning and 49ers' WR rotation unpredictable, Bourne is a one-week wonder, not a season-long asset. **PASS.**
+### 5. **Hassan Haskins, RB, LAC** ⚡ DESPERATION PLAY
+- **Haskins:** 3.4M adds! Could start Week 7
+- **Situation:** 50/50 timeshare but getting goal-line work
+- **Week 7:** Has CAR (decent matchup)
+- **Recommendation:** Last resort if you miss JCM/White
 
 ---
 
-## Drop Candidate Evaluation
+## Recently Dropped Players Analysis
 
-If we were to make a move, here are the most droppable players on our roster:
-
-**1. Tyler Allgeier (RB, ATL)**
-- **ROS Projection:** 71.1 pts
-- **Depth Chart:** Backup RB in ATL
-- **Bye Week:** Already passed (Week 5)
-- **Analysis:** Allgeier is our RB4 and has minimal standalone value in a committee. He's the most droppable player, but we don't have a compelling add to justify dropping him.
-
-**2. Ricky Pearsall (WR, SF)**
-- **ROS Projection:** 93.6 pts
-- **Injury Status:** OUT Week 5 (knee - PCL), Expected back Week 6
-- **Depth Chart:** Active SF WR corps
-- **Analysis:** Pearsall returns Week 6, which improves our WR depth. His ROS projection (93.6) is solid. He's a hold for now as WR depth with upside.
-
-**3. TreVeyon Henderson (RB, NE)**
-- **ROS Projection:** 92.0 pts
-- **Depth Chart:** #2 RB for NE
-- **Analysis:** Henderson is our RB3 and provides solid depth. His ROS projection is higher than any available waiver RB. He's a clear hold.
-
-**4. Matt Prater (K, BUF)**
-- **Bye Week:** Week 7 (NEXT WEEK)
-- **Analysis:** We'll need to drop Prater or stream a kicker for Week 7. This is our only roster crunch point coming up.
+### Worth Monitoring
+- **Mike Evans, WR, TB** - OUT, but 104.6 ROS when healthy
+- **Isiah Pacheco, RB, KC** - 72.9 ROS, returning from injury
+- **Tucker Kraft, TE, GB** - 86.9 ROS (comparable to Ferguson)
+- **Nick Chubb, RB, HOU** - BYE Week 6, only 56.1 ROS
 
 ---
 
-## Bye Week Strategy (Week 7)
+## Drop Candidates Analysis
 
-**Players on Bye Week 7:**
-- Josh Allen (QB)
-- James Cook (RB)
-- Khalil Shakir (WR)
-- Matt Prater (K)
+### Primary Drops
+1. **Tyler Allgeier** - 68.3 ROS (5.7 PPG) - Clear RB2 in ATL, limited ceiling
+2. **TreVeyon Henderson** - 83.6 ROS (7.0 PPG) - Stuck in NE committee, no upside
 
-**Action Plan:**
-- **Week 7:** We'll need to stream a kicker. Consider dropping Matt Prater or Tyler Allgeier for a one-week K streamer.
-- **QB/RB:** No action needed—we're comfortable sitting these elite players during their bye.
-- **WR:** Shakir on bye is fine; we have Harrison, Johnston, Olave, DJ Moore, DeVonta Smith, and Pearsall available.
+### Hold Firm
+- **DJ Moore** - Despite past BYE, 87.8 ROS projection solid
+- **DeVonta Smith** - 96.2 ROS projection, key depth
+- **Ricky Pearsall** - 93.1 ROS despite injury, high upside
 
 ---
 
-## Final Recommendations
+## Defense Streaming Strategy
 
-### Priority Adds: NONE
+### Week 6 Recommendation: **Green Bay Packers DEF**
+- **Projection:** 9.2 points (vs CLE 6.4)
+- **ROS:** 128.5 (#1 available!)
+- **Matchup:** Strong defensive metrics
+- **Action:** CLAIM and potentially hold ROS
 
-**No waiver claims recommended this week.** Our roster is well-constructed with strong depth at key positions. The available players don't offer enough upside to justify using our waiver position (6/10) or burning a roster spot.
-
-### Drop Candidates: HOLD ALL (for now)
-
-**Droppable if needed (in order):**
-1. **Tyler Allgeier (RB)** - RB4 with limited standalone value
-2. **Matt Prater (K)** - Will need to address Week 7 bye next week
-
-### Hold Recommendations
-
-**Players to Monitor (Do Not Claim Yet):**
-1. **Mike Evans (WR, TB)** - Monitor injury status. If he's fully healthy Week 6 and produces, he could be a free agent add later.
-2. **Isaiah Davis (RB, NYJ)** - Handcuff value if Breece Hall gets injured. Monitor his usage.
-3. **Tucker Kraft (TE, GB)** - If Jake Ferguson gets injured or underperforms, Kraft is the best streaming option.
+### Alternative Options
+1. **Denver Broncos** - 8.3 pts, 124.6 ROS
+2. **Las Vegas Raiders** - 7.9 pts (avoid - BYE Week 8)
+3. **Washington Commanders** - 7.4 pts, 88.3 ROS
 
 ---
 
-## Rationale for Standing Pat
+## Waiver Priority Analysis
 
-**1. Positional Strength:** We have 2 elite RBs (Cook, Gibbs) and solid RB3 depth (Henderson). Our WR corps is deep with 5 active players when Pearsall returns.
+### Current Position: 10/10 (LAST)
+**Critical Context:** Week 7 RB emergency overrides algorithm
 
-**2. Waiver Priority Preservation:** At position 6/10, we're in the middle of the pack. Saving priority for a league-winning opportunity (injury to a starter, breakout handcuff, etc.) is more valuable than marginal depth adds.
-
-**3. No Clear Upgrades:** None of the available players represent a meaningful upgrade over our current bench. Henderson (92.0 ROS) > Pacheco (77.9), Dowdle (54.5), or Davis (29.7).
-
-**4. Injury Risk:** Mike Evans (hamstring) and Isiah Pacheco (returning from injury) both carry significant risk. We don't need to gamble on injured players when our roster is healthy.
-
-**5. Week 7 Bye Management:** We have one meaningful bye week decision coming (streaming a K), but that's manageable with our current roster.
-
----
-
-## Week 6 Outlook
-
-**Projected Lineup Strengths:**
-- Elite RB duo (Cook + Gibbs = 37.6 projected pts)
-- Strong QB play (Allen = 23.4 pts)
-- Balanced WR attack (Harrison, Johnston, Olave, Shakir = 51.8 pts)
-
-**Total Projected Points:** 140.3 (starters)
-
-**Keys to Victory:**
-- Stay healthy through Week 6
-- Ricky Pearsall returns and provides WR depth
-- Prepare for Week 7 bye week (Allen, Cook, Shakir, Prater)
+For Jacory Croskey-Merritt:
+- **Week 7 Need:** MUST have RB2 with Cook on BYE
+- **Expected Value:** 116.8 ROS (9.7 PPG)
+- **Priority Value:** Worth using for position of need
+- **Decision: CLAIM - Solves immediate crisis + ROS upside**
 
 ---
 
-**Bottom Line:** We're 3-1 and in a strong position. This is a week to hold steady, preserve waiver priority, and focus on maximizing our existing roster. The waiver wire doesn't offer anything compelling enough to disrupt our current balance. Let's stay the course and re-evaluate after Week 7 bye week chaos.
+## Week 7 Bye Week Prep
+
+### QB Options (for Allen BYE)
+1. **Caleb Williams** - 18.3 PPG (BYE passed)
+2. **Matthew Stafford** - 17.7 PPG (BYE Week 8)
+3. **Justin Fields** - 18.0 PPG available
+
+### Kicker Streaming
+- **Chase McLaughlin** - 8.6 PPG (BYE Week 9)
+- **Brandon McManus** - 8.2 PPG (BYE passed)
+
+---
+
+## Final Recommendations (REVISED FOR RB CRISIS)
+
+### EXECUTE THESE MOVES IN ORDER:
+1. **CLAIM Jacory Croskey-Merritt** (Use #10 priority) → Drop Tyler Allgeier
+   - Solves Week 7 RB2 need with Cook on BYE
+   - 116.8 ROS upside if he wins lead role
+
+2. **CLAIM Rachaad White** (backup claim) → Drop TreVeyon Henderson
+   - Week 7 insurance if Irving still injured
+   - Better than Henderson even in committee
+
+3. **ADD Green Bay DEF** (free agent) → Drop Cleveland DEF
+   - Immediate upgrade for Week 6
+
+### Week 7 Lineup Solution
+- **RB1:** Jahmyr Gibbs
+- **RB2:** Croskey-Merritt (or White if you get him)
+- **FLEX:** Best available WR (you have 7!)
+
+### Net Impact
+- **Week 7 Crisis:** SOLVED - playable RB2 acquired
+- **ROS Improvement:** JCM has 116.8 ROS potential
+- **Roster Balance:** Addresses critical RB shortage
+
+### DO NOT PRIORITIZE:
+- **Romeo Doubs** - Great value but you have 7 WRs already!
+- **Nick Chubb** - Only 56.1 ROS, not worth it
+- **Haskins/Vidal** - Only if you miss JCM and White
+
+---
+
+*Analysis Complete: Tuesday, October 7, 2025, 10:24 PM EDT*
+*Waiver Priority: 10/10 (LAST)*
