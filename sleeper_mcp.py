@@ -2072,15 +2072,19 @@ async def its_monday_night_and_i_need_a(position: str) -> List[Dict[str, Any]]:
                     if away_team:
                         teams_not_played.add(away_team)
 
-                    upcoming_games.append({
-                        "home": home_team,
-                        "away": away_team,
-                        "time": game_time_pt,
-                        "tv": game.get("tv", "")
-                    })
+                    upcoming_games.append(
+                        {
+                            "home": home_team,
+                            "away": away_team,
+                            "time": game_time_pt,
+                            "tv": game.get("tv", ""),
+                        }
+                    )
 
             except Exception as e:
-                logger.warning(f"Failed to parse game time: {game_date_str}, error: {e}")
+                logger.warning(
+                    f"Failed to parse game time: {game_date_str}, error: {e}"
+                )
                 continue
 
         logger.info(f"Teams that haven't played yet: {teams_not_played}")
@@ -2095,7 +2099,7 @@ async def its_monday_night_and_i_need_a(position: str) -> List[Dict[str, Any]]:
             limit=200,  # Get more initially to filter
             include_stats=False,  # Minimal data mode
             highlight_recent_drops=True,
-            verify_availability=True
+            verify_availability=True,
         )
 
         if "error" in waiver_data:
@@ -2128,7 +2132,7 @@ async def its_monday_night_and_i_need_a(position: str) -> List[Dict[str, Any]]:
                     "projected_points": float(player.get("projected_points", 0)),
                     "game_info": game_info or "Game time unknown",
                     "recently_dropped": player.get("recently_dropped", False),
-                    "trending_add_count": player.get("trending_add_count", 0)
+                    "trending_add_count": player.get("trending_add_count", 0),
                 }
 
                 emergency_candidates.append(candidate)
@@ -2136,16 +2140,20 @@ async def its_monday_night_and_i_need_a(position: str) -> List[Dict[str, Any]]:
         # Sort by projected points (highest first)
         emergency_candidates.sort(key=lambda x: x["projected_points"], reverse=True)
 
-        logger.info(f"Found {len(emergency_candidates)} emergency candidates at {position}")
+        logger.info(
+            f"Found {len(emergency_candidates)} emergency candidates at {position}"
+        )
 
         # Return only top 3 with minimal info to reduce context
         top_candidates = []
         for candidate in emergency_candidates[:3]:
-            top_candidates.append({
-                "name": candidate["player_name"],
-                "team": candidate["team"],
-                "proj": candidate["projected_points"]
-            })
+            top_candidates.append(
+                {
+                    "name": candidate["player_name"],
+                    "team": candidate["team"],
+                    "proj": candidate["projected_points"],
+                }
+            )
 
         return top_candidates
 

@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-from datetime import datetime, timedelta
+from datetime import datetime
 from zoneinfo import ZoneInfo
 from sleeper_mcp import its_monday_night_and_i_need_a
 
@@ -12,7 +12,9 @@ async def test_its_monday_night_emergency_valid_position():
     """Test the Monday night emergency tool with valid position."""
 
     # Mock the current time to be Monday night
-    mock_current_time = datetime(2025, 10, 13, 18, 0, 0, tzinfo=ZoneInfo("America/Los_Angeles"))
+    mock_current_time = datetime(
+        2025, 10, 13, 18, 0, 0, tzinfo=ZoneInfo("America/Los_Angeles")
+    )
 
     # Mock schedule data with some games not yet played
     mock_schedule = {
@@ -25,16 +27,16 @@ async def test_its_monday_night_emergency_valid_position():
                 "home_team": "KC",
                 "away_team": "BUF",
                 "game_date": "2025-10-12 13:00:00",
-                "tv": "CBS"
+                "tv": "CBS",
             },
             # Monday night game (not played yet)
             {
                 "home_team": "NYG",
                 "away_team": "DAL",
                 "game_date": "2025-10-13 20:15:00",  # 8:15 PM ET = 5:15 PM PT
-                "tv": "ESPN"
-            }
-        ]
+                "tv": "ESPN",
+            },
+        ],
     }
 
     # Mock waiver wire players
@@ -49,7 +51,7 @@ async def test_its_monday_night_emergency_valid_position():
                 "team": "DAL",
                 "projected_points": 18.5,
                 "recently_dropped": False,
-                "trending_add_count": 5
+                "trending_add_count": 5,
             },
             {
                 "player_id": "5678",
@@ -58,7 +60,7 @@ async def test_its_monday_night_emergency_valid_position():
                 "team": "NYG",
                 "projected_points": 15.2,
                 "recently_dropped": True,
-                "trending_add_count": 2
+                "trending_add_count": 2,
             },
             {
                 "player_id": "9999",
@@ -67,25 +69,31 @@ async def test_its_monday_night_emergency_valid_position():
                 "team": "KC",
                 "projected_points": 25.0,
                 "recently_dropped": False,
-                "trending_add_count": 0
-            }
-        ]
+                "trending_add_count": 0,
+            },
+        ],
     }
 
-    with patch('sleeper_mcp.datetime') as mock_datetime:
+    with patch("sleeper_mcp.datetime") as mock_datetime:
         mock_datetime.now.return_value = mock_current_time
         mock_datetime.strptime = datetime.strptime
 
-        with patch('sleeper_mcp.httpx.AsyncClient') as mock_client:
+        with patch("sleeper_mcp.httpx.AsyncClient") as mock_client:
             # Mock Sleeper state API
             mock_state_response = MagicMock()
             mock_state_response.json.return_value = {"week": 6, "season": 2025}
-            mock_client.return_value.__aenter__.return_value.get.return_value = mock_state_response
+            mock_client.return_value.__aenter__.return_value.get.return_value = (
+                mock_state_response
+            )
 
-            with patch('sleeper_mcp.get_nfl_schedule.fn', new_callable=AsyncMock) as mock_schedule_fn:
+            with patch(
+                "sleeper_mcp.get_nfl_schedule.fn", new_callable=AsyncMock
+            ) as mock_schedule_fn:
                 mock_schedule_fn.return_value = mock_schedule
 
-                with patch('sleeper_mcp.get_waiver_wire_players.fn', new_callable=AsyncMock) as mock_waiver_fn:
+                with patch(
+                    "sleeper_mcp.get_waiver_wire_players.fn", new_callable=AsyncMock
+                ) as mock_waiver_fn:
                     mock_waiver_fn.return_value = mock_waiver_players
 
                     # Call the function
@@ -121,7 +129,9 @@ async def test_its_monday_night_emergency_all_teams_played():
     """Test when all teams have already played."""
 
     # Mock current time to be Tuesday
-    mock_current_time = datetime(2025, 10, 14, 10, 0, 0, tzinfo=ZoneInfo("America/Los_Angeles"))
+    mock_current_time = datetime(
+        2025, 10, 14, 10, 0, 0, tzinfo=ZoneInfo("America/Los_Angeles")
+    )
 
     # All games in the past
     mock_schedule = {
@@ -133,27 +143,31 @@ async def test_its_monday_night_emergency_all_teams_played():
                 "home_team": "KC",
                 "away_team": "BUF",
                 "game_date": "2025-10-12 13:00:00",
-                "tv": "CBS"
+                "tv": "CBS",
             },
             {
                 "home_team": "NYG",
                 "away_team": "DAL",
                 "game_date": "2025-10-13 20:15:00",
-                "tv": "ESPN"
-            }
-        ]
+                "tv": "ESPN",
+            },
+        ],
     }
 
-    with patch('sleeper_mcp.datetime') as mock_datetime:
+    with patch("sleeper_mcp.datetime") as mock_datetime:
         mock_datetime.now.return_value = mock_current_time
         mock_datetime.strptime = datetime.strptime
 
-        with patch('sleeper_mcp.httpx.AsyncClient') as mock_client:
+        with patch("sleeper_mcp.httpx.AsyncClient") as mock_client:
             mock_state_response = MagicMock()
             mock_state_response.json.return_value = {"week": 6, "season": 2025}
-            mock_client.return_value.__aenter__.return_value.get.return_value = mock_state_response
+            mock_client.return_value.__aenter__.return_value.get.return_value = (
+                mock_state_response
+            )
 
-            with patch('sleeper_mcp.get_nfl_schedule.fn', new_callable=AsyncMock) as mock_schedule_fn:
+            with patch(
+                "sleeper_mcp.get_nfl_schedule.fn", new_callable=AsyncMock
+            ) as mock_schedule_fn:
                 mock_schedule_fn.return_value = mock_schedule
 
                 result = await its_monday_night_and_i_need_a.fn("RB")
@@ -166,7 +180,9 @@ async def test_its_monday_night_emergency_all_teams_played():
 async def test_its_monday_night_emergency_no_available_players():
     """Test when no players are available at the position."""
 
-    mock_current_time = datetime(2025, 10, 13, 18, 0, 0, tzinfo=ZoneInfo("America/Los_Angeles"))
+    mock_current_time = datetime(
+        2025, 10, 13, 18, 0, 0, tzinfo=ZoneInfo("America/Los_Angeles")
+    )
 
     mock_schedule = {
         "season": 2025,
@@ -177,31 +193,33 @@ async def test_its_monday_night_emergency_no_available_players():
                 "home_team": "NYG",
                 "away_team": "DAL",
                 "game_date": "2025-10-13 20:15:00",
-                "tv": "ESPN"
+                "tv": "ESPN",
             }
-        ]
+        ],
     }
 
     # Empty waiver wire
-    mock_waiver_players = {
-        "total_available": 0,
-        "filtered_count": 0,
-        "players": []
-    }
+    mock_waiver_players = {"total_available": 0, "filtered_count": 0, "players": []}
 
-    with patch('sleeper_mcp.datetime') as mock_datetime:
+    with patch("sleeper_mcp.datetime") as mock_datetime:
         mock_datetime.now.return_value = mock_current_time
         mock_datetime.strptime = datetime.strptime
 
-        with patch('sleeper_mcp.httpx.AsyncClient') as mock_client:
+        with patch("sleeper_mcp.httpx.AsyncClient") as mock_client:
             mock_state_response = MagicMock()
             mock_state_response.json.return_value = {"week": 6, "season": 2025}
-            mock_client.return_value.__aenter__.return_value.get.return_value = mock_state_response
+            mock_client.return_value.__aenter__.return_value.get.return_value = (
+                mock_state_response
+            )
 
-            with patch('sleeper_mcp.get_nfl_schedule.fn', new_callable=AsyncMock) as mock_schedule_fn:
+            with patch(
+                "sleeper_mcp.get_nfl_schedule.fn", new_callable=AsyncMock
+            ) as mock_schedule_fn:
                 mock_schedule_fn.return_value = mock_schedule
 
-                with patch('sleeper_mcp.get_waiver_wire_players.fn', new_callable=AsyncMock) as mock_waiver_fn:
+                with patch(
+                    "sleeper_mcp.get_waiver_wire_players.fn", new_callable=AsyncMock
+                ) as mock_waiver_fn:
                     mock_waiver_fn.return_value = mock_waiver_players
 
                     result = await its_monday_night_and_i_need_a.fn("TE")
@@ -214,7 +232,9 @@ async def test_its_monday_night_emergency_no_available_players():
 async def test_its_monday_night_emergency_sorting():
     """Test that results are properly sorted by projected points."""
 
-    mock_current_time = datetime(2025, 10, 13, 18, 0, 0, tzinfo=ZoneInfo("America/Los_Angeles"))
+    mock_current_time = datetime(
+        2025, 10, 13, 18, 0, 0, tzinfo=ZoneInfo("America/Los_Angeles")
+    )
 
     mock_schedule = {
         "season": 2025,
@@ -225,9 +245,9 @@ async def test_its_monday_night_emergency_sorting():
                 "home_team": "NYG",
                 "away_team": "DAL",
                 "game_date": "2025-10-13 20:15:00",
-                "tv": "ESPN"
+                "tv": "ESPN",
             }
-        ]
+        ],
     }
 
     mock_waiver_players = {
@@ -241,7 +261,7 @@ async def test_its_monday_night_emergency_sorting():
                 "team": "DAL",
                 "projected_points": 5.0,
                 "recently_dropped": False,
-                "trending_add_count": 0
+                "trending_add_count": 0,
             },
             {
                 "player_id": "2",
@@ -250,7 +270,7 @@ async def test_its_monday_night_emergency_sorting():
                 "team": "NYG",
                 "projected_points": 20.0,
                 "recently_dropped": False,
-                "trending_add_count": 0
+                "trending_add_count": 0,
             },
             {
                 "player_id": "3",
@@ -259,24 +279,30 @@ async def test_its_monday_night_emergency_sorting():
                 "team": "DAL",
                 "projected_points": 12.5,
                 "recently_dropped": False,
-                "trending_add_count": 0
-            }
-        ]
+                "trending_add_count": 0,
+            },
+        ],
     }
 
-    with patch('sleeper_mcp.datetime') as mock_datetime:
+    with patch("sleeper_mcp.datetime") as mock_datetime:
         mock_datetime.now.return_value = mock_current_time
         mock_datetime.strptime = datetime.strptime
 
-        with patch('sleeper_mcp.httpx.AsyncClient') as mock_client:
+        with patch("sleeper_mcp.httpx.AsyncClient") as mock_client:
             mock_state_response = MagicMock()
             mock_state_response.json.return_value = {"week": 6, "season": 2025}
-            mock_client.return_value.__aenter__.return_value.get.return_value = mock_state_response
+            mock_client.return_value.__aenter__.return_value.get.return_value = (
+                mock_state_response
+            )
 
-            with patch('sleeper_mcp.get_nfl_schedule.fn', new_callable=AsyncMock) as mock_schedule_fn:
+            with patch(
+                "sleeper_mcp.get_nfl_schedule.fn", new_callable=AsyncMock
+            ) as mock_schedule_fn:
                 mock_schedule_fn.return_value = mock_schedule
 
-                with patch('sleeper_mcp.get_waiver_wire_players.fn', new_callable=AsyncMock) as mock_waiver_fn:
+                with patch(
+                    "sleeper_mcp.get_waiver_wire_players.fn", new_callable=AsyncMock
+                ) as mock_waiver_fn:
                     mock_waiver_fn.return_value = mock_waiver_players
 
                     result = await its_monday_night_and_i_need_a.fn("WR")
