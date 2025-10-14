@@ -2,165 +2,155 @@
 
 Analyze trade opportunities for Bill Beliclaude (Roster ID 2) in the Token Bowl league.
 
-## Strategy
+**Reference**: See `.claude/reference/_fantasy_framework.md` for evaluation criteria.
 
-### 0. Team Needs Assessment
-- Review Bill Beliclaude's roster performance over previous weeks
-- Identify positions of critical need to improve playoff odds:
-  - **Positional Depth Analysis**:
-    - 0-1 bench players = CRITICAL NEED (highest trade priority)
-    - 2 bench players = ADEQUATE DEPTH (medium priority)
-    - 3+ bench players = TRADEABLE ASSETS (use as trade bait)
-    - RB depth prioritized over WR due to injury rates and scarcity
-  - Consider upcoming bye weeks (next 2-3 weeks highest priority)
-  - Identify our weakest starting positions based on recent performance
-- **Untouchables**: Josh Allen and James Cook are not available for trade
+## Goal
 
-### 1. Identify Trade Assets (Our Expendable Players)
-- Analyze our roster for tradeable pieces:
-  - Players at overstocked positions (3+ bench depth)
-  - Underperforming starters with name value
-  - High-floor veterans we can package for high-ceiling players
-  - Players with favorable past performance but declining opportunity
-- Use efficiency metrics to identify overvalued assets:
-  - Players with unsustainable TD rates
-  - Players benefiting from temporary injury situations
-  - Aging veterans coasting on reputation
+Identify and execute value-creating trades by:
+1. Analyzing our roster needs and trade assets
+2. Profiling opponents for exploitable weaknesses
+3. Constructing 60/40 trades (appear fair, favor us)
+4. Timing proposals for maximum psychological impact
+5. Maximizing championship odds through roster optimization
 
-### 2. League-Wide Roster Analysis
-- Scan all 9 opposing rosters to identify:
-  - **Their weaknesses**: Positions where they have 0-1 bench players
-  - **Their strengths**: Positions where they have surplus (3+ bench)
-  - **Recent injuries**: Teams dealing with IR/OUT designations
-  - **Bye week crunches**: Teams facing multiple byes at same position
-- Target managers with complementary needs (they need what we have excess of)
+**Untouchables**: Josh Allen and James Cook are not available for trade.
 
-### 3. Trade Target Identification
-For each opposing roster, identify:
-- **Buy-low candidates**:
-  - Players underperforming but with positive underlying metrics
-  - Players returning from injury/suspension
-  - Players in new situations with upside
-  - Talented players on struggling teams
-- **Sell-high opportunities**:
-  - Our players at peak value (recent big games)
-  - Players with unsustainable production
-  - Veterans we can move based on name recognition
-- Focus on acquiring:
-  - High target share players
-  - Players with increasing snap counts
-  - Backfield leaders and handcuffs
-  - Players with soft upcoming schedules
+## Execution Phases
 
-### 4. Trade Psychology & Leverage
-- **Manager Profiling**:
-  - Identify managers who are panicking (0-3, 1-4 starts)
-  - Target managers who overreact to recent performances
-  - Find managers with fan bias for certain teams/players
-- **Negotiation Tactics**:
-  - Frame trades as "helping them" with their bye weeks
-  - Emphasize recent good games of players we're trading away
-  - Downplay injuries/concerns about players we're acquiring
-  - Use 2-for-1 trades to make them feel they're getting more value
-  - Package a mediocre starter with a bench player to acquire a stud
+### Phase 1: Assess Our Roster
 
-### 5. Trade Proposal Construction
-Build proposals that are:
-- **Weighted 60/40 in our favor** (appear fair but favor us)
-- **Psychologically appealing**:
-  - Offer name-brand players for lesser-known studs
-  - Package quantity for quality
-  - Target their emotional attachments and biases
-- **Strategically timed**:
-  - Propose after our players have good games
-  - Target managers after their players have bad games
-  - Strike during bye week desperation
+Use the **roster-analyst subagent** to:
+- Identify positions with critical needs (0-1 bench depth)
+- Identify positions with tradeable surplus (3+ bench depth)
+- Evaluate which starters are underperforming
+- Determine our expendable assets (bench depth, aging veterans)
 
-### 6. Value Assessment Framework
-For each potential trade:
+**Trade Asset Identification**:
+- Players at overstocked positions (3+ bench)
+- Underperformers with name value (sell high on reputation)
+- High-floor veterans we can package for high-ceiling players
+- Players with unsustainable TD rates (sell before regression)
+
+### Phase 2: Scout Opponents
+
+Use the **opponent-scout subagent** to:
+- Analyze all 9 opposing rosters for weaknesses and strengths
+- Identify teams with complementary needs (they need what we have)
+- Profile vulnerable managers (losing streaks, injuries, bye week crunches)
+- Find exploitable psychological angles
+
+**Target Identification**:
+- Teams with 0-1 bench at positions where we have surplus
+- Teams dealing with recent injuries or bye week hell
+- Managers panicking (0-3, 1-4 starts) who overpay
+- Teams with talent stuck on bench (want to "unlock" value)
+
+### Phase 3: Research Trade Targets
+
+For top trade target candidates, use the **player-researcher subagent** to:
+- Verify current production is sustainable (or inflated)
+- Analyze playoff schedule (weeks 15-17) strength
+- Check for hidden injury concerns or usage red flags
+- Compare expert ROS projections vs market perception
+
+This helps us:
+- **Buy low**: Target underperformers with strong underlying metrics
+- **Sell high**: Move overperformers before regression
+- **Exploit information asymmetry**: We know things they don't
+
+### Phase 4: Construct Trade Proposals
+
+Build proposals that are **60/40 in our favor**:
+
+**Psychological Tactics**:
+- Frame as "helping them" with bye weeks or injuries
+- Emphasize recent good games of players we're trading away
+- Downplay concerns about players we're acquiring
+- Use 2-for-1 trades (quantity for quality favors us)
+- Package mediocre starter with bench player to acquire stud
+
+**Timing Strategy**:
+- Propose after our players have good games (peak value)
+- Target managers after their players have bad games (panic)
+- Strike during bye week desperation (time-sensitive need)
+
+**Value Assessment**:
 - Calculate net points gained/lost per week
 - Consider playoff schedule implications
 - Evaluate injury risk differential
-- Assess the "winner" using multiple trade calculators
-- Ensure we're exploiting information asymmetry
+- Ensure we're exploiting valuation discrepancies
 
-## Key Questions to Answer
+### Phase 5: Prioritize & Execute
 
-1. **What are our 3 biggest roster needs?**
-   - Include current depth and bye week coverage
-   - Identify specific player archetypes needed
-
-2. **Which managers are most vulnerable to trade?**
-   - Recent losses, injury problems, bye week issues
-   - Historical trade patterns and tendencies
-
-3. **What are our best trade packages?**
-   - 2-for-1 upgrades at positions of need
-   - Selling high on overperformers
-   - Buying low on underperformers
-
-4. **Net impact analysis:**
-   - Expected points gained per week
-   - Playoff roster improvement
-   - Risk/reward assessment
+Rank proposals by:
+1. Net expected points per week (+2 or more)
+2. Fills critical roster need (0-1 bench positions)
+3. Exploits clear desperation/naivety
+4. Improves playoff week matchups
 
 ## Output Format
 
-### Trade Proposal Summary
-Present findings as:
+Write to: `picks/week{n}/trades_week{n}.md`
 
-1. **Our Roster Needs** (ranked by priority)
-   - Position, current depth, target player profile
+### Structure
 
-2. **Our Trade Assets** (ranked by expendability)
-   - Player name, position, trade value assessment
+**Our Roster Analysis**:
+- Positions of need (ranked by priority)
+- Trade assets (ranked by expendability)
+- Weakest starters to upgrade
 
-3. **Top 3 Trade Targets**
-   - Target manager (roster ID and name)
-   - Their needs that align with our assets
-   - Specific players to target from their roster
-   - Psychological angle to exploit
+**Top 3 Trade Targets**:
+For each target manager:
+- Their roster weaknesses that align with our assets
+- Their surplus positions that align with our needs
+- Psychological angle to exploit (panic, bye week, injury)
+- Specific players to target from their roster
 
-4. **Recommended Trade Proposals** (3-5 proposals)
-   Format each as:
-   ```
-   TRADE #X:
-   We Send: [Players]
-   We Receive: [Players]
-   Target Manager: [Name/Roster ID]
+**Recommended Trade Proposals** (3-5):
+```
+TRADE #X:
+We Send: [Players]
+We Receive: [Players]
+Target Manager: [Name/Roster ID]
 
-   Pitch Angle: [How to frame this trade]
-   Hidden Value: [Why this actually favors us]
-   Expected Weekly Gain: [+/- points]
-   ```
+Pitch Angle: [How to frame this trade]
+Hidden Value: [Why this actually favors us]
+Expected Weekly Gain: [+/- points]
+ROS Impact: [Championship odds improvement]
+```
 
-5. **Negotiation Script**
-   - Initial offer (slightly more aggressive)
-   - Fallback offer (if rejected)
-   - Walk-away point (minimum acceptable)
+**Negotiation Strategy**:
+- Initial offer (slightly aggressive)
+- Fallback offer (if rejected)
+- Walk-away point (minimum acceptable)
+- Timeline (before waivers, after games, etc.)
 
-## Decision Matrix
+**Final Recommendation**:
+- Which trade to send first
+- Backup options if rejected
+- Weekly point projections with/without trade
 
-Only execute trades if:
+## Trade Philosophy
+
+**Core Principles**:
+1. **Target desperation** - Losing teams make bad trades
+2. **Exploit information asymmetry** - We know ROS projections better
+3. **Sell high** - Trade after our players' big games
+4. **Buy low** - Target after their players' bad games
+5. **Package mediocrity** - 2-for-1 favors side getting 1 stud
+6. **Playoff schedule** - Weeks 15-17 matchups determine championships
+
+**Decision Matrix** - Only Execute If:
 - Net positive expected points per week (+2 or more)
 - Fills critical roster need (0-1 bench depth positions)
 - Exploits clear valuation discrepancy
 - Improves playoff week matchups
 - Takes advantage of manager desperation/naivety
 
-## Final Recommendation
+## What NOT to Do
 
-You are the general manager. Make the ultimate call:
-- Which trade proposal to send first
-- Backup options if rejected
-- Players to avoid trading at all costs
-- Timeline for execution (before waivers, after games, etc.)
-
-Write the final trade analysis to:
-`picks/week{n}/trades_week{n}.md`
-
-Include:
-- Detailed rationale for each proposal
-- Expected manager responses
-- Contingency plans
-- Weekly point projections with/without trade
+- Don't propose obviously lopsided trades (kills future negotiations)
+- Don't trade Josh Allen or James Cook (untouchables)
+- Don't create new holes (don't trade away depth to upgrade)
+- Don't ignore playoff schedule (weeks 15-17)
+- Don't trade based on name recognition alone (check underlying metrics)
