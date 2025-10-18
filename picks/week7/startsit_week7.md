@@ -1,490 +1,248 @@
-# Week 7 Start/Sit Analysis - Bill Beliclaude
-**Generated:** October 3, 2025
-**Current Week:** 5
-**Analysis For:** Week 7 (October 16-20, 2025)
-**Record:** 3-1 | **Points For:** 562 | **Waiver Position:** 6
+# Bill Beliclaude Week 7 Start/Sit Analysis
 
----
-
-## 🚨 CRITICAL ALERT: FOUR STARTERS ON BYE 🚨
-
-Week 7 presents a **MAJOR ROSTER CRISIS** with four Buffalo Bills starters on bye:
-- **Josh Allen (QB)** - Your QB1
-- **James Cook (RB)** - Your RB1
-- **Khalil Shakir (WR)** - Your WR3
-- **Matt Prater (K)** - Your only kicker
-
-**IMMEDIATE ACTION REQUIRED:** You must acquire a QB and K from waivers **before Week 7** or you'll forfeit those positions entirely.
-
----
+**Generated:** October 18, 2025
+**Current Record:** 4-2 | **Waiver Position:** 9th
+**Projected Points:** 126.0
 
 ## Executive Summary
 
-### The Good News
-- **Jahmyr Gibbs** draws an elite matchup vs Tampa Bay (Monday Night)
-- **Marvin Harrison Jr.** remains a must-start WR1 at home vs Green Bay
-- Your bench WRs (**DJ Moore**, **DeVonta Smith**) step up with solid matchups
+Key lineup decisions for Week 7 center around navigating the Buffalo bye week (Allen and Cook out), choosing between DeVonta Smith and Quentin Johnston at WR2, and deciding whether to bench the underperforming Woody Marks. The defense streaming analysis shows minimal upside over Denver, recommending we hold. With strong performances expected from Jahmyr Gibbs and Jake Ferguson, we're projecting a competitive 126-point week.
 
-### The Bad News
-- **No backup QB on roster** - Must stream
-- **No backup K on roster** - Must stream
-- **Four total starters unavailable** - Massive lineup holes
+## Critical Bye Week Alert 🚨
+- **Josh Allen (QB)** - ON BYE WEEK 7
+- **James Cook (RB)** - ON BYE WEEK 7
 
-### The Game Plan
-1. **Stream QB immediately** - Target Justin Herbert or Matthew Stafford
-2. **Stream K immediately** - Target Chase McLaughlin or Chad Ryland
-3. **Activate bench WRs** - DJ Moore and DeVonta Smith into starting lineup
-4. **Start TreVeyon Henderson** - Fills RB2 slot with Cook out
-5. **Hold Cleveland DEF** - Solid matchup vs Miami, no need to stream
+Both Buffalo players are unavailable this week with 0.0 projected points.
 
-**Projected Score:** 135-145 points (reduced from normal due to streaming QB)
+## Player-by-Player Analysis
 
----
+### Quarterbacks
 
-## Individual Player Analysis
+#### **Caleb Williams** (CHI vs NO) - 19.3 projected
+**Player Capsule:** Fire up Caleb Williams with confidence in this primetime home matchup against a vulnerable Saints secondary. The rookie has shown dual-threat upside with 108 rushing yards and 2 TDs across 5 games, averaging 20.8 fantasy points per game and coming off a solid 20-point outing in Week 6. The Saints defense has struggled on the road, and with Chicago at home after extra rest, this screams breakout spot.
 
-### ACTIVE STARTERS (6 players)
+**Week Outlook:** **START**
+**Ceiling:** 26 pts | **Floor:** 15 pts
 
-#### 🔒 Marvin Harrison Jr. (WR, ARI) - BYE WEEK 8
-**Matchup:** vs GB (Week 7, Sunday 4:25 PM)
-**Projected:** 13.3 pts (11.8-15.94 range)
-**Status:** ✅ **MUST START**
+#### **Josh Allen** (BUF) - BYE WEEK
+**Player Capsule:** ON BYE THIS WEEK - Cannot start. Elite QB1 resting up during Buffalo's bye week. Hold through the bye as he's projected for 252 fantasy points rest of season.
 
-Fire up your WR1 with confidence as he faces Green Bay at home in what should be a high-scoring divisional showdown. Harrison has established himself as Kyler Murray's go-to target with elite separation ability, and the Packers' secondary has shown vulnerability to big plays this season. The 13.3 projected points feel conservative for a player with his ceiling in a dome environment where passing games thrive. Lock him in as a must-start WR1 with top-12 upside this week.
+**Week Outlook:** **ON BYE**
+**Ceiling:** N/A | **Floor:** N/A
 
-**Week 7 Outlook:** MUST START
-**Ceiling/Floor:** High ceiling (20+ pts) / Safe floor (11+ pts)
+### Running Backs
 
----
+#### **Jahmyr Gibbs** (DET vs TB, Monday Night) - 18.2 projected
+**Player Capsule:** Lock and load Gibbs as an elite RB1 play despite last week's pedestrian 7.5 points, which stands as a clear outlier in his spectacular season. He's averaging 17.2 PPG with 5 total TDs and gets a Tampa defense that just allowed multiple rushing scores. Monday Night at home after extra rest is the perfect bounce-back spot for Detroit's explosive playmaker.
 
-#### 🔒 Jahmyr Gibbs (RB, DET) - BYE WEEK 8
-**Matchup:** vs TB (Week 7, Monday Night 7:00 PM)
-**Projected:** 20.0 pts (16.7-25.85 range)
-**Status:** ✅ **MUST START**
+**Week Outlook:** **MUST START**
+**Ceiling:** 28 pts | **Floor:** 12 pts
 
-Lock and load your Monday night hammer as Gibbs gets a premium matchup against Tampa Bay's run-funnel defense. The Bucs have allowed the 5th-most fantasy points to running backs, and with Detroit favored by 7, game script should favor a heavy dose of Gibbs in the second half. His 20-point projection undersells his ceiling in what could be a 25+ touch masterpiece. This is your RB1 for the week and potential league-winner.
+#### **Rachaad White** (TB @ DET, Monday Night) - 16.2 projected
+**Player Capsule:** White has found his groove with 4 rushing TDs in his last 3 games, finally delivering on the volume that fantasy managers have craved all season. The Lions' high-powered offense should create negative game script early, potentially limiting touches, but his red zone role remains secure. His 15-target floor over 6 games provides PPR safety.
 
-**Week 7 Outlook:** MUST START
-**Ceiling/Floor:** Elite ceiling (30+ pts) / Rock-solid floor (15 pts)
+**Week Outlook:** **START**
+**Ceiling:** 20 pts | **Floor:** 8 pts
 
----
+#### **Jacory Croskey-Merritt** (WAS @ DAL) - 14.9 projected
+**Player Capsule:** The volume is there for Croskey-Merritt as Washington's lead back, but the floor remains shaky after two fumbles in his last two games including a disappointing 5.8 points on 17 carries last week. He exploded for 27 points in Week 5, showcasing his ceiling, but Dallas at home represents a tougher test. Classic boom-or-bust RB2 in a divisional road game.
 
-#### ✅ Jake Ferguson (TE, DAL) - BYE WEEK 10
-**Matchup:** vs WAS (Week 7, Sunday 4:25 PM)
-**Projected:** 12.4 pts (8.9-17.9 range)
-**Status:** ✅ **START**
+**Week Outlook:** **FLEX CONSIDERATION**
+**Ceiling:** 22 pts | **Floor:** 6 pts
 
-The stars are aligning for a breakout performance as Ferguson draws Washington at home in a classic NFC East grudge match. With CeeDee Lamb demanding double coverage and Dak's trust growing weekly, Ferguson should feast on intermediate routes against a Commanders defense that's allowed the 8th-most points to tight ends. His 12.4-point projection reflects steady target share and red zone involvement. Start with confidence as a high-end TE1 this week.
+#### **Woody Marks** (HOU @ SEA, Monday Night) - 8.6 projected
+**Player Capsule:** Proceed with extreme caution on Woody Marks, who profiles as a desperation flex play at best after his Week 4 explosion (27.9 pts) proved to be fool's gold. He's managed just 2.4 points since then and remains firmly behind D'onta Foreman in the pecking order, touching the ball only 7 times last week.
 
-**Week 7 Outlook:** START
-**Ceiling/Floor:** Solid ceiling (18 pts) / Reliable floor (9 pts)
+**Week Outlook:** **SIT**
+**Ceiling:** 12 pts | **Floor:** 3 pts
 
----
+#### **James Cook** (BUF) - BYE WEEK
+**Player Capsule:** ON BYE THIS WEEK - Cannot start. Top-12 RB on bye week with 150+ projected points remaining. Mandatory hold for championship runs.
 
-#### ✅ Chris Olave (WR, NO) - BYE WEEK 11
-**Matchup:** @ CHI (Week 7, Sunday 1:00 PM)
-**Projected:** 12.7 pts (11.7-19.71 range)
-**Status:** ✅ **START**
+**Week Outlook:** **ON BYE**
+**Ceiling:** N/A | **Floor:** N/A
 
-Proceed with caution but don't overthink this revenge game narrative as Olave travels to Chicago for what should be a defensive struggle. The Bears' secondary has tightened up considerably, but Olave's target dominance (28% share) makes him matchup-proof in PPR formats. The 12.7 projection feels right for a player who's due for positive touchdown regression. Deploy as a solid WR2 with WR1 upside if he finds the end zone.
+### Wide Receivers
 
-**Week 7 Outlook:** START
-**Ceiling/Floor:** Moderate ceiling (20 pts) / Decent floor (10 pts)
+#### **Chris Olave** (NO @ CHI) - 14.4 projected
+**Player Capsule:** Volume is king, and Olave's 10.7 targets per game make him virtually matchup-proof despite managing just one touchdown through 6 games. He's been Mr. Consistency with 57+ yards in 5 of 6 contests, and Chicago's secondary can be beaten deep. The Saints' struggling offense caps his ceiling, but the floor remains rock-solid.
 
----
+**Week Outlook:** **START**
+**Ceiling:** 22 pts | **Floor:** 10 pts
 
-#### ✅ Quentin Johnston (WR, LAC) - BYE WEEK 12
-**Matchup:** vs IND (Week 7, Sunday 4:05 PM)
-**Projected:** 14.5 pts (6.3-20.0 range)
-**Status:** ✅ **START**
+#### **DeVonta Smith** (PHI @ MIN) - 12.2 projected
+**Player Capsule:** DeVonta's feast-or-famine pattern continues, alternating between 20-point explosions and single-digit duds, making him the ultimate variance play. He's coming off a quiet 8.9 points despite 5 targets, but Minnesota's aggressive defense could create quick-strike opportunities where he thrives.
 
-The matchup is too juicy to ignore as Johnston faces an Indianapolis defense hemorrhaging points to outside receivers. Herbert's deep ball has been money, and Johnston's emergence as the Chargers' WR1 coincides perfectly with a home game where they're 3-point favorites. The wide 6.3-20 point range reflects his boom-bust nature, but volume is king and he's getting fed. Fire him up as a high-upside WR3/flex with WR2 potential.
+**Week Outlook:** **FLEX CONSIDERATION**
+**Ceiling:** 20 pts | **Floor:** 5 pts
 
-**Week 7 Outlook:** START
-**Ceiling/Floor:** High ceiling (20+ pts) / Risky floor (6 pts)
+#### **Quentin Johnston** (LAC vs IND) - 12.9 projected
+**Player Capsule:** Johnston has been a revelation with 4 TDs in 5 games, but the target share (8.2 per game) suggests regression is coming after unsustainable TD luck. He's coming off a disappointing 6.9 points where he lost a fumble, and Indianapolis' defense has been stingy against WR2s. The red zone role keeps him relevant.
 
----
+**Week Outlook:** **FLEX/START**
+**Ceiling:** 20 pts | **Floor:** 4 pts
 
-#### ✅ Cleveland DEF - BYE WEEK 9
-**Matchup:** vs MIA (Week 7, Sunday 1:00 PM)
-**Projected:** 7.1 pts (4.6-12.4 range)
-**Status:** ✅ **START - NO STREAM NEEDED**
+#### **Marvin Harrison Jr.** (ARI vs GB) - 11.5 projected ⚠️ **QUESTIONABLE**
+**Player Capsule:** The concussion concern combined with Harrison's wildly inconsistent target share (ranging from 2 to 10) makes him a risky play even if he suits up. He managed just 5.2 points last week on 2 targets before the injury. Classic situation where you're chasing name value over recent production.
 
-This screams bounce-back spot against a Dolphins offense that's been a fantasy goldmine for opposing defenses. Miami's offensive line issues persist, and playing at home in potentially wet October weather favors Cleveland's pass rush. The 7.1 projection feels conservative for a unit that should generate multiple sacks and a turnover or two. Start with confidence as a top-10 defense play.
+**Week Outlook:** **SIT**
+**Ceiling:** 18 pts | **Floor:** 0 pts (injury risk)
 
-**Week 7 Outlook:** START
-**Ceiling/Floor:** Decent ceiling (15 pts) / Safe floor (5 pts)
+#### **Ricky Pearsall** (SF vs ATL) - 5.8 projected ⚠️ **QUESTIONABLE**
+**Player Capsule:** The knee injury (DNP Thursday) likely sidelines Pearsall who was averaging 13.1 PPG when healthy but hasn't played since Week 4. Even if active, the PCL issue severely caps both floor and ceiling in what would be a limited snap count return.
 
-**Defense Streaming Analysis:**
-- **Current DEF:** CLE vs MIA - 7.1 projected
-- **Top Available:**
-  1. BAL (unavailable - on bye Week 7)
-  2. KC vs LV - 6.6 projected
-  3. LAC vs IND - 6.3 projected
-  4. DAL vs WAS - 6.3 projected
-  5. DEN (6.1 pts) - Recently dropped
+**Week Outlook:** **SIT**
+**Ceiling:** 12 pts | **Floor:** 0 pts (injury risk)
 
-**RECOMMENDATION:** **HOLD CLEVELAND** - Your current defense projects better than all streaming options. The Miami matchup is too good to pass up.
+### Tight End
 
----
+#### **Jake Ferguson** (DAL vs WAS) - 12.6 projected
+**Player Capsule:** Fire up Ferguson with supreme confidence as he's become Dallas' most reliable target, averaging 16.4 points per game with 4 TDs over his last 6 contests. The target share is elite (8.5 per game) and Washington's defense has been vulnerable to tight ends in divisional games.
 
-### BYE WEEK PLAYERS (4 players - CANNOT START)
+**Week Outlook:** **MUST START**
+**Ceiling:** 22 pts | **Floor:** 9 pts
 
-#### ❌ Josh Allen (QB, BUF) - **BYE WEEK 7**
-**Projected:** 0.0 pts
-**Status:** 🚫 **ON BYE - MUST STREAM QB**
+### Kicker
 
-ON BYE THIS WEEK - Cannot start. Your QB1 takes a well-deserved rest in Week 7, creating a significant lineup hole to fill. This is a critical streaming week - target a quarterback with rushing upside to replicate Allen's dual-threat production.
+#### **Harrison Butker** (KC vs LV) - 8.7 projected
+**Player Capsule:** Lock and load Butker despite recent inconsistency (averaging just 8 points per game), as the Chiefs face a Raiders team that tends to force field goals in the red zone. Kansas City's offense should move the ball freely but may stall in scoring position. The 50+ yard bonus potential is always in play.
 
-**Week 7 Outlook:** ON BYE
-**Ceiling/Floor:** N/A - Cannot start
+**Week Outlook:** **START**
+**Ceiling:** 14 pts | **Floor:** 6 pts
 
----
+### Defense
 
-#### ❌ James Cook (RB, BUF) - **BYE WEEK 7**
-**Projected:** 0.0 pts
-**Status:** 🚫 **ON BYE - START HENDERSON**
+#### **Denver Broncos** (vs NYG) - 8.8 projected
+**Player Capsule:** The Broncos defense is a top-tier play facing a Giants offense that has been a fantasy goldmine for opposing defenses. Denver's averaging 11 fantasy points per game at home and gets Daniel Jones who's prone to turnovers under pressure. This matchup screams double-digit fantasy points.
 
-ON BYE THIS WEEK - Cannot start. Your RB1 joins the Bills' bye week exodus, leaving a massive hole in your lineup's floor and ceiling. TreVeyon Henderson slides into RB2 role this week.
+**Week Outlook:** **START**
+**Ceiling:** 16 pts | **Floor:** 5 pts
 
-**Week 7 Outlook:** ON BYE
-**Ceiling/Floor:** N/A - Cannot start
+## Defense Streaming Analysis
 
----
+### Current Defense: Denver Broncos (8.8 projected)
 
-#### ❌ Khalil Shakir (WR, BUF) - **BYE WEEK 7**
-**Projected:** 0.0 pts
-**Status:** 🚫 **ON BYE - ACTIVATE BENCH WRs**
+### Top Available Streaming Options:
+
+1. **Chicago Bears** vs NO - 6.9 projected
+   - **Analysis:** 1.9 points LOWER than Denver
+   - **Verdict:** ❌ HOLD DENVER
 
-ON BYE THIS WEEK - Cannot start. Buffalo's slot maven sits out Week 7, removing a reliable PPR option from your lineup. DJ Moore and DeVonta Smith fill the gap.
+2. **Carolina Panthers** @ NYJ - 6.7 projected
+   - **Analysis:** 2.1 points LOWER than Denver
+   - **Verdict:** ❌ HOLD DENVER
 
-**Week 7 Outlook:** ON BYE
-**Ceiling/Floor:** N/A - Cannot start
+3. **Houston Texans** @ SEA - 6.6 projected
+   - **Analysis:** 2.2 points LOWER than Denver
+   - **Verdict:** ❌ HOLD DENVER
 
----
+4. **Atlanta Falcons** @ SF - 6.6 projected
+   - **Analysis:** 2.2 points LOWER than Denver
+   - **Verdict:** ❌ HOLD DENVER
 
-#### ❌ Matt Prater (K, BUF) - **BYE WEEK 7**
-**Projected:** 0.0 pts
-**Status:** 🚫 **ON BYE - MUST STREAM K**
+**RECOMMENDATION:** ✅ **HOLD DENVER DEFENSE**
+Denver has the best matchup and highest projection. No streaming necessary this week.
 
-ON BYE THIS WEEK - Cannot start. The Bills kicker sits idle during their Week 7 bye, forcing you to stream a replacement from waivers immediately.
+## Flex Competition Analysis
 
-**Week 7 Outlook:** ON BYE
-**Ceiling/Floor:** N/A - Cannot start
+### Viable FLEX Candidates:
+1. **Jacory Croskey-Merritt** (RB) - 14.9 projected ✅ **WINNER**
+2. **Quentin Johnston** (WR) - 12.9 projected
+3. **DeVonta Smith** (WR) - 12.2 projected
+4. **Woody Marks** (RB) - 8.6 projected ❌ (Bench)
 
----
+**FLEX DECISION:** Start **Croskey-Merritt** based on volume and higher projection. Despite fumble concerns, his 17+ touch floor provides the safest path to double-digit points.
 
-### BENCH PLAYERS ACTIVATED (2 players)
+## Lineup Comparison
 
-#### 🔄 DeVonta Smith (WR, PHI) - BYE WEEK 9
-**Matchup:** @ MIN (Week 7, Sunday 1:00 PM)
-**Projected:** 12.2 pts (11.2-15.1 range)
-**Status:** ✅ **START (FLEX)**
+| Position | Current Starter | Recommended | Change? | Points Diff |
+|----------|----------------|-------------|---------|-------------|
+| QB | Caleb Williams | Caleb Williams | ✅ No | 0 |
+| RB1 | Jahmyr Gibbs | Jahmyr Gibbs | ✅ No | 0 |
+| RB2 | Rachaad White | Rachaad White | ✅ No | 0 |
+| WR1 | Chris Olave | Chris Olave | ✅ No | 0 |
+| WR2 | DeVonta Smith | **Quentin Johnston** | ⚠️ YES | +0.7 |
+| TE | Jake Ferguson | Jake Ferguson | ✅ No | 0 |
+| FLEX | Woody Marks | **Jacory Croskey-Merritt** | ⚠️ YES | +6.3 |
+| K | Harrison Butker | Harrison Butker | ✅ No | 0 |
+| DEF | Denver | Denver | ✅ No | 0 |
 
-The stars are aligning for a breakout in Minnesota as Smith faces a Vikings secondary that's been torched by WR2s all season. His 12.2 projection reflects consistent target share despite A.J. Brown's dominance, and this road divisional matchup historically produces fireworks. Smith profiles as a strong WR3/flex play with WR2 upside if he hits pay dirt.
+## Final Recommended Lineup
 
-**Week 7 Outlook:** START (Flex)
-**Ceiling/Floor:** Good ceiling (18 pts) / Reliable floor (9 pts)
+### Starting Lineup (9 players):
+- **QB:** Caleb Williams - 19.3 pts
+- **RB1:** Jahmyr Gibbs - 18.2 pts
+- **RB2:** Rachaad White - 16.2 pts
+- **WR1:** Chris Olave - 14.4 pts
+- **WR2:** Quentin Johnston - 12.9 pts
+- **TE:** Jake Ferguson - 12.6 pts
+- **FLEX:** Jacory Croskey-Merritt - 14.9 pts
+- **K:** Harrison Butker - 8.7 pts
+- **DEF:** Denver Broncos - 8.8 pts
 
----
+**Total Projected Points: 126.0**
 
-#### 🔄 DJ Moore (WR, CHI) - BYE WEEK 5 (Active Week 7)
-**Matchup:** vs NO (Week 7, Sunday 1:00 PM)
-**Projected:** ~11-12 pts (estimated)
-**Status:** ✅ **FLEX CONSIDERATION**
+### Bench:
+- DeVonta Smith (WR) - Consider if you want floor over ceiling
+- Woody Marks (RB) - Clear sit, chasing points from Week 4
+- Marvin Harrison Jr. (WR) - Sit due to injury concern
+- Ricky Pearsall (WR) - Likely out with knee injury
+- Josh Allen (QB) - ON BYE
+- James Cook (RB) - ON BYE
 
-Classic trap game situation facing his former team as Moore returns from bye to host New Orleans. The Saints' defensive improvements are real, but Moore's target monopoly in Chicago's passing game (30% share when healthy) provides a safe floor. Without Week 7 projections available, historical data suggests 10-12 point expectation. He's your emergency WR3/flex with the Buffalo crew on bye.
+## Key Lineup Changes & Rationale
 
-**Week 7 Outlook:** FLEX CONSIDERATION
-**Ceiling/Floor:** Moderate ceiling (18 pts) / Solid floor (8 pts)
+1. **WR2: Quentin Johnston over DeVonta Smith**
+   - Johnston's red zone role (4 TDs in 5 games) provides higher ceiling
+   - Smith's boom/bust pattern makes him riskier in a must-win spot
+   - Marginal decision - could go either way
 
----
+2. **FLEX: Jacory Croskey-Merritt over Woody Marks**
+   - Marks has collapsed since Week 4 explosion (27.9 pts)
+   - Croskey-Merritt gets 15+ touches as lead back
+   - 6.3 point projection advantage is significant
 
-### BENCH PLAYERS PROMOTED TO STARTER (1 player)
+## Game Schedule & Timing
 
-#### 🔄 TreVeyon Henderson (RB, NE) - BYE WEEK 14
-**Matchup:** @ TEN (Week 7, Sunday 1:00 PM)
-**Projected:** 9.7 pts (9.0-13.1 range)
-**Status:** ✅ **START (RB2 with Cook out)**
+### Sunday 1:00 PM Games:
+- Chris Olave @ CHI
+- DeVonta Smith @ MIN
 
-Volume is king, and Henderson should see 12-15 touches in Nashville as the Patriots' early-down grinder. The Titans have been gashed on the ground, ranking 28th in run defense DVOA, setting up a potential stat-padding opportunity. His 9.7 projection reflects flex appeal, but with Cook on bye, he becomes your RB2 by necessity. Expect RB3/flex production with a safe floor.
+### Sunday 4:05-4:25 PM Games:
+- Quentin Johnston vs IND
+- Jacory Croskey-Merritt @ DAL
+- Jake Ferguson vs WAS
+- Harrison Butker vs LV
+- Denver DEF vs NYG
+- Marvin Harrison Jr. vs GB
 
-**Week 7 Outlook:** START (Forced into RB2 role)
-**Ceiling/Floor:** Modest ceiling (15 pts) / Decent floor (7 pts)
+### Sunday Night (8:20 PM):
+- Ricky Pearsall vs ATL
 
----
+### Monday Night (7:00 PM):
+- Jahmyr Gibbs vs TB
+- Rachaad White @ DET
+- Woody Marks @ SEA
 
-### REMAINING BENCH PLAYERS (2 players - SIT)
+## Confidence Levels
 
-#### 🪑 Ricky Pearsall (WR, SF) - BYE WEEK 14
-**Matchup:** @ SF (Week 7, Sunday Night)
-**Projected:** 0.0 pts (0.0-13.0 range)
-**Injury:** Knee - PCL (Inactive Week 5)
-**Status:** ⛔ **SIT**
+- **HIGH CONFIDENCE:** Gibbs, Ferguson, Olave, White
+- **MODERATE CONFIDENCE:** Williams, Croskey-Merritt, Johnston, Denver D
+- **LOW CONFIDENCE:** Butker (inconsistent lately)
 
-The PCL injury clouds his availability, making him a risky desperation play even if active. San Francisco's run-heavy approach and Pearsall's snap count limitations project minimal opportunity against Atlanta. His 0-point floor in projections tells the story - even if he suits up, you're chasing a prayer. Keep him stashed for future weeks but don't consider starting him.
+## Projected Score Range
 
-**Week 7 Outlook:** SIT
-**Ceiling/Floor:** Limited ceiling (10 pts) / Zero floor (0 pts)
+- **Floor:** 105 points (if variance goes against us)
+- **Expected:** 126 points (based on projections)
+- **Ceiling:** 145 points (if Gibbs/Ferguson hit ceiling)
 
----
+## Final Notes
 
-#### 🪑 Tyler Allgeier (RB, ATL) - BYE WEEK 5 (Active Week 7)
-**Matchup:** @ SF (Week 7, Sunday Night 8:20 PM)
-**Projected:** ~6-8 pts (estimated)
-**Status:** ⛔ **SIT**
-
-Bench with confidence in a brutal Sunday night matchup at San Francisco. The 49ers' run defense remains elite, and Allgeier's touchdown-dependent value evaporates against a team allowing the fewest rushing scores. Without projections post-bye, expect 5-7 point floor in a game where Atlanta will likely abandon the run early. He's purely a handcuff hold this week.
-
-**Week 7 Outlook:** SIT
-**Ceiling/Floor:** Low ceiling (10 pts) / Dangerous floor (3 pts)
-
----
-
-## Waiver Wire Priorities
-
-### 🚨 URGENT - MUST ADD BEFORE WEEK 7 🚨
-
-#### Quarterback Streaming Options
-
-You **MUST** acquire a QB from waivers. Top available options:
-
-1. **Justin Herbert (LAC) - BEST OPTION**
-   - **Projected:** 19.8 pts (16.0-21.3 range)
-   - **Matchup:** vs IND (Week 7)
-   - **Why:** Highest projection of available QBs, plus matchup, rushing floor
-   - **Trending:** 170K+ adds (recently dropped, grab immediately)
-
-2. **Matthew Stafford (LAR)**
-   - **Projected:** 16.0 pts (14.1-21.0 range)
-   - **Matchup:** @ JAC (Week 7, Saturday 9:30 AM London game)
-   - **Why:** Solid floor, coming off 25.56 pt Week 5 performance
-   - **Note:** Early kickoff (9:30 AM ET Saturday) for London game
-
-3. **Michael Penix (ATL)**
-   - **Projected:** Unknown (ROS: 198.5 pts)
-   - **Matchup:** @ SF (Week 7, Sunday Night)
-   - **Why:** High ROS projection suggests upside, but tough Week 7 matchup
-   - **Risk:** Unproven, primetime road game vs elite defense
-
-**RECOMMENDATION:** **Target Justin Herbert first, Stafford as backup plan.** Herbert's 19.8 projection nearly matches Allen's usual output and the Colts matchup is plus.
-
----
-
-#### Kicker Streaming Options
-
-You **MUST** acquire a K from waivers. Top available options:
-
-1. **Chase McLaughlin (TB) - BEST OPTION**
-   - **Projected:** 7.3 pts (1.2-8.6 range)
-   - **Matchup:** @ DET (Week 7, Monday Night)
-   - **Why:** Highest ROS projection (74.8), Bucs offense moves the ball
-   - **Note:** Monday night insurance if you need points
-
-2. **Chad Ryland (ARI)**
-   - **Projected:** 7.5 pts (1.2-8.5 range)
-   - **Matchup:** vs GB (Week 7)
-   - **Why:** Home dome game, high-scoring matchup expected
-   - **Risk:** Cardinals offense can stall in red zone
-
-3. **Daniel Carlson (LV)**
-   - **Projected:** 7.0 pts (0.9-9.0 range)
-   - **Matchup:** @ KC (Week 7)
-   - **Why:** Veteran kicker with range, though tough road game
-
-**RECOMMENDATION:** **Chase McLaughlin** offers the best combination of projection and opportunity in a high-scoring Monday night game.
-
----
-
-## Week 7 Lineup Construction
-
-### Recommended Starting Lineup
-
-| Position | Player | Matchup | Projected | Confidence |
-|----------|--------|---------|-----------|------------|
-| **QB** | **STREAM: Justin Herbert** | vs IND | 19.8 | ⭐⭐⭐ |
-| **RB1** | **Jahmyr Gibbs** | vs TB (Mon) | 20.0 | ⭐⭐⭐⭐⭐ |
-| **RB2** | **TreVeyon Henderson** | @ TEN | 9.7 | ⭐⭐ |
-| **WR1** | **Marvin Harrison Jr.** | vs GB | 13.3 | ⭐⭐⭐⭐⭐ |
-| **WR2** | **Quentin Johnston** | vs IND | 14.5 | ⭐⭐⭐⭐ |
-| **WR3** | **Chris Olave** | @ CHI | 12.7 | ⭐⭐⭐⭐ |
-| **TE** | **Jake Ferguson** | vs WAS | 12.4 | ⭐⭐⭐⭐ |
-| **FLEX** | **DeVonta Smith** | @ MIN | 12.2 | ⭐⭐⭐⭐ |
-| **K** | **STREAM: Chase McLaughlin** | @ DET (Mon) | 7.3 | ⭐⭐⭐ |
-| **DEF** | **Cleveland** | vs MIA | 7.1 | ⭐⭐⭐⭐ |
-
-**Total Projected:** **~129 points** (with streaming QB/K)
-
----
-
-### Current vs Recommended Lineup
-
-| Position | Current Starter | Status | Recommended Starter | Change |
-|----------|----------------|--------|---------------------|---------|
-| QB | Josh Allen | 🚫 BYE | Justin Herbert (STREAM) | 🔄 **REQUIRED** |
-| RB1 | Jahmyr Gibbs | ✅ Active | Jahmyr Gibbs | ✅ No Change |
-| RB2 | James Cook | 🚫 BYE | TreVeyon Henderson | 🔄 **REQUIRED** |
-| WR1 | Marvin Harrison | ✅ Active | Marvin Harrison | ✅ No Change |
-| WR2 | Quentin Johnston | ✅ Active | Quentin Johnston | ✅ No Change |
-| WR3 | Khalil Shakir | 🚫 BYE | Chris Olave | 🔄 **REQUIRED** |
-| TE | Jake Ferguson | ✅ Active | Jake Ferguson | ✅ No Change |
-| FLEX | Chris Olave | ✅ Active | DeVonta Smith | 🔄 **SWAP** |
-| K | Matt Prater | 🚫 BYE | Chase McLaughlin (STREAM) | 🔄 **REQUIRED** |
-| DEF | Cleveland | ✅ Active | Cleveland | ✅ No Change |
-
-**Changes Required:** 4 forced by byes, 1 strategic flex swap
-
----
-
-## Flex Decision Analysis
-
-With **four Bills on bye**, your flex decision is simplified:
-
-**FLEX OPTIONS:**
-1. **DeVonta Smith (WR, PHI)** - 12.2 projected, @ MIN
-2. **DJ Moore (WR, CHI)** - ~11-12 projected (estimated), vs NO
-
-**WINNER: DeVonta Smith**
-
-**Rationale:**
-- ✅ Higher projection (12.2 vs ~11)
-- ✅ Better matchup (Vikings secondary vulnerable to WR2s)
-- ✅ Road divisional games favor passing volume
-- ✅ AJ Brown draws double coverage, opening targets for Smith
-- ⚠️ Moore faces improved Saints defense at home
-
-**Alternative:** You could flex DJ Moore instead if you prefer the home game and revenge narrative, but Smith has slightly better upside.
-
----
-
-## Key Matchup Notes
-
-### Elite Matchups to Exploit
-- **Jahmyr Gibbs vs TB** - Bucs allow 5th-most fantasy points to RBs
-- **Quentin Johnston vs IND** - Colts hemorrhaging points to outside WRs
-- **Cleveland DEF vs MIA** - Dolphins O-line issues + weather = sack city
-
-### Concern Matchups
-- **TreVeyon Henderson @ TEN** - Low ceiling, but forced start with Cook out
-- **Chris Olave @ CHI** - Tough Bears secondary, but target volume too high to bench
-
-### Monday Night Considerations
-- **Jahmyr Gibbs** (Mon 7:00 PM) - Your RB1 plays Monday, so you'll know standings
-- **Chase McLaughlin** (Mon 7:00 PM) - If streaming this K, gives you Monday insurance
-
----
-
-## Injury & Status Watch
-
-### Players to Monitor
-
-1. **Ricky Pearsall (WR, SF)** - Knee (PCL)
-   - Status: Inactive Week 5
-   - Monitor: Check practice reports Week 6-7
-   - Action: Keep benched even if active
-
-2. **Joe Burrow (QB, CIN)** - Toe (IR)
-   - Status: On Injured Reserve
-   - Expected Return: Week 15
-   - Note: Available on waivers if needed for playoffs
-
----
-
-## Week 7 Action Items
-
-### IMMEDIATE (Before Week 6 Waivers Close)
-- [ ] **DROP:** Matt Prater (K, BUF) - On bye, need replacement
-- [ ] **ADD:** Justin Herbert or Matthew Stafford (QB streaming)
-- [ ] **ADD:** Chase McLaughlin or Chad Ryland (K streaming)
-
-### WEEK 7 LINEUP CHANGES
-- [ ] **ACTIVATE:** DeVonta Smith to FLEX
-- [ ] **ACTIVATE:** TreVeyon Henderson to RB2
-- [ ] **ACTIVATE:** Chris Olave to WR3 (moving from FLEX)
-- [ ] **BENCH:** Josh Allen (bye)
-- [ ] **BENCH:** James Cook (bye)
-- [ ] **BENCH:** Khalil Shakir (bye)
-- [ ] **BENCH:** Matt Prater (bye)
-- [ ] **BENCH:** DJ Moore (alternate flex option)
-
-### OPTIONAL (Week 7 or Later)
-- [ ] **MONITOR:** Ricky Pearsall injury status for Week 8+
-- [ ] **CONSIDER:** Holding Justin Herbert if he has better Week 8 matchup than Allen's return
-
----
-
-## Risk Assessment
-
-### High Confidence (90%+)
-- ✅ Jahmyr Gibbs smashes TB defense
-- ✅ Marvin Harrison remains WR1 in Arizona
-- ✅ Jake Ferguson sees 6+ targets vs Washington
-
-### Medium Confidence (70-80%)
-- ⚠️ Herbert/Stafford stream provides 15+ points
-- ⚠️ DeVonta Smith outscores DJ Moore in flex
-- ⚠️ Cleveland DEF generates 2+ sacks vs Miami
-
-### Low Confidence / Risk Areas (50-60%)
-- ⚠️ TreVeyon Henderson reaches 10+ points (low ceiling RB3)
-- ⚠️ Quentin Johnston hits ceiling (boom/bust 6-20 range)
-- ⚠️ Chris Olave finds end zone vs tough Bears D
-
----
-
-## Score Projection & Outlook
-
-**Projected Score Range:** 125-145 points
-
-**Breakdown:**
-- **Best Case (145 pts):** Herbert goes off (25), Gibbs hits ceiling (30), Johnston booms (20)
-- **Expected (135 pts):** Solid contributions across lineup, streaming QB provides 16-19
-- **Worst Case (125 pts):** Henderson flops (6), Johnston busts (6), streaming QB struggles (12)
-
-**Opponent Considerations:**
-- Check your Week 7 opponent's roster for bye weeks
-- If opponent also has major byes, your chances improve significantly
-- If opponent has full roster, you'll need ceiling outcomes (Herbert 20+, Gibbs 25+)
-
----
-
-## Final Recommendations
-
-### Must-Do Actions
-1. **Stream QB:** Justin Herbert (top choice) or Matthew Stafford (backup)
-2. **Stream K:** Chase McLaughlin (top choice) or Chad Ryland (backup)
-3. **Drop Matt Prater** to make room (or drop Tyler Allgeier if you prefer)
-4. **Activate DeVonta Smith** to flex position
-5. **Activate TreVeyon Henderson** to RB2 position
-
-### Strategic Considerations
-- This is a **survival week** with 4 starters on bye
-- Focus on **floor over ceiling** with streaming adds
-- **Hold Josh Allen** - Don't panic drop your QB1
-- **Hold James Cook** - He's your RB1 for ROS
-- Consider this a **punt week** if your opponent has full roster
-- **Monday Night Factor:** Gibbs plays Monday, gives you sweat if you're close
-
-### Rest of Season Notes
-- Week 8: **Marvin Harrison** and **Jahmyr Gibbs** on bye (plan ahead)
-- Week 9: **Cleveland DEF** on bye (stream that week)
-- Week 10: **Jake Ferguson** on bye (have TE streaming plan)
-- Your core (Allen, Cook, Harrison, Gibbs) returns strong after Week 7
-
----
-
-## Confidence Level: ⭐⭐⭐ (3/5 Stars)
-
-**Rationale:**
-- ✅ Strong core when healthy (Allen, Gibbs, Harrison)
-- ✅ Elite RB1 matchup (Gibbs vs TB)
-- ✅ Solid defense streaming hold (CLE vs MIA)
-- ⚠️ **FOUR starters on bye significantly weakens ceiling**
-- ⚠️ Forced to stream QB/K (variance risk)
-- ⚠️ Henderson at RB2 lacks upside (9.7 projection)
-- ⚠️ Bench depth tested with WR3/Flex options
-
-**Bottom Line:** This is a **survival week**. If you can escape 3-2 or 4-1, you'll be in excellent shape when your Bills return for Week 8 and beyond. Don't panic—manage the bye week well, make smart streaming adds, and trust your studs (Gibbs, Harrison).
+- Monitor Harrison Jr. and Pearsall injury reports, but plan to bench both
+- Consider pivoting to DeVonta Smith if you prefer floor over ceiling
+- Denver defense is a strong hold - no streaming needed
+- Monday Night triple-stack potential (Gibbs, White, Marks) provides exciting finish to week
+- Josh Allen and James Cook return strong in Week 8
 
 ---
 
