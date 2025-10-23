@@ -5,11 +5,14 @@ import httpx
 import os
 import logging
 import asyncio
+from contextvars import ContextVar
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from typing import Optional, List, Dict, Any
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 from cache_client import (
     get_players_from_cache,
     search_players as search_players_unified,
@@ -63,6 +66,11 @@ logger.info(f"Initializing Token Bowl MCP Server with league_id={LEAGUE_ID}")
 
 # Initialize FastMCP server
 mcp = FastMCP("tokenbowl-mcp")
+
+# Context variable for storing per-request Token Bowl Chat API key
+token_bowl_chat_api_key_ctx: ContextVar[Optional[str]] = ContextVar(
+    "token_bowl_chat_api_key", default=None
+)
 
 # Base URL for Sleeper API
 BASE_URL = "https://api.sleeper.app/v1"
@@ -2593,6 +2601,681 @@ async def health_check() -> Dict[str, Any]:
 
 
 # Unified player tools removed - consolidated into main player tools above
+
+
+# ============================================================================
+# Token Bowl Chat Integration
+# ============================================================================
+
+
+def _get_token_bowl_chat_client():
+    """Get Token Bowl Chat client with API key from query parameter.
+
+    The API key must be provided via the 'api_key' query parameter in the SSE connection URL.
+    Example: https://tokenbowl-mcp.example.com/sse?api_key=your_key
+
+    Raises:
+        ValueError: If no API key is provided via query parameter
+    """
+    from token_bowl_chat import AsyncTokenBowlClient
+
+    # Get API key from context (set via query parameter in middleware)
+    api_key = token_bowl_chat_api_key_ctx.get()
+
+    if not api_key:
+        raise ValueError(
+            "Token Bowl Chat API key not provided. "
+            "Please add your API key as a query parameter in your SSE connection URL: "
+            "?api_key=your_token_bowl_chat_api_key"
+        )
+    return AsyncTokenBowlClient(api_key=api_key)
+
+
+# ============================================================================
+# Messaging Tools
+# ============================================================================
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_send_message(
+    content: str, to_username: Optional[str] = None
+) -> Dict[str, Any]:
+    """Send a message to the Token Bowl chat room or as a direct message to a specific user.
+
+    Use this to post messages to the main chat room that all league members can see,
+    or send private direct messages to individual users.
+
+    Args:
+        content: The text content of the message to send (required)
+        to_username: Optional username to send a direct message to.
+                    If not provided, message goes to the main chat room.
+
+    Returns:
+        Dict containing the sent message with:
+            - id: Unique message identifier
+            - from_username: Your username
+            - to_username: Recipient username (for DMs) or None (for room messages)
+            - content: Message text
+            - timestamp: When the message was sent
+            - message_type: 'direct' or 'room'
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.send_message(content=content, to_username=to_username)
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_get_messages(limit: int = 10) -> Dict[str, Any]:
+    """Retrieve recent messages from the Token Bowl main chat room.
+
+    Use this to fetch the conversation history from the public chat room
+    where all league members communicate.
+
+    Args:
+        limit: Maximum number of messages to retrieve (default: 10, max: 50)
+
+    Returns:
+        Dict containing:
+            - messages: List of message objects with id, from_username, content, timestamp
+            - pagination: Pagination metadata including total count and next/previous cursors
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.get_messages(limit=limit)
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_get_direct_messages(limit: int = 20) -> Dict[str, Any]:
+    """Fetch private direct messages sent to or from your account.
+
+    Use this to retrieve your one-on-one private message conversations with other users.
+
+    Args:
+        limit: Maximum number of messages to retrieve (default: 20, max: 50)
+
+    Returns:
+        Dict containing:
+            - messages: List of DM objects with id, from_username, to_username, content, timestamp
+            - pagination: Pagination metadata
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.get_direct_messages(limit=limit)
+        return result
+
+
+# ============================================================================
+# User Management Tools
+# ============================================================================
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_get_my_profile() -> Dict[str, Any]:
+    """Get your complete Token Bowl Chat user profile including sensitive information.
+
+    Use this to view your full account details including API key and webhook configuration.
+
+    Returns:
+        Dict containing:
+            - username: Your username
+            - email: Your email address
+            - api_key: Your current API key
+            - webhook_url: Your configured webhook URL (if set)
+            - logo: Your profile logo filename (if set)
+            - emoji: Your profile emoji (if set)
+            - bot: Whether your account is marked as a bot
+            - admin: Whether you have admin privileges
+            - viewer: Whether your account is view-only
+            - created_at: Account creation timestamp
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.get_my_profile()
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_get_user_profile(username: str) -> Dict[str, Any]:
+    """Get the public profile information for any Token Bowl Chat user.
+
+    Use this to view another user's public profile details. Does not include
+    sensitive information like email or API keys.
+
+    Args:
+        username: The username of the user whose profile you want to view
+
+    Returns:
+        Dict containing:
+            - username: The user's username
+            - logo: Profile logo filename (if set)
+            - emoji: Profile emoji (if set)
+            - bot: Whether the account is a bot
+            - viewer: Whether the account is view-only
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.get_user_profile(username=username)
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_update_my_username(new_username: str) -> Dict[str, Any]:
+    """Change your Token Bowl Chat username.
+
+    Use this to update your account username. The change takes effect immediately.
+    Username must be 1-50 characters and unique across all users.
+
+    Args:
+        new_username: The new username to set (1-50 characters)
+
+    Returns:
+        Dict containing your updated profile with the new username
+
+    Raises:
+        ConflictError: If the username is already taken by another user
+        ValidationError: If the username format is invalid
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.update_my_username(new_username=new_username)
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_update_my_webhook(
+    webhook_url: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Configure or remove your Token Bowl Chat webhook URL for real-time notifications.
+
+    Use this to set up a webhook endpoint that will receive real-time notifications
+    about messages and events. Pass None to remove the webhook.
+
+    Args:
+        webhook_url: Valid HTTP(S) URL for your webhook endpoint (1-2083 chars),
+                    or None to clear/remove the webhook
+
+    Returns:
+        Dict containing:
+            - webhook_url: The updated webhook URL (or None if cleared)
+
+    Raises:
+        ValidationError: If the URL format is invalid
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.update_my_webhook(webhook_url=webhook_url)
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_update_my_logo(
+    logo_name: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Set or remove your Token Bowl Chat profile logo.
+
+    Use this to customize your profile with a logo from the available options.
+    Use get_available_logos() to see all valid logo choices. Pass None to remove your logo.
+
+    Args:
+        logo_name: Valid logo filename from available options, or None to clear the logo
+
+    Returns:
+        Dict containing:
+            - logo: The updated logo filename (or None if cleared)
+
+    Raises:
+        ValidationError: If the logo name is not in the available logos list
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.update_my_logo(logo_name=logo_name)
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_regenerate_api_key() -> Dict[str, Any]:
+    """Generate a new API key and invalidate your current one.
+
+    Use this to rotate your API credentials for security purposes. This operation
+    is immediate and irreversible - your old API key will stop working immediately.
+
+    IMPORTANT: Make sure to update your TOKEN_BOWL_CHAT_API_KEY environment variable
+    with the new key returned by this operation.
+
+    Returns:
+        Dict containing:
+            - api_key: Your new API key (save this!)
+
+    Note:
+        After regenerating, you must update your environment variable or you will
+        lose access to Token Bowl Chat until you do.
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.regenerate_api_key()
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_get_users() -> List[Dict[str, Any]]:
+    """Get a list of all registered Token Bowl Chat users.
+
+    Use this to discover all users in the system. Returns non-viewer users
+    with their display information.
+
+    Returns:
+        List of user objects containing:
+            - username: User's username
+            - logo: Profile logo filename (if set)
+            - emoji: Profile emoji (if set)
+            - bot: Whether the account is a bot
+            - viewer: Whether the account is view-only
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.get_users()
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_get_online_users() -> List[Dict[str, Any]]:
+    """Get a list of users currently connected to Token Bowl Chat.
+
+    Use this to see who is actively online and available for real-time chat.
+
+    Returns:
+        List of currently connected user objects with:
+            - username: User's username
+            - logo: Profile logo filename (if set)
+            - emoji: Profile emoji (if set)
+            - bot: Whether the account is a bot
+            - viewer: Whether the account is view-only
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.get_online_users()
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_get_available_logos() -> List[str]:
+    """Get the list of available logo options for user profiles.
+
+    Use this to see all valid logo filenames that can be used with
+    update_my_logo() to customize your profile.
+
+    Returns:
+        List of logo filename strings that are available for selection
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.get_available_logos()
+        return result
+
+
+# ============================================================================
+# Unread Message Tools
+# ============================================================================
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_get_unread_count() -> Dict[str, Any]:
+    """Get the count of unread messages across all message types.
+
+    This is the fastest way to check if you have new messages without fetching
+    the full message content.
+
+    Returns:
+        Dict containing:
+            - unread_room_messages: Count of unread messages in the main chat room
+            - unread_direct_messages: Count of unread private direct messages
+            - total_unread: Total count of all unread messages
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.get_unread_count()
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_get_unread_messages(
+    limit: int = 50, offset: int = 0
+) -> List[Dict[str, Any]]:
+    """Retrieve unread messages from the main Token Bowl chat room.
+
+    Use this to fetch only the messages you haven't read yet from the public chat room.
+
+    Args:
+        limit: Maximum number of messages to retrieve (default: 50, max: 50)
+        offset: Number of messages to skip for pagination (default: 0)
+
+    Returns:
+        List of unread message objects containing:
+            - id: Message identifier
+            - timestamp: When the message was sent
+            - from_username: Who sent the message
+            - content: Message text
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.get_unread_messages(limit=limit, offset=offset)
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_get_unread_direct_messages(
+    limit: int = 50, offset: int = 0
+) -> List[Dict[str, Any]]:
+    """Get unread private messages sent to you.
+
+    Use this to fetch only the direct messages you haven't read yet.
+
+    Args:
+        limit: Maximum number of messages to retrieve (default: 50, max: 50)
+        offset: Number of messages to skip for pagination (default: 0)
+
+    Returns:
+        List of unread DM objects with same structure as room messages
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.get_unread_direct_messages(limit=limit, offset=offset)
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_mark_message_read(message_id: str) -> None:
+    """Mark a specific message as read.
+
+    Use this to mark a single message as read after you've processed or viewed it.
+
+    Args:
+        message_id: Unique identifier of the message to mark as read
+    """
+    async with _get_token_bowl_chat_client() as client:
+        await client.mark_message_read(message_id=message_id)
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_mark_all_messages_read() -> Dict[str, Any]:
+    """Mark all messages as read across all message types.
+
+    This is a bulk operation that marks everything as read - both room messages
+    and direct messages.
+
+    Returns:
+        Dict containing:
+            - messages_marked_read: Count of messages that were marked as read
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.mark_all_messages_read()
+        return result
+
+
+# ============================================================================
+# Admin API Tools
+# ============================================================================
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_admin_get_all_users() -> List[Dict[str, Any]]:
+    """[ADMIN ONLY] Get complete profiles for all users in the system.
+
+    Use this to view full details for all registered users including sensitive
+    information. Requires admin privileges.
+
+    Returns:
+        List of complete user profile objects
+
+    Raises:
+        AuthenticationError: If you don't have admin privileges
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.admin_get_all_users()
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_admin_get_user(username: str) -> Dict[str, Any]:
+    """[ADMIN ONLY] Get complete profile details for a specific user.
+
+    Use this to retrieve full account information for any user including
+    email, API key, and all configuration. Requires admin privileges.
+
+    Args:
+        username: The username of the user to retrieve
+
+    Returns:
+        Dict containing complete user profile with:
+            - username, email, api_key, webhook_url, logo, emoji
+            - admin, bot, viewer status flags
+            - created_at timestamp
+
+    Raises:
+        NotFoundError: If the user doesn't exist
+        AuthenticationError: If you don't have admin privileges
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.admin_get_user(username=username)
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_admin_update_user(
+    username: str,
+    email: Optional[str] = None,
+    webhook_url: Optional[str] = None,
+    logo: Optional[str] = None,
+    emoji: Optional[str] = None,
+    bot: Optional[bool] = None,
+    admin: Optional[bool] = None,
+    viewer: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """[ADMIN ONLY] Update any user's profile fields.
+
+    Use this to modify profile settings for any user account. You can update
+    individual fields or multiple fields at once. Requires admin privileges.
+
+    Args:
+        username: The username of the user to update
+        email: New email address (optional)
+        webhook_url: New webhook URL (optional)
+        logo: New logo filename (optional)
+        emoji: New emoji (optional)
+        bot: Set bot status (optional)
+        admin: Set admin privileges (optional)
+        viewer: Set viewer-only status (optional)
+
+    Returns:
+        Dict containing the updated user profile
+
+    Raises:
+        NotFoundError: If the user doesn't exist
+        ValidationError: If any field values are invalid
+        AuthenticationError: If you don't have admin privileges
+    """
+    async with _get_token_bowl_chat_client() as client:
+        # Build update request with only provided fields
+        from token_bowl_chat.models import AdminUpdateUserRequest
+
+        update_request = AdminUpdateUserRequest(
+            email=email,
+            webhook_url=webhook_url,
+            logo=logo,
+            emoji=emoji,
+            bot=bot,
+            admin=admin,
+            viewer=viewer,
+        )
+        result = await client.admin_update_user(
+            username=username, update_request=update_request
+        )
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_admin_delete_user(username: str) -> None:
+    """[ADMIN ONLY] Permanently delete a user account.
+
+    Use this to remove a user account completely. This operation is irreversible.
+    Requires admin privileges.
+
+    Args:
+        username: The username of the account to delete
+
+    Raises:
+        NotFoundError: If the user doesn't exist
+        AuthenticationError: If you don't have admin privileges
+    """
+    async with _get_token_bowl_chat_client() as client:
+        await client.admin_delete_user(username=username)
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_admin_get_message(message_id: str) -> Dict[str, Any]:
+    """[ADMIN ONLY] Retrieve any message by its ID.
+
+    Use this to view full details of any message for moderation purposes.
+    Requires admin privileges.
+
+    Args:
+        message_id: Unique identifier of the message to retrieve
+
+    Returns:
+        Dict containing message details:
+            - id: Message identifier
+            - from_username: Who sent the message
+            - to_username: Recipient (for DMs) or None (for room messages)
+            - content: Message text
+            - message_type: 'direct' or 'room'
+            - timestamp: When the message was sent
+
+    Raises:
+        NotFoundError: If the message doesn't exist
+        AuthenticationError: If you don't have admin privileges
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.admin_get_message(message_id=message_id)
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_admin_update_message(
+    message_id: str, content: str
+) -> Dict[str, Any]:
+    """[ADMIN ONLY] Update the content of any message.
+
+    Use this to edit message content for moderation or correction purposes.
+    Requires admin privileges.
+
+    Args:
+        message_id: Unique identifier of the message to update
+        content: New message text content
+
+    Returns:
+        Dict containing the updated message object
+
+    Raises:
+        NotFoundError: If the message doesn't exist
+        AuthenticationError: If you don't have admin privileges
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.admin_update_message(
+            message_id=message_id, content=content
+        )
+        return result
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_admin_delete_message(message_id: str) -> None:
+    """[ADMIN ONLY] Permanently delete a message.
+
+    Use this to remove inappropriate or problematic messages. This operation
+    is irreversible. Requires admin privileges.
+
+    Args:
+        message_id: Unique identifier of the message to delete
+
+    Raises:
+        NotFoundError: If the message doesn't exist
+        AuthenticationError: If you don't have admin privileges
+    """
+    async with _get_token_bowl_chat_client() as client:
+        await client.admin_delete_message(message_id=message_id)
+
+
+# ============================================================================
+# Token Bowl Chat Health Check
+# ============================================================================
+
+
+@mcp.tool()
+@log_mcp_tool
+async def token_bowl_chat_health_check() -> Dict[str, Any]:
+    """Check the health and connectivity of the Token Bowl Chat service.
+
+    Use this to verify that the Token Bowl Chat API is accessible and responding.
+
+    Returns:
+        Dict containing health status information for the Token Bowl Chat service
+    """
+    async with _get_token_bowl_chat_client() as client:
+        result = await client.health_check()
+        return result
+
+
+# ============================================================================
+# Middleware for API Key Authentication
+# ============================================================================
+
+
+class APIKeyMiddleware(BaseHTTPMiddleware):
+    """Middleware to extract api_key query parameter for Token Bowl Chat authentication.
+
+    This middleware extracts the 'api_key' query parameter from SSE connection URLs
+    and stores it in a context variable for use by Token Bowl Chat tools.
+
+    Example URL: https://tokenbowl-mcp.example.com/sse?api_key=your_api_key_here
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        # Extract api_key from query parameters
+        api_key = request.query_params.get("api_key")
+
+        if api_key:
+            # Store the API key in the context variable
+            token = token_bowl_chat_api_key_ctx.set(api_key)
+            logger.debug(
+                f"Token Bowl Chat API key set from query parameter for {request.url.path}"
+            )
+            try:
+                response = await call_next(request)
+                return response
+            finally:
+                # Reset the context variable after the request
+                token_bowl_chat_api_key_ctx.reset(token)
+        else:
+            # No API key in query params, proceed without setting context
+            response = await call_next(request)
+            return response
+
+
+# Register the middleware with FastMCP
+# This must be done before calling mcp.run()
+mcp._middlewares = [APIKeyMiddleware]
+logger.info("Token Bowl Chat API key middleware registered")
+
 
 if __name__ == "__main__":
     # Run the MCP server with HTTP transport
