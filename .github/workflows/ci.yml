@@ -60,7 +60,7 @@ jobs:
         uv run pytest tests/test_integration.py -v --tb=short --junitxml=junit/test-results-${{ matrix.python-version }}.xml
     
     - name: Upload test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: pytest-results-${{ matrix.python-version }}
