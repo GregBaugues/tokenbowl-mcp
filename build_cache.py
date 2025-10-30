@@ -705,6 +705,34 @@ def enrich_and_filter_players(
                         "news": player_ffnerd_data.get("news"),
                     }
 
+                    # Reconcile injury status: prefer FFNerd data when available
+                    # This fixes issue #119 - conflicting injury statuses
+                    if player_ffnerd_data.get("injury"):
+                        ffnerd_injury = player_ffnerd_data["injury"]
+                        game_status = ffnerd_injury.get("game_status", "").lower()
+
+                        # Map FFNerd game_status to standard injury_status
+                        if "out" in game_status:
+                            filtered_player["injury_status"] = "Out"
+                        elif "questionable" in game_status:
+                            filtered_player["injury_status"] = "Questionable"
+                        elif "doubtful" in game_status:
+                            filtered_player["injury_status"] = "Doubtful"
+                        elif "ir" in game_status or "injured reserve" in game_status:
+                            filtered_player["injury_status"] = "IR"
+                        elif ffnerd_injury.get("injury"):
+                            # If there's an injury but no specific game_status, mark as Questionable
+                            filtered_player["injury_status"] = "Questionable"
+                        else:
+                            # Clear the injury status if FFNerd says healthy/active
+                            filtered_player["injury_status"] = None
+
+                        # Also update injury body part if available
+                        if ffnerd_injury.get("injury"):
+                            filtered_player["injury_body_part"] = ffnerd_injury[
+                                "injury"
+                            ]
+
         # Add current week actual stats if available
         if sleeper_id in stats_data:
             player_stats = stats_data[sleeper_id]
