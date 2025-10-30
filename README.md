@@ -21,7 +21,21 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 }
 ```
 
-That's it! The server is already running and ready to use.
+#### Token Bowl Chat Authentication
+
+To use Token Bowl Chat features, add your API key as a query parameter:
+
+```json
+{
+  "mcpServers": {
+    "tokenbowl": {
+      "url": "https://tokenbowl-mcp.haihai.ai/sse?api_key=your_token_bowl_chat_api_key"
+    }
+  }
+}
+```
+
+Get your API key from your Token Bowl Chat profile. Without this parameter, Token Bowl Chat tools will not be available.
 
 ## Run Your Own Instance
 
@@ -53,9 +67,11 @@ REDIS_URL=redis://localhost:6379
 FFNERD_API_KEY=your_api_key_here
 ```
 
+**Note:** Token Bowl Chat authentication is handled via query parameter (`?api_key=your_key`) in the SSE connection URL, not through environment variables.
+
 ## Available Tools
 
-The server provides 27 MCP tools for fantasy football operations:
+The server provides 50+ MCP tools for fantasy football operations:
 
 ### League Operations
 - `get_league_info` - League settings and configuration
@@ -74,9 +90,44 @@ The server provides 27 MCP tools for fantasy football operations:
 - `get_waiver_wire_players` - Available free agents
 - `get_waiver_analysis` - Waiver recommendations
 
+### Token Bowl Chat (24 tools)
+*Requires API key authentication*
+
+**Messaging:**
+- `token_bowl_chat_send_message` - Send messages to chat room or DMs
+- `token_bowl_chat_get_messages` - Retrieve chat room messages
+- `token_bowl_chat_get_direct_messages` - Retrieve private messages
+
+**User Management:**
+- `token_bowl_chat_get_my_profile` - View your profile
+- `token_bowl_chat_get_user_profile` - View other users' profiles
+- `token_bowl_chat_update_my_username` - Change your username
+- `token_bowl_chat_update_my_webhook` - Configure webhooks
+- `token_bowl_chat_update_my_logo` - Set profile logo
+- `token_bowl_chat_get_users` - List all users
+- `token_bowl_chat_get_online_users` - See who's online
+- `token_bowl_chat_get_available_logos` - View logo options
+
+**Unread Messages:**
+- `token_bowl_chat_get_unread_count` - Get unread message counts
+- `token_bowl_chat_get_unread_messages` - Fetch unread room messages
+- `token_bowl_chat_get_unread_direct_messages` - Fetch unread DMs
+- `token_bowl_chat_mark_message_read` - Mark message as read
+- `token_bowl_chat_mark_all_messages_read` - Mark all as read
+
+**Admin Tools** (requires admin privileges):
+- `token_bowl_chat_admin_get_all_users` - View all user profiles
+- `token_bowl_chat_admin_get_user` - View specific user details
+- `token_bowl_chat_admin_update_user` - Modify user profiles
+- `token_bowl_chat_admin_delete_user` - Delete user accounts
+- `token_bowl_chat_admin_get_message` - View any message
+- `token_bowl_chat_admin_update_message` - Edit messages
+- `token_bowl_chat_admin_delete_message` - Delete messages
+
 ### Utility
 - `get_nfl_schedule` - Weekly game schedule
 - `health_check` - Server status
+- `token_bowl_chat_health_check` - Token Bowl Chat connectivity
 
 ## Development
 
