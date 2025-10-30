@@ -2618,7 +2618,7 @@ wheels = [
 
 [[package]]
 name = "token-bowl-chat"
-version = "1.1.0"
+version = "2.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -2634,9 +2634,9 @@ dependencies = [
     { name = "typer" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/66/c6/f606cf8e2f2df87bf5b6b508290ce2d28018687214711b860d9463b7909c/token_bowl_chat-1.1.0.tar.gz", hash = "sha256:831d15bdb3dc062537beaf12808c11c6bdeaa19e641a65834e69b06b3c6b084b", size = 159302, upload_time = "2025-10-21T12:29:06.938Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d3/a9/565c0c6d539b518e9255ed2fd42d0196bf1fd22999bce36d06ff8af95420/token_bowl_chat-2.1.1.tar.gz", hash = "sha256:d9d2b900401b1edfd9b85b800526fc0aa13f5067440fb518a0d8dddc81ffec4b", size = 175196, upload_time = "2025-10-30T20:02:37.281Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a6/63/fa3950ce9b18a5398602ffb3d4e475a4705a664140eaa51f6097a2db286d/token_bowl_chat-1.1.0-py3-none-any.whl", hash = "sha256:6a025fc131f0aaeea7cf16fe74a9b8d62b41508e6fff6c6b00ed2a760c3d5230", size = 43038, upload_time = "2025-10-21T12:29:05.324Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/e2/a39e565c76ccfa35999c5297ecf6b889cc96fec081b97edaeded660cd4b0/token_bowl_chat-2.1.1-py3-none-any.whl", hash = "sha256:f4393813075cf44d5d6b089c9074bb6cf1f283522010b4a18e5d4339c3604d88", size = 51094, upload_time = "2025-10-30T20:02:35.739Z" },
 ]
 
 [[package]]
@@ -2688,7 +2688,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "redis", specifier = ">=5.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.0" },
-    { name = "token-bowl-chat", specifier = ">=1.1.0" },
+    { name = "token-bowl-chat", specifier = ">=2.1.1" },
     { name = "vcrpy", marker = "extra == 'test'", specifier = ">=6.0.0" },
 ]
 provides-extras = ["test", "dev"]
