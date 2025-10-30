@@ -1,7 +1,5 @@
 """Test injury status reconciliation from issue #119."""
 
-import pytest
-from unittest.mock import patch, MagicMock
 from build_cache import enrich_and_filter_players
 
 

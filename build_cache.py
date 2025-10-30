@@ -729,7 +729,9 @@ def enrich_and_filter_players(
 
                         # Also update injury body part if available
                         if ffnerd_injury.get("injury"):
-                            filtered_player["injury_body_part"] = ffnerd_injury["injury"]
+                            filtered_player["injury_body_part"] = ffnerd_injury[
+                                "injury"
+                            ]
 
         # Add current week actual stats if available
         if sleeper_id in stats_data:

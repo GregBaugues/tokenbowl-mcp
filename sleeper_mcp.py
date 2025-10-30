@@ -5,7 +5,7 @@ import httpx
 import os
 import logging
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from fastmcp import FastMCP
@@ -1987,7 +1987,6 @@ async def get_nfl_schedule(week: Optional[int] = None) -> Dict[str, Any]:
             exc_info=True,
         )
         return {"error": "Failed to get NFL schedule", "details": str(e)}
-
 
 
 # @mcp.tool()
