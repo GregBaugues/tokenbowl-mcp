@@ -11,7 +11,7 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "logfire[httpx]>=4.4.0",
     "anthropic>=0.39.0",
-    "token-bowl-chat>=1.1.0",
+    "token-bowl-chat>=2.1.0",
 ]
 
 [project.optional-dependencies]
