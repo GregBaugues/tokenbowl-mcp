@@ -18,6 +18,7 @@ from cache_client import (
     search_players as search_players_unified,
     get_player_by_id,
     spot_refresh_player_stats,
+    get_cache_status,
 )
 import logfire
 from lib.decorators import log_mcp_tool
@@ -2598,6 +2599,68 @@ async def health_check() -> Dict[str, Any]:
         health_status["components"]["fantasy_nerds_api"] = {"status": "not_configured"}
 
     return health_status
+
+
+@mcp.tool()
+@log_mcp_tool
+async def force_cache_refresh() -> Dict[str, Any]:
+    """Force an immediate refresh of the NFL player data cache.
+
+    This tool manually triggers a complete rebuild of the player cache, which includes:
+    - Fetching all NFL players from Sleeper API
+    - Enriching with Fantasy Nerds data (projections, injuries, news)
+    - Fetching current week stats
+    - Updating bye week information
+    - Rebuilding search lookup tables
+
+    Use this when:
+    - You need the most up-to-date player data immediately
+    - The cache seems stale or outdated
+    - After major roster changes or breaking news
+    - When debugging cache issues
+
+    Note: This operation takes 10-20 seconds to complete as it fetches data
+    from multiple APIs. The cache normally auto-refreshes every 6 hours,
+    so manual refreshes are rarely needed.
+
+    Returns:
+        Dict with refresh status and cache metadata
+    """
+    from build_cache import cache_players
+
+    try:
+        logger.info("Starting forced cache refresh...")
+
+        # Run cache_players in thread pool since it's synchronous
+        loop = asyncio.get_event_loop()
+        success = await loop.run_in_executor(None, cache_players)
+
+        if success:
+            # Get updated cache status
+            status = get_cache_status()
+
+            return {
+                "status": "success",
+                "message": "Cache refreshed successfully",
+                "cache_info": {
+                    "total_players": status.get("total_players"),
+                    "players_with_projections": status.get("players_with_projections"),
+                    "players_with_stats": status.get("players_with_stats"),
+                    "current_week": status.get("current_week"),
+                    "season": status.get("season"),
+                    "last_updated": status.get("last_updated"),
+                    "compressed_size_mb": status.get("compressed_size_mb"),
+                },
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Failed to refresh cache. Check server logs for details.",
+            }
+
+    except Exception as e:
+        logger.error(f"Error during forced cache refresh: {e}", exc_info=True)
+        return {"status": "error", "message": str(e)}
 
 
 # Unified player tools removed - consolidated into main player tools above
