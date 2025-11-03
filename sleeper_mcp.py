@@ -3086,8 +3086,10 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
                 response = await call_next(request)
                 return response
             finally:
-                # Reset the context variable after the request
-                token_bowl_chat_api_key_ctx.reset(token)
+                # Only reset context for non-SSE endpoints
+                # SSE connections are long-lived, so we want to persist the API key
+                if not request.url.path.startswith("/sse"):
+                    token_bowl_chat_api_key_ctx.reset(token)
         else:
             # No API key in query params, proceed without setting context
             response = await call_next(request)
